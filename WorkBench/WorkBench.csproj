@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7A393573-96D1-4000-AB3C-C9195F7BC41F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>WorkBench</RootNamespace>
+    <AssemblyName>WorkBench</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Communicators\FakeEKCommunicator.cs" />
+    <Compile Include="Communicators\FakeCPC6000Communicator.cs" />
+    <Compile Include="Communicators\SerialEKCommunicator.cs" />
+    <Compile Include="Communicators\SerialCPC6000Communicator.cs" />
+    <Compile Include="Enums\ChannelCapabilities.cs" />
+    <Compile Include="Enums\PressureControllerOperationMode.cs" />
+    <Compile Include="Enums\UOMType.cs" />
+    <Compile Include="Factory.cs" />
+    <Compile Include="Interfaces\IChannel.cs" />
+    <Compile Include="Interfaces\ICommunicator.cs" />
+    <Compile Include="Interfaces\IGenerator.cs" />
+    <Compile Include="Interfaces\IInstrument.cs" />
+    <Compile Include="Interfaces\IPressureGenerator.cs" />
+    <Compile Include="Interfaces\IReader.cs" />
+    <Compile Include="Interfaces\IUOM.cs" />
+    <Compile Include="Interfaces\OneMeasureResult.cs" />
+    <Compile Include="Interfaces\Scale.cs" />
+    <Compile Include="Interfaces\TrendStatus.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\cpc6000Command_AutoVENT.cs" />
+    <Compile Include="TestEquipment\CPC6000\CPC6000ChannelBase_IPressureGenerator.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000CommandReadPressure.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_GetChannelRange.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_GetOperationMode.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_GetSetPoint.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_Get_Actual_Pressure_on_channel.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_SetOperationMode.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_SetSetPoint.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_Set_UOM_On_Channel.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000cmd.cs" />
+    <Compile Include="TestEquipment\CPC6000\CPC6000Enums.cs" />
+    <Compile Include="TestEquipment\CPC6000\CPC6000_hardwareCommands.cs" />
+    <Compile Include="TestEquipment\EK\EK.cs" />
+    <Compile Include="TestEquipment\EK\EKChannelBase.cs" />
+    <Compile Include="TestEquipment\EK\EKCommandRead_0_20_mA.cs" />
+    <Compile Include="TestEquipment\EK\EKCommunicationCommand.cs" />
+    <Compile Include="TestEquipment\EK\EKenums.cs" />
+    <Compile Include="TestEquipment\CPC6000\CPC6000.cs" />
+    <Compile Include="TestEquipment\CPC6000\CPC6000ChannelBase.cs" />
+    <Compile Include="TestEquipment\EK\EK_HardwareCommands.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascal.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascal.HardwareCommands.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascalChannel.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascalScale.cs" />
+    <Compile Include="UOM\bar.cs" />
+    <Compile Include="UOM\kPa.cs" />
+    <Compile Include="UOM\mA.cs" />
+    <Compile Include="UOM\mbar.cs" />
+    <Compile Include="UOM\MPa.cs" />
+    <Compile Include="UOM\Pa.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
