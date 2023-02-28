@@ -30,7 +30,10 @@ namespace WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan
         //    }
         //}
 
-        public abstract void Activate();
+        public virtual void Activate()
+        {
+            parentChannel.ActiveSpan = this;
+        }
         public abstract void Zero();
     }
 }
