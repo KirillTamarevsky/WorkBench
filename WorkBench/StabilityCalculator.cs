@@ -62,7 +62,7 @@ namespace WorkBench
 
             StdDeviation = Math.Sqrt(Measures.Sum(meas => Math.Pow( meas.Value - averageValue, 2))) ;
 
-            LRSlope = LRSlopeCalc(Measures);
+            LRSlopeCalc();
 
             if (MeasuresCount >= MinMeasuresCount)
             {
@@ -92,7 +92,7 @@ namespace WorkBench
             }
 
         }
-        private static double LRSlopeCalc(List<OneMeasure> oneMeasureResults)
+        private void LRSlopeCalc()
         {
             double x = 1;
             double xtotal = 0;
@@ -102,7 +102,7 @@ namespace WorkBench
             double XmultYtotal = 0;
             double Xsqr = 0;
             double Xsqrtotal = 0;
-            foreach (var item in oneMeasureResults)
+            foreach (var item in Measures)
             {
                 xtotal += x;
                 ytotal += item.Value;
@@ -113,8 +113,7 @@ namespace WorkBench
                 x++;
             }
             x--;
-            double b = (x * XmultYtotal - xtotal * ytotal) / (x * Xsqrtotal - Math.Pow(xtotal, 2));
-            return b;
+            LRSlope = (x * XmultYtotal - xtotal * ytotal) / (x * Xsqrtotal - Math.Pow(xtotal, 2));
         }
     }
 }
