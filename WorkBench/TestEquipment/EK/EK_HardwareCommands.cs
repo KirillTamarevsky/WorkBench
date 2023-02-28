@@ -4,24 +4,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WorkBench.Interfaces;
+using WorkBench.Interfaces.InstrumentChannel;
+using WorkBench.UOMS;
 
 namespace WorkBench.TestEquipment.EK
 {
-    partial class EK
+    partial class EK // : AbstractClasses.Instrument.AbstractInstrument
     {
         #region EK hardware interface commands
         //------------------------------------------------------------------------------------------
-        internal string SetCurrentChannel(int channelNumber)
+        internal string SetActiveChannel(int channelNumber)
         {
-            return _communicator.QueryCommand(string.Format("CHAN {0}", channelNumber));
+            if (channelNumber < 1 | channelNumber > 8)
+            {
+                throw new ArgumentOutOfRangeException($"Номер канала ({channelNumber}) вне допустимого диапазона (1...8) ! ");
+            }
+            
+            //TODO check if elmetro kelvin actually selected desired channel
+            
+            return Communicator.QueryCommand($"CHAN {channelNumber}");
         }
 
-        internal OneMeasureResult Read_0_20_Current_with_ext_pwr(EKchanNum eKChannel)
+        internal OneMeasure Read_0_20_Current_with_ext_pwr(EKchanNum eKChannel)
         {
-            SetCurrentChannel((int)eKChannel);
-            double result;
-            double.TryParse(_communicator.QueryCommand("CURR?").Replace(".", ","), out result);
-            return new OneMeasureResult() { Value = result, UOM = new UOM.mA(), dateTimeOfMeasurement = DateTime.Now };
+            SetActiveChannel((int)eKChannel);
+            double.TryParse(Communicator.QueryCommand("CURR?").Replace(".", ","), out double result);
+            return new OneMeasure(result, new mA(), DateTime.Now);
         }
         //------------------------------------------------------------------------------------------
         #endregion

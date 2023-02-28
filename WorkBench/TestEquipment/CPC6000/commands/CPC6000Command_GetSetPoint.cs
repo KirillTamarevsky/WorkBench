@@ -3,35 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.AbstractClasses.InstrumentCommand;
 using WorkBench.Interfaces;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    class CPC6000Command_GetSetPoint : CPC6000cmd
+    class CPC6000Command_GetSetPoint : CPC6000CommandBase
     {
-        CPC6000 _cpc;
-
-        CPC6000ChannelNumber _chan;
-
-        Action<OneMeasureResult> _actionOnReaded;
-
-        public CPC6000Command_GetSetPoint(CPC6000 cpc, CPC6000ChannelNumber chan, Action<OneMeasureResult> actionOnReaded)
+        public OneMeasure SetPoint { get; private set; }
+        
+        Action<OneMeasure> ReportTo;
+        public CPC6000Command_GetSetPoint(Action<OneMeasure> reportTo)
         {
-            _cpc = cpc;
-
-            _chan = chan;
-
-            _actionOnReaded = actionOnReaded;
+            ReportTo= reportTo;
         }
         public override void Execute()
         {
-            _cpc.CurrentChannelNum = _chan;
+            if (CPC == null | ChannelNumber == null)
+            {
+                throw new InvalidOperationException($"CPC == null({CPC == null}); ChannelNumber == null({ChannelNumber == null})");
+            }
+            CPC.SetCurrentChannelNum((CPC6000ChannelNumber)ChannelNumber);
 
-            var _SP = _cpc.SetPoint ;
+            var _SP = CPC.GetSetPoint();
 
-            var _uom = _cpc.UOM;
+            var _uom = CPC.GetPUnits();
 
-            _actionOnReaded(new OneMeasureResult() {  Value = _SP, UOM =_uom, dateTimeOfMeasurement = DateTime.Now});
+            SetPoint = new OneMeasure(_SP, _uom, DateTime.Now);
+
+            ReportTo(SetPoint);
+
         }
     }
 }

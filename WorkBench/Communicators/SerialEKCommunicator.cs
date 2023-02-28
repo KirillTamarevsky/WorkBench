@@ -6,18 +6,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WorkBench.Interfaces;
+using log4net;
 
 namespace WorkBench.Communicators
 {
-    public class SerialEKCommunicator : ICommunicator, IDisposable
+    public class SerialEKCommunicator : ITextCommunicator, IDisposable
     {
-        log4net.ILog logger = log4net.LogManager.GetLogger("Communication");
+        ILog logger = LogManager.GetLogger("Communication");
 
         SerialPort _serialPort;
 
         List<byte> _receivedBytes = new List<byte>();
-        
-        string _newLine = "\r\n";
+
+        private string NewLine { get; set; }
 
         /// <summary>
         /// Gets or sets the timeout.
@@ -26,20 +27,39 @@ namespace WorkBench.Communicators
         public TimeSpan Timeout { get; set; }
 
         AutoResetEvent _waitForSerialData;
-
-
-        public SerialEKCommunicator(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serialPortName"></param>
+        /// <param name="baudrate"></param>
+        /// <param name="parity"></param>
+        /// <param name="dataBits"></param>
+        /// <param name="stopBits"></param>
+        /// <param name="lineEndToken">символы конца строки</param>
+        public SerialEKCommunicator(
+            string serialPortName, 
+            int baudrate, 
+            Parity parity, 
+            int dataBits, 
+            StopBits stopBits, 
+            string lineEndToken)
         {
             _serialPort = new SerialPort(serialPortName, baudrate, parity, dataBits, stopBits);
-            Timeout = new TimeSpan(0, 0, 0, 3); // 3 seconds
 
-        //_serialPort.NewLine = "\n";
-    }
+            NewLine = lineEndToken;
 
-    public bool Close()
+            Timeout = TimeSpan.FromSeconds(3); // 3 seconds
+        }
+
+        public bool Close()
         {
             if (_serialPort != null && _serialPort.IsOpen)
             {
+                //_serialPort.DataReceived -= OnDataReceivedFromSerialPort;
+                
+                logger.Info($"Closing SerialEKCommunicator on {_serialPort.PortName}");
+
                 _serialPort.Close();
             }
             return true;
@@ -47,7 +67,7 @@ namespace WorkBench.Communicators
 
         public bool Open()
         {
-            bool opened = false;
+            bool serialPortOpened = false;
 
             if (_serialPort != null)
             {
@@ -55,84 +75,84 @@ namespace WorkBench.Communicators
                 {
                     logger.Debug(string.Format("try to Open {0} ", _serialPort.PortName));
                     logger.Debug(string.Format("before tryOpenSerialPort Open( {0} )", _serialPort.PortName));
-                    opened = tryOpenSerialPort( _serialPort);
-                    logger.Debug(string.Format("after tryOpenSerialPort Open ( {0} ) opened = {1}", _serialPort.PortName, opened));
+                    serialPortOpened = tryOpenSerialPort(_serialPort);
+                    logger.Debug(string.Format("after tryOpenSerialPort Open ( {0} ) opened = {1}", _serialPort.PortName, serialPortOpened));
+                    
+                    //_serialPort.DataReceived += OnDataReceivedFromSerialPort;
+                    _waitForSerialData = new AutoResetEvent(false);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    logger.Debug(string.Format("System.IO.IOException while try to open {0} | {1}", _serialPort.PortName, e));
+                    logger.Debug($"System.IO.IOException while try to open {_serialPort.PortName} | {e}");
                 }
             }
-            return opened;
+            return serialPortOpened;
         }
 
-        public string ReadLine()
+        public string ReadLine(TimeSpan readLineTimeout)
         {
-            _serialPort.DataReceived += OnDataReceivedFromSerialPort;
 
-            logger.Debug(string.Format("Start ReadLine( {0} )", _serialPort.PortName ));
-            
-            //_serialPort.ReadTimeout = 3000;
-
-            logger.Debug(string.Format("{0} Readtimeout = {1}", _serialPort.PortName, Timeout));
-            
-            string answer = "";
-
-            _receivedBytes.Clear();
-
-            _serialPort.DiscardInBuffer(); // очищаем буфер приема
-
-            Thread.Sleep(50);
-
-            _waitForSerialData = new AutoResetEvent(false);
 
             _serialPort.RtsEnable = false;
 
             _serialPort.DtrEnable = true;
 
-            if (!_waitForSerialData.WaitOne(Timeout))
+            logger.Debug($"{_serialPort.PortName} Start ReadLine(), Readtimeout = {readLineTimeout}");
+
+            //Thread.Sleep(50);
+            if (!_serialPort.IsOpen)
             {
-                
-                _serialPort.DataReceived -= OnDataReceivedFromSerialPort;
-
-                logger.Warn(string.Format("ReadLine( {0} ) TimeOut", _serialPort.PortName));
-
-                return answer;
+                var errorMessage = $"SerialPort {_serialPort.PortName} not opened while try to ReadLine";
+                logger.Error(errorMessage);
+                throw new Exception(errorMessage);
             }
+            
+            _serialPort.ReadTimeout = (int)Timeout.TotalMilliseconds;
+            try
+            {
+                do
+                {
+                    byte nextByte = (byte)_serialPort.ReadByte();
+                    logger.Debug($"InfiniteReceiveByteFromSerialPort readed from {_serialPort.PortName} | byte = {nextByte} | char = {Encoding.ASCII.GetString(new byte[] { nextByte }).Replace("\r", "\\r").Replace("\n", "\\n")}");
+                    _receivedBytes.Add(nextByte);
 
-            _serialPort.DataReceived -= OnDataReceivedFromSerialPort;
+                } while (!ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).EndsWith(NewLine));
+            }
+            catch (TimeoutException ex)
+            {
+                logger.Warn(string.Format("{0} ReadLine() TimeOut, data  in receive buffer = \"{1}\"|{2} \\ bytes to read in serial port = {3}",
+                    _serialPort.PortName,
+                    ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).Replace("\r", "\\r").Replace("\n", "\\n"),
+                    BitConverter.ToString(_receivedBytes.ToArray()),
+                    _serialPort.BytesToRead
+                    ));
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                logger.Debug($"ReceiveByteFromSerialPort {_serialPort.PortName} | Exception = {ex}");
+            }
+            //if (!_waitForSerialData.WaitOne(readLineTimeout))
+            //{
+            //    logger.Warn(string.Format("{0} ReadLine() TimeOut, data in receive buffer = \"{1}\"|{2}", 
+            //        _serialPort.PortName,
+            //        ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).Replace("\r", "\\r").Replace("\n", "\\n"),
+            //        BitConverter.ToString(_receivedBytes.ToArray())
+            //        ));
+            //    return string.Empty;
+            //}
 
-            var receivedString = ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray());
-
-            logger.Info(string.Format("ReadLine( {0} ) answer = {1} | {2}",
-                _serialPort.PortName, 
+            string answer = ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray());
+            logger.Info(
+                string.Format("{0} ReadLine() answer = \"{1}\" | {2}",
+                _serialPort.PortName,
                 answer.Replace("\r", "\\r").Replace("\n", "\\n"),
                 BitConverter.ToString(Encoding.ASCII.GetBytes(answer))
                 ));
 
-            return receivedString.TrimEnd(_newLine.ToCharArray());
+            return answer.TrimEnd(NewLine.ToCharArray());
 
-            //try
-            //{
-            //    if (_serialPort.IsOpen)
-            //    {
-            //        logger.Debug("Start ReadLine( " + _serialPort.PortName + ") is open");
-
-            //        answer = _serialPort.ReadTo("\r\n");
-
-            //        logger.Debug("ReadLine( " + _serialPort.PortName + " ) answer = " + answer.Replace("\r", "\\r").Replace("\n", "\\n") + " " + BitConverter.ToString(Encoding.ASCII.GetBytes(answer)));
-            //    }
-            //}
-            //catch (TimeoutException)
-            //{
-            //    answer = "";
-
-            //    logger.Debug("ReadLine( " +_serialPort.PortName + " ) TimeOut " );
-            //}
-
-            //return answer;
         }
-
         private void OnDataReceivedFromSerialPort(object sender, SerialDataReceivedEventArgs e)
         {
             var sp = (SerialPort)sender;
@@ -145,11 +165,12 @@ namespace WorkBench.Communicators
 
                     while (sp.BytesToRead > 0)
                     {
-                        _receivedBytes.Add((byte)sp.ReadByte());
+                        byte nextByte = (byte)sp.ReadByte();
+                        
+                        _receivedBytes.Add(nextByte);
 
-                        if (ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).EndsWith(_newLine))
+                        if (ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).EndsWith(NewLine))
                         {
-                            sp.DiscardInBuffer();
                             _waitForSerialData.Set();
                             return;
                         }
@@ -157,63 +178,70 @@ namespace WorkBench.Communicators
                     break;
 
                 case SerialData.Eof:
-
+                    
                     _waitForSerialData.Set();
-
                     break;
 
                 default:
                     break;
             }
-
         }
 
         public bool SendLine(string cmd)
         {
-            logger.Debug(string.Format("Start SendLine( {0} )", _serialPort.PortName ));
-            
-            if (_serialPort.IsOpen)
+            logger.Debug($"Start SendLine( {_serialPort.PortName} )");
+
+            if (!_serialPort.IsOpen)
             {
-                _serialPort.WriteTimeout = 1000;
-
-                logger.Debug(string.Format("{0} WriteTimeout = {1}", _serialPort.PortName, _serialPort.WriteTimeout));
-
-                try
-                {
-                    var dataToSend = cmd;
-                    
-                    logger.Info(
-                        string.Format("SendLine( {0} ) dataToSend = {1} | {2}",
-                        _serialPort.PortName,
-                        (dataToSend + "\r\n").Replace("\r", "\\r").Replace("\n", "\\n"),
-                        BitConverter.ToString(Encoding.ASCII.GetBytes(dataToSend)))
-                        );
-                    _serialPort.DtrEnable = false;
-                    _serialPort.RtsEnable = true;
-
-                    DateTime startTime = DateTime.Now;
-
-                    _serialPort.Write(dataToSend);
-                    _serialPort.Write("\r\n");
-
-                    SleepAfterSend(dataToSend.Length * 2, startTime);
-
-                    _serialPort.RtsEnable = false;
-                    _serialPort.DtrEnable = true;
-                }
-                catch (TimeoutException)
-                {
-                    logger.Debug("SendLine() TimeOut" + _serialPort.PortName);
-                    return false;
-                }
-                return true;
+                var errorMessage = $"SerialPort {_serialPort.PortName} not opened while try to SendLine";
+                logger.Error(errorMessage);
+                throw new Exception(errorMessage);
             }
-            return false;
+
+            _serialPort.WriteTimeout = 1000;
+
+            logger.Debug($"{_serialPort.PortName} WriteTimeout = {_serialPort.WriteTimeout}");
+                
+            try
+            {
+                var dataToSend = cmd + NewLine;
+
+                logger.Info(
+                    string.Format("SendLine( {0} ) dataToSend = {1} | {2}",
+                    _serialPort.PortName,
+                    dataToSend.Replace("\r", "\\r").Replace("\n", "\\n"),
+                    BitConverter.ToString(Encoding.ASCII.GetBytes(dataToSend)))
+                    );
+
+                _serialPort.DtrEnable = false;
+                _serialPort.RtsEnable = true;
+
+                DateTime startTime = DateTime.Now;
+
+                _serialPort.Write(dataToSend);
+
+                SleepAfterSend(dataToSend.Length, startTime);
+
+                _serialPort.RtsEnable = false;
+                _serialPort.DtrEnable = true;
+            }
+            catch (TimeoutException)
+            {
+                logger.Debug($"SendLine({_serialPort.PortName}) TimeOut");
+                return false;
+            }
+            return true;
         }
 
         public string QueryCommand(string cmd)
         {
-            return SendLine(cmd)? ReadLine() : "" ;
+            _receivedBytes.Clear();
+
+            _serialPort.DiscardInBuffer(); // очищаем буфер приема
+            
+            _waitForSerialData.Reset();
+
+            return SendLine(cmd) ? ReadLine(Timeout) : "";
         }
 
         private void SleepAfterSend(int dataLength, DateTime startTime)
@@ -277,7 +305,7 @@ namespace WorkBench.Communicators
                 t.Start();
                 logger.Debug("tryOpenSerialPort(" + serialPort.PortName + ") t.Wait(2500); ");
                 t.Wait(2500);
-                logger.Debug("tryOpenSerialPort(" + serialPort.PortName + ") after t.Wait(2500); " +  t.Status);
+                logger.Debug("tryOpenSerialPort(" + serialPort.PortName + ") after t.Wait(2500); " + t.Status);
 
             }
             catch (System.Threading.Tasks.TaskCanceledException)
@@ -292,7 +320,7 @@ namespace WorkBench.Communicators
             if (t.Status == TaskStatus.RanToCompletion)
             {
                 logger.Debug("tryOpenSerialPort(" + serialPort.PortName + ") return true before res = t.Result ");
-                res =  t.Result;
+                res = t.Result;
                 logger.Debug("tryOpenSerialPort(" + serialPort.PortName + ") return true after res = t.Result ");
                 return res;
             }
@@ -302,13 +330,10 @@ namespace WorkBench.Communicators
 
         public override string ToString()
         {
-            return string.Format( "последовательный порт {0}" , _serialPort.PortName);
+            return string.Format("последовательный порт {0}", _serialPort.PortName);
         }
+
+        public bool IsOpen => _serialPort != null &&_serialPort.IsOpen;
     }
-
-
-
-
-
 }
 

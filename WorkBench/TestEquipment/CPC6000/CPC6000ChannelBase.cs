@@ -1,119 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.AbstractClasses.InstrumentCommand;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
+using WorkBench.Interfaces.InstrumentChannel;
+using WorkBench.AbstractClasses.InstrumentChannel;
+using WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan;
+using WorkBench.AbstractClasses.Instrument;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    public partial class CPC6000ChannelBase : IChannel, IReader, IPressureGenerator
+    public partial class CPC6000Channel : AbstractInstrumentChannel
     {
+        internal CPC6000ChannelNumber ChannelNumber;
+        public CPC6000Channel(CPC6000 _parent, CPC6000ChannelNumber channum)
+        {
+            parent = _parent;
+            ChannelNumber = channum;
+            var _scale = _parent.GetActualScaleOnChannel(ChannelNumber);
+            AvailableSpans = new IInstrumentChannelSpan[] { new CPC6000ChannelSpan(this, _scale) };
+        }
+
         List<Scale> supportedMeasureTypes
         {
             get
             {
-                Scale scale = parent.GetActualScaleOnChannel((CPC6000ChannelNumber)NUM);
+                //Scale scale = ((CPC6000)parent).GetActualScaleOnChannel((CPC6000ChannelNumber)NUM);
 
-                return new List<Scale>() { scale };
+                //return new List<Scale>() { scale };
+                return new List<Scale>(AvailableSpans.Select(span => span.Scale));
             }
         }
-
-        protected internal CPC6000 parent;
 
         UOMType lastReadType = UOMType.Pressure;
 
-        public event NewValueReaded NewValueReaded;
-
-        protected void RaiseNewValueReaded()
+        CPC6000 _parent;
+        public override AbstractInstrument parent 
         {
-            if (NewValueReaded != null) 
-            { 
-                NewValueReaded(this); 
-            }
-        }
+            get => _parent;
 
-        private int _num; 
-
-        public int NUM
-        {
-            get
-            {
-                return _num;
-            }
             protected internal set
             {
-                _num = value;
+                if (!(value is CPC6000 p)) throw new ArgumentException($"{value.GetType()} is not {typeof(CPC6000)}");
+
+                _parent = p;
             }
         }
-
-        public bool CanRead(Scale scale)
-        {
-
-            CPC6000cmd cmd = new CPC6000Command_Set_UOM_On_Channel(parent, (CPC6000ChannelNumber)this.NUM, scale.UOM.Name );
-
-            parent.cPC6000CommunicationCommands.Enqueue(cmd);
-
-            return supportedMeasureTypes
-                .FindAll(s => s.UOM.UOMType == scale.UOM.UOMType)
-                .FindAll(s => s.UOM.Name == scale.UOM.Name)
-                .FindAll(s => (s.Min <= scale.Min))
-                .FindAll(s => (s.Max >= scale.Max))
-                .Count > 0;
-        }
-
-        public void Read(UOMType uOMType)
-        {
-            switch (uOMType)
-            {
-                case UOMType.Pressure:
-                    CPC6000cmd cmd = new CPC6000Command_Get_Actual_Pressure_on_channel(parent, (CPC6000ChannelNumber)_num);
-                    parent.cPC6000CommunicationCommands.Enqueue(cmd);
-                    lastReadType = uOMType;
-                    break;
-                default:
-                    throw new Exception("wrong UOM!");
-            }
-        }
-
-        public CPC6000ChannelBase()
-        {
-        }
-
-        public string Name
+        public override string Name
         {
             get
             {
-                return String.Format("{0} {1} канал {2} {3}",
-                    parent.Description,
-                    parent.Name,
-                    NUM,
-                    supportedMeasureTypes.FirstOrDefault().ToString()
-                    ) ;
+                return $"{parent.Description} {parent.Name} канал {NUM} {supportedMeasureTypes.FirstOrDefault()}";
             }
+            protected internal set { }
         }
 
-        private OneMeasureResult _lastValue;
-        public OneMeasureResult lastValue
+        internal override void EnqueueInstrumentCmd(InstrumentCmd instrumentCmd)
         {
-            get
-            {
-                return _lastValue;
-            }
-            protected internal set
-            {
-                _lastValue = value;
+            if (!(instrumentCmd is CPC6000CommandBase cmd)) throw new ArgumentException($"{instrumentCmd.GetType()} не является {typeof(CPC6000CommandBase)}");
 
-                RaiseNewValueReaded();
-                if (CyclicRead)
-                {
-                    Read(lastReadType);
-                }
-            }
+            cmd.ChannelNumber = ChannelNumber;
+
+            base.EnqueueInstrumentCmd(instrumentCmd);
         }
-
-        public bool CyclicRead { get; set ; }
+        public override int NUM { get ; protected internal set ; }
 
         public override string ToString()
         {

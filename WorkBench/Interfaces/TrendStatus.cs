@@ -8,8 +8,9 @@ namespace WorkBench.Interfaces
 {
     public enum TrendStatus
     {
+        Unknown,
         GrowUP,
-        GrowDown,
+        FallDown,
         Stable
     }
 }

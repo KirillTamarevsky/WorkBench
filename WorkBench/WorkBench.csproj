@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WorkBench</RootNamespace>
     <AssemblyName>WorkBench</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,28 +49,41 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractClasses\InstrumentChannel\InstrumentChannelSpan\AbstractInstrumentChannelSpanReader_and_Generator.cs" />
+    <Compile Include="AbstractClasses\InstrumentChannel\InstrumentChannelSpan\AbstractInstrumentChannelSpanReader.cs" />
+    <Compile Include="AbstractClasses\InstrumentChannel\AbstractInstrumentChannel.cs" />
+    <Compile Include="AbstractClasses\InstrumentChannel\InstrumentChannelSpan\AbstractInstrumentChannelSpan.cs" />
+    <Compile Include="AbstractClasses\InstrumentCommand\InstrumentCmd.cs" />
+    <Compile Include="AbstractClasses\Instrument\AbstractInstrument.cs" />
+    <Compile Include="Communicators\FakeEVoltaCommunicator.cs" />
+    <Compile Include="Communicators\FakeEPascalKCommunicator.cs" />
     <Compile Include="Communicators\FakeEKCommunicator.cs" />
-    <Compile Include="Communicators\FakeCPC6000Communicator.cs" />
+    <Compile Include="Communicators\FakeCPC6000SerialPort.cs" />
+    <Compile Include="Communicators\IWBSerialPortWrapper.cs" />
     <Compile Include="Communicators\SerialEKCommunicator.cs" />
     <Compile Include="Communicators\SerialCPC6000Communicator.cs" />
+    <Compile Include="Communicators\WBSerialPortWrapper.cs" />
+    <Compile Include="CyclicChannelReader.cs" />
     <Compile Include="Enums\ChannelCapabilities.cs" />
     <Compile Include="Enums\PressureControllerOperationMode.cs" />
     <Compile Include="Enums\UOMType.cs" />
     <Compile Include="Factory.cs" />
-    <Compile Include="Interfaces\IChannel.cs" />
     <Compile Include="Interfaces\ICommunicator.cs" />
-    <Compile Include="Interfaces\IGenerator.cs" />
+    <Compile Include="Interfaces\InstrumentChannel\IInstrumentChannel.cs" />
+    <Compile Include="Interfaces\ITextCommunicator.cs" />
+    <Compile Include="Interfaces\InstrumentChannel\IInstrumentChannelSpan.cs" />
+    <Compile Include="Interfaces\InstrumentChannel\IInstrumentChannelSpanGenerator.cs" />
     <Compile Include="Interfaces\IInstrument.cs" />
-    <Compile Include="Interfaces\IPressureGenerator.cs" />
-    <Compile Include="Interfaces\IReader.cs" />
+    <Compile Include="Interfaces\InstrumentChannel\IInstrumentChannelSpanPressureGenerator.cs" />
+    <Compile Include="Interfaces\InstrumentChannel\IInstrumentChannelSpanReader.cs" />
     <Compile Include="Interfaces\IUOM.cs" />
-    <Compile Include="Interfaces\OneMeasureResult.cs" />
+    <Compile Include="Interfaces\OneMeasure.cs" />
     <Compile Include="Interfaces\Scale.cs" />
     <Compile Include="Interfaces\TrendStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestEquipment\CPC6000\commands\cpc6000Command_AutoVENT.cs" />
-    <Compile Include="TestEquipment\CPC6000\CPC6000ChannelBase_IPressureGenerator.cs" />
-    <Compile Include="TestEquipment\CPC6000\commands\CPC6000CommandReadPressure.cs" />
+    <Compile Include="StabilityCalculator.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\CPC6000CommandBase.cs" />
+    <Compile Include="TestEquipment\CPC6000\commands\cpc6000Command_AutoZero.cs" />
     <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_GetChannelRange.cs" />
     <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_GetOperationMode.cs" />
     <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_GetSetPoint.cs" />
@@ -77,30 +91,51 @@
     <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_SetOperationMode.cs" />
     <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_SetSetPoint.cs" />
     <Compile Include="TestEquipment\CPC6000\commands\CPC6000Command_Set_UOM_On_Channel.cs" />
-    <Compile Include="TestEquipment\CPC6000\commands\CPC6000cmd.cs" />
+    <Compile Include="TestEquipment\CPC6000\CPC6000ChannelSpan.cs" />
     <Compile Include="TestEquipment\CPC6000\CPC6000Enums.cs" />
     <Compile Include="TestEquipment\CPC6000\CPC6000_hardwareCommands.cs" />
+    <Compile Include="TestEquipment\EK\channelSpans\EKChannelSpan_0_20_mA.cs" />
+    <Compile Include="TestEquipment\EVolta\commands\EVoltaCommandBase.cs" />
     <Compile Include="TestEquipment\EK\EK.cs" />
-    <Compile Include="TestEquipment\EK\EKChannelBase.cs" />
-    <Compile Include="TestEquipment\EK\EKCommandRead_0_20_mA.cs" />
-    <Compile Include="TestEquipment\EK\EKCommunicationCommand.cs" />
+    <Compile Include="TestEquipment\EK\EKChannel.cs" />
+    <Compile Include="TestEquipment\EK\commands\EKCommand_Read_0_20_mA.cs" />
     <Compile Include="TestEquipment\EK\EKenums.cs" />
     <Compile Include="TestEquipment\CPC6000\CPC6000.cs" />
     <Compile Include="TestEquipment\CPC6000\CPC6000ChannelBase.cs" />
     <Compile Include="TestEquipment\EK\EK_HardwareCommands.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Set_Active_Module_Range.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Get_SetPoint.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Set_SetPoint.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Set_Generation_OFF.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Set_Vent_Close.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Set_Generation_ON.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Get_Operation_Mode.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Zeroing_Pressure.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Set_Vent_Open.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\commands\EPascalCommand_Get_Actual_Pressure.cs" />
     <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascal.cs" />
     <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascal.HardwareCommands.cs" />
     <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascalChannel.cs" />
+    <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascalChannelSpan.cs" />
     <Compile Include="TestEquipment\ElmetroPascal\ElmetroPascalScale.cs" />
-    <Compile Include="UOM\bar.cs" />
-    <Compile Include="UOM\kPa.cs" />
-    <Compile Include="UOM\mA.cs" />
-    <Compile Include="UOM\mbar.cs" />
-    <Compile Include="UOM\MPa.cs" />
-    <Compile Include="UOM\Pa.cs" />
+    <Compile Include="TestEquipment\EVolta\commands\EVoltaReadPassiveCurrentCommand.cs" />
+    <Compile Include="TestEquipment\EVolta\EVolta.cs" />
+    <Compile Include="TestEquipment\EVolta\EVoltaChannel.cs" />
+    <Compile Include="UOMS\DegreeCelcius.cs" />
+    <Compile Include="UOMS\Pressure\bar.cs" />
+    <Compile Include="UOMS\Pressure\kgfcmsq.cs" />
+    <Compile Include="UOMS\Pressure\kPa.cs" />
+    <Compile Include="UOMS\mA.cs" />
+    <Compile Include="UOMS\Pressure\mbar.cs" />
+    <Compile Include="UOMS\Pressure\mmH2OAt4DegreesCelsius.cs" />
+    <Compile Include="UOMS\Pressure\MPa.cs" />
+    <Compile Include="UOMS\Pressure\Pa.cs" />
+    <Compile Include="UOMS\Pressure\PressureUOM.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <Compile Include="TestEquipment\EVolta\channelSpans\EVoltaPassiveCurrentReaderSpan.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

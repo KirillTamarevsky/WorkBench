@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.Interfaces.InstrumentChannel;
 
 namespace WorkBench.Interfaces
 {
     public interface IInstrument
     {
-        IChannel this[int i] { get; }
-        IChannel[] Channels { get; }
+        //ITextCommunicator _communicator { get; }
+        //IInstrumentChannel this[int i] { get; }
+        IInstrumentChannel[] Channels { get; }
         string Name { get; }
         string Description { get; }
-        bool Open();
+        Task<bool> Open();
         bool Close();
+        bool IsOpen { get; }
     }
 }

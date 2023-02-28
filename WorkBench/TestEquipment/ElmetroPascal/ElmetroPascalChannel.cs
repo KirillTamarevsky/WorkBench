@@ -3,138 +3,103 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.AbstractClasses.InstrumentCommand;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
-using WorkBench.UOM;
+using WorkBench.Interfaces.InstrumentChannel;
+using WorkBench.UOMS;
+using WorkBench.AbstractClasses.InstrumentChannel;
+using WorkBench.AbstractClasses.Instrument;
 
 namespace WorkBench.TestEquipment.ElmetroPascal
 {
-    public class ElmetroPascalChannel : IChannel, IReader, IPressureGenerator
+    public class ElmetroPascalChannel : AbstractInstrumentChannel
     {
-        protected internal ElmetroPascal parent;
+        public ElmetroPascal _parent { get; protected internal set; }
 
-        #region IPressureGenerator
-        
-        PressureControllerOperationMode _operationMode;
-        public PressureControllerOperationMode OperationMode
+
+        #region AbstractInstrumentChannel
+        public override int NUM 
         {
-            get
-            {
-                return _operationMode;
-            }
-            set
-            {
-                _operationMode = value;
-                switch (value)
-                {
-                    case PressureControllerOperationMode.UNKNOWN:
-                        break;
-                    case PressureControllerOperationMode.STANDBY:
-                    case PressureControllerOperationMode.MEASURE:
-                        parent.StopPressureGeneration();
-                        break;
-                    case PressureControllerOperationMode.CONTROL:
-                        parent.StartPressureGeneration();
-                        break;
-                    case PressureControllerOperationMode.VENT:
-                        parent.VentOpen();
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        OneMeasureResult _setPoint;
-        public OneMeasureResult SetPoint 
-        {
-            get 
-            {
-                return _setPoint;
-            }
-            
-            set
-            {
-                if (value.UOM.UOMType == UOMType.Pressure)
-                {
-                    _setPoint = value;
-                    parent.SetSetPoint(value.Value * (value.UOM.Factor / new kPa().Factor));
-                }
-                
-            }
-
-        }
-        #endregion
-
-        #region IChannel
-
-
-        public int NUM
-        {
+            protected internal set { }
             get
             {
                 return 1;
             }
         }
 
-        public string Name
+        private string _name;
+        public override string Name
         {
+            protected internal set
+            {
+                _name = value;
+            }
+
             get
             {
-                return "канал давления";
+                return _name;
             }
         }
 
-        #endregion
-
-        #region IReader
-
-        public OneMeasureResult lastValue => throw new NotImplementedException();
-      
-        private bool _cyclicRead;
-        public bool CyclicRead 
+        public override AbstractInstrument parent 
         { 
             get
             {
-                return _cyclicRead;
+                return _parent;
             }
-            set
+            protected internal set
             {
-                _cyclicRead = value;
+                var ep = value as ElmetroPascal;
+                if (ep == null)
+                {
+                    throw new ArgumentException(string.Format("{0} is not {1}", value.GetType().Name, typeof(ElmetroPascal).Name));
+                }
+                _parent = ep;
             }
-        }
-
-        public event NewValueReaded NewValueReaded;
-
-        public bool CanRead(Scale scale)
-        {
-            
-            throw new NotImplementedException();
-        }
-
-        public void Read(UOMType uOMType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool CanGeneratePressureForGivenScale(Scale scale)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool PrepareForGenerationOnGivenScale(Scale scale)
-        {
-            throw new NotImplementedException();
         }
 
         #endregion
 
-        public ElmetroPascalChannel()
+
+        public ElmetroPascalChannel(ElmetroPascal elmetroPascal)
         {
-            OperationMode = PressureControllerOperationMode.UNKNOWN;
+            if (elmetroPascal == null) throw new ArgumentNullException($"Элметро-Паскаль = NULL");
+
+            parent = elmetroPascal;
+
+            Name = "канал давления";
+            //setup Channel Spans
+            var availableSpans = ((ElmetroPascal)parent).UsableRangesAsync();
+
+            var _avSpans = new List<ElmetroPascalChannelSpan>();
+
+            foreach (var span in availableSpans)
+            {
+                var avspan = 
+                    new ElmetroPascalChannelSpan() 
+                    { 
+                        parentChannel = this, 
+
+                        //SetPressureOperationMode(PressureControllerOperationMode.UNKNOWN),
+
+                        Scale = span
+                    };
+                avspan.SetPressureOperationMode(PressureControllerOperationMode.UNKNOWN);
+                _avSpans.Add(avspan);
+            }
+
+            AvailableSpans = _avSpans.ToArray();
         }
 
+        public override string ToString()
+        {
+            var min = AvailableSpans.OrderBy(a => a.Scale.Min).Select(a => a.Scale.Min).FirstOrDefault();
+            
+            var max = AvailableSpans.OrderByDescending(a => a.Scale.Max).Select(a => a.Scale.Max).FirstOrDefault();
 
+            return String.Format("канал 1: {0} - {1} {2}", min, max, "kPa");
+        }
 
 
     }

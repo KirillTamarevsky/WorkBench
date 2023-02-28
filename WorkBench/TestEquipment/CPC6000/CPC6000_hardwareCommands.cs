@@ -4,18 +4,20 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.AbstractClasses.Instrument;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
-using WorkBench.UOM;
+using WorkBench.UOMS;
+using WorkBench.UOMS.Pressure;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
     public partial class CPC6000
     {
+
         #region CPC6000 hardware interface commands
 
         //####################################################
-        private bool _connected = false;
         private string _serialNo;
         public string SerialNo
         {
@@ -50,7 +52,7 @@ namespace WorkBench.TestEquipment.CPC6000
         }
         private void GetLastError()
         {
-            string answer = _communicator.QueryCommand("Errorno?");
+            string answer = Communicator.QueryCommand("Errorno?");
             string[] errorparts = answer.Split(new char[] { '-' });
             if (errorparts.Length == 2)
             {
@@ -70,7 +72,7 @@ namespace WorkBench.TestEquipment.CPC6000
             get
             {
                 bool flag = false;
-                if (_connected)
+                if (isConnected)
                 {
                     switch (Query("AS?").ToUpper())
                     {
@@ -87,11 +89,15 @@ namespace WorkBench.TestEquipment.CPC6000
                 return flag;
             }
         }
-        public double ChanAReading
+        public double? ChanAReading
         {
             get
             {
                 var rawdata = Query("A?").Replace(",", ".");
+                if (string.IsNullOrEmpty(rawdata))
+                {
+                    return null;
+                }
                 double res;
                 double.TryParse(
                     rawdata,
@@ -106,7 +112,7 @@ namespace WorkBench.TestEquipment.CPC6000
             get
             {
                 bool flag = false;
-                if (_connected)
+                if (isConnected)
                 {
                     switch (Query("BS?").ToUpper())
                     {
@@ -123,11 +129,15 @@ namespace WorkBench.TestEquipment.CPC6000
                 return flag;
             }
         }
-        public double ChanBReading
+        public double? ChanBReading
         {
             get
             {
                 var rawdata = Query("B?").Replace(",", ".");
+                if (string.IsNullOrEmpty(rawdata))
+                {
+                    return null;
+                }
                 double res;
                 double.TryParse(
                     rawdata,
@@ -145,74 +155,72 @@ namespace WorkBench.TestEquipment.CPC6000
                 return double.Parse(Query("Baro?"), NumberStyles.Float, new CultureInfo((int)CultureTypes.NeutralCultures));
             }
         }
-        public PressureControllerOperationMode OperationMode
-        {
-            get
-            {
-                PressureControllerOperationMode mode = PressureControllerOperationMode.UNKNOWN;
-                if (_connected)
-                {
-                    string answer = Query("Mode?");
-                    switch (answer.ToUpper())
-                    {
-                        case "STANDBY":
-                            mode = PressureControllerOperationMode.STANDBY;
-                            break;
-                        case "MEASURE":
-                            mode = PressureControllerOperationMode.MEASURE;
-                            break;
-                        case "CONTROL":
-                            mode = PressureControllerOperationMode.CONTROL;
-                            break;
-                        case "VENT":
-                            mode = PressureControllerOperationMode.VENT;
-                            break;
-                    }
-                }
-                return mode;
 
-            }
-            set
+        public PressureControllerOperationMode GetOperationMode()
+        {
+            PressureControllerOperationMode mode = PressureControllerOperationMode.UNKNOWN;
+            if (isConnected)
             {
-                switch (value)
+                string answer = Query("Mode?");
+                switch (answer.ToUpper())
                 {
-                    case PressureControllerOperationMode.STANDBY:
-                        _communicator.SendLine("Mode STANDBY");
+                    case "STANDBY":
+                        mode = PressureControllerOperationMode.STANDBY;
                         break;
-                    case PressureControllerOperationMode.MEASURE:
-                        _communicator.SendLine("Mode MEASURE");
+                    case "MEASURE":
+                        mode = PressureControllerOperationMode.MEASURE;
                         break;
-                    case PressureControllerOperationMode.CONTROL:
-                        _communicator.SendLine("Mode CONTROL");
+                    case "CONTROL":
+                        mode = PressureControllerOperationMode.CONTROL;
                         break;
-                    case PressureControllerOperationMode.VENT:
-                        _communicator.SendLine("Mode VENT");
+                    case "VENT":
+                        mode = PressureControllerOperationMode.VENT;
                         break;
-                    default:
-                        log4net.LogManager.GetLogger("CPC6000Communication").Debug(
-                            string.Format("CPC6000 OperationMode( {0} ) - invalid operation mode", _communicator.ToString() )); 
-                        throw new Exception("CPC6000 OperationMode() - invalid operation mode");
                 }
+            }
+            return mode;
+
+        }
+        public void SetOperationMode(PressureControllerOperationMode value)
+        {
+            switch (value)
+            {
+                case PressureControllerOperationMode.STANDBY:
+                    Communicator.SendLine("Mode STANDBY");
+                    break;
+                case PressureControllerOperationMode.MEASURE:
+                    Communicator.SendLine("Mode MEASURE");
+                    break;
+                case PressureControllerOperationMode.CONTROL:
+                    Communicator.SendLine("Mode CONTROL");
+                    break;
+                case PressureControllerOperationMode.VENT:
+                    Communicator.SendLine("Mode VENT");
+                    break;
+                default:
+                    log4net.LogManager.GetLogger("CPC6000Communication").Debug(
+                        string.Format("CPC6000 OperationMode( {0} ) - invalid operation mode", Communicator.ToString()));
+                    throw new Exception("CPC6000 OperationMode() - invalid operation mode");
             }
         }
-        internal double SetPoint
+
+        internal double GetSetPoint()
         {
-            get
-            {
-                double setpoint = double.MinValue;
-                    string answer = Query("Setpt?").Replace(',','.');
-                    double.TryParse(answer,
-                                     NumberStyles.Float,
-                                     new CultureInfo((int)CultureTypes.NeutralCultures),
-                                     out setpoint);
-                return setpoint;
-            }
-            set
-            {
-                _communicator.SendLine(
-                        String.Format("Setpt {0}", 
-                        value.ToString("E04", new CultureInfo((int)CultureTypes.NeutralCultures) )));
-            }
+            double setpoint = double.MinValue;
+            string answer = Query("Setpt?").Replace(',', '.');
+            double.TryParse(answer,
+                             NumberStyles.Float,
+                             new CultureInfo((int)CultureTypes.NeutralCultures),
+                             out setpoint);
+            return setpoint;
+        }
+        internal void SetSetPoint(double value)
+        {
+            Communicator.SendLine(
+                    String.Format(
+                        "Setpt {0}",
+                        value.ToString("E04", new CultureInfo((int)CultureTypes.NeutralCultures))
+                        ));
         }
         public int OutForm
         {
@@ -226,7 +234,7 @@ namespace WorkBench.TestEquipment.CPC6000
             {
                 if (value > 0 & value < 8)
                 {
-                    _communicator.SendLine(String.Format("OUTFORM {0}", value));
+                    Communicator.SendLine(String.Format("OUTFORM {0}", value));
                 }
             }
         }
@@ -255,131 +263,120 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
             }
         }
-        public CPC6000ChannelNumber CurrentChannelNum
-        {
-            get
-            {
-                switch (Query("Chan?"))
-                {
-                    case "A":
-                        return CPC6000ChannelNumber.A;
-                    case "B":
-                        return CPC6000ChannelNumber.B;
-                    default:
-                        throw new Exception("invalid channel number");
-                }
-            }
-            set
-            {
-                switch (value)
-                {
-                    case CPC6000ChannelNumber.A:
-                        _communicator.SendLine("Chan A");
-                        return;
-                    case CPC6000ChannelNumber.B:
-                        _communicator.SendLine("Chan B");
-                        return;
-                    default:
-                        throw new Exception("invalid channel number");
-                }
-            }
-        }
-        public double RangeMin
-        {
-            get
-            {
-                _communicator.SendLine("Sensor P,1");
-                var rawdata = Query("RangeMin?").Replace(",", ".");
-                double res;
-                double.TryParse(
-                    rawdata, 
-                    NumberStyles.Float, 
-                    new CultureInfo( (int)CultureTypes.NeutralCultures ),
-                    out res);
-                return res;
-            }
-        }
-        public double RangeMax
-        {
-            get
-            {
-                _communicator.SendLine("Sensor P,1");
-                var rawdata = Query("RangeMax?").Replace(",", ".");
-                double res;
-                double.TryParse(
-                    rawdata,
-                    NumberStyles.Float,
-                    new CultureInfo( (int)CultureTypes.NeutralCultures ),
-                    out res);
-                return res;
-            }
-        }
-        public bool AbsPressureSupported
-        {
-            get
-            {
-                bool _absSupported = false;
-                string ptp = PType;
-                switch (ptp)
-                {
-                    case "A":
-                    case "ABSOLUTE":
-                    case "Absolute":
-                        _absSupported = true;
-                        break;
-                    case "G":
-                    case "GAUGE":
-                    case "Gauge":
-                        ToggleAbsGauge();
-                        string ptp1 = PType;
-                        switch (ptp1)
-                        {
-                            case "A":
-                            case "ABSOLUTE":
-                            case "Absolute":
-                                _absSupported = true;
-                                break;
-                        }
-                        break;
-                    default:
-                        log4net.LogManager.GetLogger("CPC6000Communication").Debug(
-                            string.Format("AbsPressureSupported( {0} ) error", _communicator.ToString())
-                            );
-                        throw new Exception("AbsPressureSupported() error");
-                }
-                return _absSupported;
 
+        public CPC6000ChannelNumber GetCurrentChannelNum()
+        {
+            switch (Query("Chan?"))
+            {
+                case "A":
+                    return CPC6000ChannelNumber.A;
+                case "B":
+                    return CPC6000ChannelNumber.B;
+                default:
+                    throw new Exception("invalid channel number");
             }
+        }
+        public void SetCurrentChannelNum(CPC6000ChannelNumber value)
+        {
+            switch (value)
+            {
+                case CPC6000ChannelNumber.A:
+                    Communicator.SendLine("Chan A");
+                    return;
+                case CPC6000ChannelNumber.B:
+                    Communicator.SendLine("Chan B");
+                    return;
+                default:
+                    throw new Exception("invalid channel number");
+            }
+        }
+
+        public double GetRangeMin()
+        {
+            Communicator.SendLine("Sensor P,1");
+            var rawdata = Query("RangeMin?").Replace(",", ".");
+            double res;
+            double.TryParse(
+                rawdata,
+                NumberStyles.Float,
+                new CultureInfo((int)CultureTypes.NeutralCultures),
+                out res);
+            return res;
+        }
+
+        public double GetRangeMax()
+        {
+            Communicator.SendLine("Sensor P,1");
+            var rawdata = Query("RangeMax?").Replace(",", ".");
+            double res;
+            double.TryParse(
+                rawdata,
+                NumberStyles.Float,
+                new CultureInfo((int)CultureTypes.NeutralCultures),
+                out res);
+            return res;
+        }
+
+        public bool GetAbsPressureSupported()
+        {
+            bool _absSupported = false;
+            string ptp = PType;
+            switch (ptp)
+            {
+                case "A":
+                case "ABSOLUTE":
+                case "Absolute":
+                    _absSupported = true;
+                    break;
+                case "G":
+                case "GAUGE":
+                case "Gauge":
+                    ToggleAbsGauge();
+                    string ptp1 = PType;
+                    switch (ptp1)
+                    {
+                        case "A":
+                        case "ABSOLUTE":
+                        case "Absolute":
+                            _absSupported = true;
+                            break;
+                    }
+                    break;
+                default:
+                    log4net.LogManager.GetLogger("CPC6000Communication").Debug(
+                        string.Format("AbsPressureSupported( {0} ) error", Communicator.ToString())
+                        );
+                    throw new Exception("AbsPressureSupported() error");
+            }
+            return _absSupported;
 
         }
-        public string PUnits
+
+        public void SetPUnits(string value)
         {
-            get
-            {
-                return Query("Units?");
-            }
-            set
-            {
-                _communicator.SendLine(string.Format("Units {0}", value));
-            }
+            Communicator.SendLine($"Units {value}"); 
         }
-        public Interfaces.IUOM UOM
+        public IUOM GetPUnits()
         {
-            get
+            var unit = Query("Units?").ToUpper();
+            switch (unit)
             {
-                switch (Query("Units?").ToUpper())
-                {
-                    case "BAR":
-                        return new UOM.bar();
-                    case "MBAR":
-                        return new UOM.mbar();
-                    case "KPA":
-                        return new UOM.kPa();
-                    case "MPA":
-                        return new UOM.MPa();
-                    default:
-                        throw new Exception("not implemented pressure units");
-                }
+                case "BAR":
+                    return new bar();
+                case "MBAR":
+                    return new mbar();
+                case "KPA":
+                    return new kPa();
+                case "MPA":
+                    return new MPa();
+                case "PA":
+                case "PASCAL":
+                    return new Pa();
+                case "MMH2O 4C":
+                case "MMH2O @4C":
+                    return new mmH2OAt4DegreesCelsius();
+                default:
+                    throw new Exception("not implemented pressure units");
             }
         }
         public string PType
@@ -396,7 +393,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     case "GAUGE":
                     case "A":
                     case "ABSOLUTE":
-                        _communicator.SendLine(String.Format("Ptype {0}", value));
+                        Communicator.SendLine(String.Format("Ptype {0}", value));
                         return;
                     default:
                         throw new Exception("invalid pressure type");
@@ -405,7 +402,7 @@ namespace WorkBench.TestEquipment.CPC6000
         }
         public void ToggleAbsGauge()
         {
-            _communicator.SendLine("_pcs4 func F1");
+            Communicator.SendLine("_pcs4 func F1");
             return;
         }
         public string GetOpts
@@ -415,18 +412,34 @@ namespace WorkBench.TestEquipment.CPC6000
                 return Query("_pcs4 opt?");
             }
         }
+        
+        [Obsolete("НЕ РАБОТАЕТ! НА ЭКРАНЕ ОТОБРАЖАЮТСЯ СООБЩЕНИЯ ОБ ОШИБКЕ", true)]
+        internal void KeyLock(bool state)
+        {
+            switch (state)
+            {
+                case true:
+                    Communicator.SendLine("Keylock Yes");
+                    break;
+                case false:
+                    Communicator.SendLine("Keylock No");
+                    break;
+                default:
+                    break;
+            }
+        }
 
         public string Query(string cmd)
         {
             ResetError();
             
-            string answer = _communicator.QueryCommand(cmd);
+            string answer = Communicator.QueryCommand(cmd);
             
             if (answer.StartsWith("E"))
             {
                 GetLastError();
             
-                answer = answer.Trim(new Char[] { 'E' });
+                answer = answer.TrimStart(new Char[] { 'E' });
             }
             
             answer = answer.Trim();
@@ -439,45 +452,48 @@ namespace WorkBench.TestEquipment.CPC6000
 
         #region CPC6000 high level commands
 
+        //internal Scale GetActualScaleOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
+        //{
+
+        //    var cmd = new CPC6000Command_GetChannelRange() { ChannelNumber = cPC6000ChannelNumber};
+        //    EnqueueInstrumentCmd(cmd);
+        //    while (!cmd.Executed){}
+
+        //    return cmd.Result;
+
+        //}
         internal Scale GetActualScaleOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
         {
-            bool readed = false;
-
-            Scale readedScale = null;
-
-            CPC6000cmd cmd = new CPC6000Command_GetChannelRange(
-                this,
-                cPC6000ChannelNumber,
-                (Scale scale) =>
-                {
-                    readedScale = scale;
-                    readed = true;
-                }
-                );
-
-
-            var asdfg = new Task(() => { cPC6000CommunicationCommands.Enqueue(cmd); });
-            asdfg.Start();
-            while (!readed) { } ;
-            return readedScale;
-            //return new Scale() { Min = -1.25, Max = 1.25, UOM = new kPa() };
-
+            SetCurrentChannelNum(cPC6000ChannelNumber);
+            var rngMin = GetRangeMin();
+            var rngMax = GetRangeMax();
+            var rngUOM = GetPUnits();
+            var Result = new Scale(rngMin, rngMax, rngUOM);
+            return Result;
         }
-
         internal void SetUOMOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber, string uomname)
         {
-            CurrentChannelNum = cPC6000ChannelNumber;
-
-            PUnits = uomname;
+            SetCurrentChannelNum(cPC6000ChannelNumber);
+            if (uomname == "kgf/cm²") 
+            {
+                SetPUnits("kg/sq cm");
+                return;
+            }
+            if (uomname == new mmH2OAt4DegreesCelsius().Name)
+            {
+                SetPUnits("mmH2O @4C");
+                return;
+            }
+            SetPUnits(uomname);
         }
 
-        internal OneMeasureResult GetActualPressureOnChannel ( CPC6000ChannelNumber channum)
+        internal OneMeasure GetActualPressureOnChannel ( CPC6000ChannelNumber channum)
         {
-            CurrentChannelNum = channum;
+            SetCurrentChannelNum(channum);
 
-            var uomonchannel = UOM;
+            var uomonchannel = GetPUnits();
 
-            double chanReading;
+            double? chanReading;
 
             switch (channum)
             {
@@ -493,7 +509,11 @@ namespace WorkBench.TestEquipment.CPC6000
                 default:
                     throw new Exception("Invalid channum!");
             }
-            return new OneMeasureResult() { Value = chanReading, UOM = uomonchannel, dateTimeOfMeasurement = DateTime.Now };
+            if (chanReading == null)
+            {
+                return null;
+            }
+            return new OneMeasure((double)chanReading, uomonchannel, DateTime.Now );
         }
         #endregion
     }

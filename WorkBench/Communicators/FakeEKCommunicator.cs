@@ -9,13 +9,14 @@ using WorkBench.Interfaces;
 namespace WorkBench.Communicators
 {
 
-    public class FakeEKCommunicator : ICommunicator
+    public class FakeEKCommunicator : ITextCommunicator
     {
+        bool isopened;
         private string _portName;
 
         private string _sendedLine;
 
-        private double prevValue = 3.5;
+        //private double prevValue = 3.5;
 
         public FakeEKCommunicator(string portName)
         {
@@ -24,17 +25,19 @@ namespace WorkBench.Communicators
 
         public bool Open()
         {
+            isopened = true;
             return true;
         }
         public bool Close()
         {
+            isopened = false;
             return true;
         }
-
-        public string ReadLine()
+        public bool IsOpen => isopened;
+        public string ReadLine(TimeSpan readLineTimeout)
         {
             string answer = "";
-            Thread.Sleep(50);
+            Thread.Sleep(5);
             switch (_sendedLine.Trim())
             {
                 case "REMOTE":
@@ -49,7 +52,7 @@ namespace WorkBench.Communicators
                 case "CURR?":
                     //prevValue += (new System.Random()).NextDouble() * 0.0016;
                     //answer = prevValue.ToString("N4");
-                    answer = ((new System.Random()).NextDouble() * 0.009 + 3.5) .ToString("N4");
+                    answer = ((new System.Random()).NextDouble() * 0.009 + 13.5) .ToString("N4");
                     break;
                 case "CHAN 1":
                     answer = "1";
@@ -81,7 +84,7 @@ namespace WorkBench.Communicators
         public string QueryCommand(string cmd)
         {
             SendLine(cmd);
-            return ReadLine();
+            return ReadLine(TimeSpan.FromSeconds(3));
         }
 
         public override string ToString()

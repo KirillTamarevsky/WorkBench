@@ -8,10 +8,8 @@ namespace WorkBench.Interfaces
 {
     public interface ICommunicator
     {
-        bool SendLine(string cmd);
-        string ReadLine();
-        string QueryCommand(string cmd);
         bool Open();
         bool Close();
+        bool IsOpen { get; }
     }
 }

@@ -9,6 +9,8 @@ using WorkBench.Communicators;
 using WorkBench.Interfaces;
 using WorkBench.TestEquipment.EK;
 using WorkBench.TestEquipment.CPC6000;
+using WorkBench.TestEquipment.ElmetroPascal;
+using WorkBench.TestEquipment.EVolta;
 
 namespace WorkBench
 {
@@ -24,13 +26,14 @@ namespace WorkBench
 
             return ek;
         }
+
         static public IInstrument GetEK_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
         {
             EK ek = null;
 
-            if (IsSerialPortValid(serialPortName))
+            if (IsSerialPortPresentInSystem(serialPortName))
             {
-                var communicator = new SerialEKCommunicator(serialPortName, baudrate, parity, dataBits, stopBits);
+                var communicator = new SerialEKCommunicator(serialPortName, baudrate, parity, dataBits, stopBits, "\r\n");
 
                 ek = new EK(communicator);
 
@@ -41,10 +44,58 @@ namespace WorkBench
         {
             return GetEK_on_SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
         }
+        static public IInstrument GetEVolta_on_SerialPort_with_default_Port_Settings(string portName)
+        {
+            EVolta evolta = null;
 
+            if (IsSerialPortPresentInSystem(portName))
+            {
+                var communicator = new SerialEKCommunicator(portName, 9600, Parity.None, 8, StopBits.One, "\r\n");
+
+                evolta = new EVolta(communicator);
+
+            }
+            return evolta;
+        }
+
+        static public IInstrument GetFakeEVolta(string portName)
+        {
+            var communicator = new FakeEVoltaCommunicator(portName);
+
+            var evolta = new EVolta(communicator);
+
+            return evolta;
+        }
+        static public IInstrument GetFakeEPascal(string portName)
+        {
+            var communicator = new FakeEPascalCommunicator(portName);
+
+            var ek = new ElmetroPascal(communicator);
+
+            return ek;
+        }
+        static public IInstrument GetEPascal_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        {
+            ElmetroPascal ep = null;
+
+            if (IsSerialPortPresentInSystem(serialPortName))
+            {
+                var communicator = new SerialEKCommunicator(serialPortName, baudrate, parity, dataBits, stopBits, "\r\n");
+
+                ep = new ElmetroPascal(communicator);
+
+            }
+
+            return ep;
+        }
+        static public IInstrument GetEPascal_on_SerialPort_with_default_Port_Settings(string portName)
+        {
+            return GetEPascal_on_SerialPort(portName, 19200, Parity.Odd, 8, StopBits.One);
+        }
         static public IInstrument GetCPC6000_on_Fake_SerialPort()
         {
-            var communicator = new FakeCPC6000Communicator("COM111", 57600, Parity.None, 8, StopBits.One);
+            var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
+            var communicator = new SerialCPC6000Communicator(fakeSerialPortWrapper);
 
             var cpc = new CPC6000(communicator);
 
@@ -54,9 +105,10 @@ namespace WorkBench
         {
             CPC6000 cpc = null;
 
-            if (IsSerialPortValid(serialPortName))
+            if (IsSerialPortPresentInSystem(serialPortName))
             {
-                var communicator = new SerialCPC6000Communicator(serialPortName, baudrate, parity, dataBits, stopBits);
+                var serialPortWrapper = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
+                var communicator = new SerialCPC6000Communicator(serialPortWrapper);
 
                 cpc = new CPC6000(communicator);
 
@@ -76,7 +128,7 @@ namespace WorkBench
         /// используются стандартные настройки порта: 115200, Parity.None, 8 dataBits, StopBits.One.
         /// </summary>
         /// <returns>возвращает List string всех последовательных портов, за которыми найдены Элметро-Кельвины</returns>
-        public static List<string> serialPortNamesWithEK()
+        public static async Task< List<string>> serialPortNamesWithEK()
         {
             log4net.ILog logger = log4net.LogManager.GetLogger("Communication"); //typeof(Factory));
 
@@ -99,7 +151,7 @@ namespace WorkBench
                     {
                         try
                         {
-                            opened = tryPort.Open();
+                            opened = tryPort.Open().GetAwaiter().GetResult();
                         }
                         catch (Exception e)
                         {
@@ -137,7 +189,7 @@ namespace WorkBench
             
             try
             {
-                Task.WhenAll(searchTasks).ContinueWith(t => { }, TaskContinuationOptions.OnlyOnCanceled).Wait();
+                await Task.WhenAll(searchTasks).ContinueWith(t => { }, TaskContinuationOptions.OnlyOnCanceled);
             
                 //Task.WaitAll(searchTasks.ToArray());
             }
@@ -167,22 +219,9 @@ namespace WorkBench
             return res;
         }
         
-        static bool IsSerialPortValid(String serialPortName)
+        public static bool IsSerialPortPresentInSystem(string serialPortName)
         {
-            string[] presentSerialPorts = SerialPort.GetPortNames();
-            
-            bool spIsInSystem = false;
-            
-            foreach (string sp in presentSerialPorts)
-            {
-            
-                if (sp == serialPortName)
-                {
-                    spIsInSystem = true;
-                }
-            }
-            
-            return spIsInSystem;
+            return GetSerialPortsNames().Contains(serialPortName);
         }
         
         static public string[] GetSerialPortsNames()

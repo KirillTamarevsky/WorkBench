@@ -10,6 +10,7 @@ namespace WorkBench.Enums
     {
         Current,
         Pressure,
-        Resistance
+        Resistance,
+        Temperature
     }
 }

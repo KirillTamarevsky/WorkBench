@@ -4,51 +4,38 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WorkBench.Interfaces;
+using WorkBench.Interfaces.InstrumentChannel;
+using WorkBench.AbstractClasses.Instrument;
 
 namespace WorkBench.TestEquipment.ElmetroPascal
 {
-    public partial class ElmetroPascal : IInstrument, IDisposable
+    public partial class ElmetroPascal : AbstractInstrument // IInstrument, IDisposable
     {
         log4net.ILog logger = log4net.LogManager.GetLogger(typeof(ElmetroPascal));
 
-        IChannel[] _channels = new ElmetroPascalChannel[1];
+        IInstrumentChannel[] _channels = new ElmetroPascalChannel[1];
 
-        internal ICommunicator _communicator;
+        private bool _in_REMOTE_mode;
+        public override bool IsOpen => base.IsOpen && _in_REMOTE_mode;
 
-        bool _in_REMOTE_mode;
-
-        public ElmetroPascal(ICommunicator communicator)
+        public ElmetroPascal(ITextCommunicator communicator): base(communicator)
         {
-            logger.Info("ElmetroPascal created for " + communicator.ToString());
-
-            _communicator = communicator;
+            logger.Info($"ElmetroPascal created for {communicator}");
 
             _in_REMOTE_mode = false;
 
-            this[0] = new ElmetroPascalChannel();
-
         }
-        public IChannel this[int i]
+        public IInstrumentChannel this[int i]
         {
-            set
-            {
-                if (i == 0)
-                {
-                    ((ElmetroPascalChannel)value).parent = this;
-                    _channels[i] = value;
-                }
-            }
             get
             {
-                if (i == 0)
-                {
-                    return _channels[i];
-                }
-                return null;
+                if (i != 0) throw new ArgumentOutOfRangeException($"номер канала {i} вне допустимого диапазона");
+
+                return _channels[i];
             }
         }
 
-        public IChannel[] Channels
+        public override IInstrumentChannel[] Channels
         {
             get
             {
@@ -56,39 +43,62 @@ namespace WorkBench.TestEquipment.ElmetroPascal
             }
         }
 
-        public string Name
+        public override string Name
         {
-            get
-            {
-                return "Элметро-Кельвин";
-            }
+            get => "Элметро-Паскаль";
         }
 
-        public string Description
+        public override string Description
         {
-            get
-            {
-                return "Калибратор-контроллер давления";
-            }
+            get => "Калибратор-контроллер давления";
         }
 
-        public bool Close()
+        public override bool Close()
         {
-            throw new NotImplementedException();
-        }
+            base.Close();
 
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
+            SwitchToLOCALMode();
 
-        public bool Open()
-        {
-            #region Setup Channels
-            
-            #endregion
+            Communicator.Close();
 
             return true;
+        }
+
+        public override async Task<bool> Open()
+        {
+             return await Task.Run(async () =>
+            {
+
+                if (Communicator.Open())
+                {
+                    await base.Open();
+
+                    if (SwitchToREMOTEMode())
+                    {
+
+                        #region Setup Channels
+                        var epch = new ElmetroPascalChannel(this);
+
+                        //epch._parent = this;
+
+                        _channels[0] = epch;
+
+                        #endregion
+
+                        return true;
+                    }
+
+                    base.Close();
+                    Communicator.Close();
+                }
+
+                return false;
+            });
+
+        }
+        public override string ToString()
+        {
+            return String.Format("{0} {1}({2})", Description, Name, Communicator.ToString()); 
         }
     }
 }

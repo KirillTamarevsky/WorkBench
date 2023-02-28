@@ -8,17 +8,18 @@ namespace WorkBench.Interfaces
 {
     public class Scale
     {
-        private double _min;
-        public double Min { set { _min = value; } get { return _min; } }
-
-        private double _max;
-        public double Max { set { _max = value; } get { return _max; } }
-
-        public IUOM UOM { get; set; }
-
+        public Scale(double min, double max, IUOM uom)
+        {
+            Min = min;
+            Max = max;
+            UOM = uom;
+        }
+        public double Min { get;}
+        public double Max { get ;}
+        public IUOM UOM { get; }
         public override string ToString()
         {
-            return string.Format("{0} ... {1} {2}", _min, _max, UOM.Name );
+            return $"{Min} ... {Max} {UOM.Name}";
         }
     }
 }
