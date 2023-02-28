@@ -27,7 +27,7 @@ namespace WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan
         public OneMeasure LastValue
         {
             get { return _lastValue; }
-            set 
+            internal set 
             { 
                 _lastValue = value;
                 //RaiseNewValueReaded(_lastValue);
