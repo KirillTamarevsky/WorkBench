@@ -45,13 +45,13 @@ namespace WorkBench
             DateTime mintimestamp;
             TimeSpan timespan;
 
-            mintimestamp = Measures.Min(cm => cm.TimeStamp); //.OrderBy(cm => cm.TimeStamp).Select(cm => cm.TimeStamp).FirstOrDefault();
+            mintimestamp = Measures.Min(cm => cm.TimeStamp); 
             timespan = DateTime.Now - mintimestamp;
 
             while (timespan.TotalSeconds > MinTimeToStabilize.TotalSeconds & Measures.Count > MinMeasuresCount)
             {
                 Measures.RemoveAt(0);
-                mintimestamp = Measures.Min(cm => cm.TimeStamp); //Measures.OrderBy(cm => cm.TimeStamp).Select(cm => cm.TimeStamp).FirstOrDefault();
+                mintimestamp = Measures.Min(cm => cm.TimeStamp);
                 timespan = DateTime.Now - mintimestamp;
 
             }
@@ -59,11 +59,6 @@ namespace WorkBench
             MeasuringTimeSpan = timespan;
 
             var averageValue = Measures.Average((om) => om.Value);
-
-            //double stdev = 0;
-            //foreach (var item in Measures) { stdev += Math.Pow((item.Value - averageValue), 2); }
-            //stdev = Math.Sqrt(stdev);
-            //StdDeviation = stdev;
 
             StdDeviation = Math.Sqrt(Measures.Sum(meas => Math.Pow( meas.Value - averageValue, 2))) ;
 
