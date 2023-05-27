@@ -9,7 +9,6 @@ namespace WorkBench.Interfaces.InstrumentChannel
 {
     public interface IInstrumentChannelSpanPressureGenerator : IInstrumentChannelSpanGenerator
     {
-        void GetPressureOperationMode(Action<PressureControllerOperationMode> reportTo);
-        void SetPressureOperationMode(PressureControllerOperationMode value);
+        PressureControllerOperationMode PressureOperationMode { get; set; }
     }
 }

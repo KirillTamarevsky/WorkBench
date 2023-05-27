@@ -7,13 +7,9 @@ using WorkBench.Enums;
 
 namespace WorkBench.Interfaces.InstrumentChannel
 {
-    public interface IInstrumentChannelSpanReader
+    public interface IInstrumentChannelSpanReader : IInstrumentChannelSpan
     {
-        void Read(IUOM uom, Action<OneMeasure> reportTo);
-        //bool CyclicRead { get; set; }
-
-        //event NewValueReaded NewValueReaded;
-        //OneMeasure LastValue { get; }
+        OneMeasure Read(IUOM uom);
     }
 
 }

@@ -4,121 +4,174 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WorkBench.Interfaces.InstrumentChannel;
-using WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan;
 using WorkBench.Interfaces;
 using WorkBench.Enums;
 using WorkBench.UOMS;
+using System.Globalization;
+using System.Threading;
 
 namespace WorkBench.TestEquipment.ElmetroPascal
 {
-    public class ElmetroPascalChannelSpan : AbstractInstrumentChannelSpanReader_and_Generator, IInstrumentChannelSpanPressureGenerator
+    public class ElmetroPascalChannelSpan : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader
     {
-        public ElmetroPascalChannelSpan()
+        log4net.ILog logger = log4net.LogManager.GetLogger("EPascalCommunication");
+        private readonly ElmetroPascalChannel parentChannel;
+        private readonly ElmetroPascalScale thisScale;
+        private OneMeasure LastValue;
+        private OneMeasure _setPoint;
+        public ElmetroPascalChannelSpan(ElmetroPascalChannel epChannel, ElmetroPascalScale epScale)
         {
-//            CyclicRead = false;
+            parentChannel = epChannel;
 
-            //OperationMode = PressureControllerOperationMode.UNKNOWN;
+            thisScale = epScale;
 
-            SetPoint = new OneMeasure(0, new kPa(), DateTime.Now);
+            _setPoint = new OneMeasure(0, new kPa(), DateTime.Now);
 
             LastValue = new OneMeasure(0, new kPa(), DateTime.Now);
-
         }
 
-        #region AbstractInstrumentChannelSpanReader_and_Generator
-        private OneMeasure _setPoint;
-        public OneMeasure SetPoint { get{return _setPoint;}internal set{_setPoint = value;}
-        }
-
-        public override void GetSetPoint(Action<OneMeasure> reportTo)
+        public OneMeasure SetPoint
         {
-            EnqueueInstrumentCmd(new EPascalCommand_Get_SetPoint(this, reportTo));
-        }
-        public override void SetSetPoint(OneMeasure value)
-        {
-            //((ElmetroPascal)parentChannel.parent).EnqueueInstrumentCmd(
-            //    new EPascalCommand_Set_SetPoint((ElmetroPascal)parentChannel.parent, value)
-            //    ); 
-                EnqueueInstrumentCmd(new EPascalCommand_Set_SetPoint(this, value));
-        }
+            get => _setPoint;
+            set 
+            {
+                //Элметро-Паскаль позволяет задать уставку за диапазоном измерений поддиапазона
+                //в пределах ± 10 % от всей шкалы этого диапазона
+                var scaleRange = thisScale.Max - thisScale.Min;
+                var ScaleMin = new OneMeasure(thisScale.Min - scaleRange * 0.1 , thisScale.UOM);
+                var ScaleMax = new OneMeasure(thisScale.Max + scaleRange * 0.1, thisScale.UOM);
 
-        public override void Read(IUOM uom, Action<OneMeasure> reportTo)
+                OneMeasure correctedSetPoint = value;
+
+                if (value < ScaleMin) ScaleMin.TryConvertTo(value.UOM, out correctedSetPoint);
+
+                if (value > ScaleMax) ScaleMax.TryConvertTo(value.UOM, out correctedSetPoint);
+
+                lock (parentChannel.parentEPascal.Communicator)
+                {
+                    if (correctedSetPoint.TryConvertTo(new kPa(), out OneMeasure setPointInKPA))
+                    {
+                        var epreply = parentChannel.parentEPascal.Communicator.QueryCommand($"TARGET {setPointInKPA.Value.ToString(CultureInfo.InvariantCulture)}");
+                        if (epreply.Contains("OK"))
+                        {
+                            _setPoint = correctedSetPoint;
+                        }
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// indicates that some thread is reading Pressure now. So, no need to read it again, just grab readed value
+        /// </summary>
+        private bool readingnow;
+        /// <summary>
+        /// Read Actual pressure on channel.
+        /// </summary>
+        /// <param name="uom">must be UOMType.Pressure</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"> throws if UOM type is not Pressure</exception>
+        public OneMeasure Read(IUOM uom)
         {
-            var logger = log4net.LogManager.GetLogger("");
-            logger.Info(string.Format("read uom = {0}", uom.Name));
+            logger.Info($"read uom = { uom.Name }");
 
             if (uom.UOMType != UOMType.Pressure) throw new ArgumentException($"wrong UOM! ({uom.UOMType} - {uom.Name})");
-            
-            var cmd = new EPascalCommand_Get_Actual_Pressure(this, uom, reportTo);
-            EnqueueInstrumentCmd(cmd);
+
+            var skipActualReading = readingnow == true;
+            lock (parentChannel.parentEPascal.Communicator)
+            {
+                if (!skipActualReading)
+                {
+                    readingnow = true;
+                    parentChannel.ActivateSpan(this);
+                    
+                    LastValue = null;
+                    OneMeasure res = null;
+                    
+                    var epreply = parentChannel.parentEPascal.Communicator.QueryCommand("PRES?").Trim().Replace(',', '.');
+                    
+                    if (float.TryParse(epreply, NumberStyles.Float, new System.Globalization.NumberFormatInfo(), out float pressureValue))
+                        res = new OneMeasure(pressureValue, new kPa());
+                    
+                    if (res != null && res.TryConvertTo(uom, out OneMeasure convertedResult))
+                        LastValue = convertedResult;
+                    
+                    readingnow = false;
+                }
+            }
+            return LastValue;
         }
 
-        #endregion
 
         #region IInstrumentChannelSpanPressureGenerator
-
-        public PressureControllerOperationMode OperationMode { get; private set; }
-
-        public void GetPressureOperationMode(Action<PressureControllerOperationMode> reportTo)
+        private PressureControllerOperationMode _pressureOperationMode { get => parentChannel._pressureOperationMode; }
+        public PressureControllerOperationMode PressureOperationMode 
         {
-            EnqueueInstrumentCmd(new EPascalCommand_Get_Operation_Mode(this, reportTo));
-            //reportTo(OperationMode);
-        }
-
-        public void SetPressureOperationMode(PressureControllerOperationMode value)
-        {
-
-            var ep = parentChannel.parent as ElmetroPascal;
-            switch (value)
+            get
             {
-                case PressureControllerOperationMode.UNKNOWN:
-                    break;
-                case PressureControllerOperationMode.STANDBY:
-                case PressureControllerOperationMode.MEASURE:
-                    EnqueueInstrumentCmd(new EPascalCommand_Set_Generation_OFF(ep));
-                    break;
-                case PressureControllerOperationMode.CONTROL:
-                    if (OperationMode == PressureControllerOperationMode.VENT)
-                    {
-                        EnqueueInstrumentCmd(new EPascalCommand_Set_Vent_Close(ep));
-                    }
-                    EnqueueInstrumentCmd(new EPascalCommand_Set_Generation_ON(ep));
-                    break;
-                case PressureControllerOperationMode.VENT:
-                    if (OperationMode == PressureControllerOperationMode.CONTROL)
-                    {
-                        EnqueueInstrumentCmd(new EPascalCommand_Set_Generation_OFF(ep));
-                    }
-                    EnqueueInstrumentCmd(new EPascalCommand_Set_Vent_Open(ep));
-                    break;
-                default:
-                    break;
+                return _pressureOperationMode;
             }
-            OperationMode = value;
+            set
+            {
+                lock (parentChannel.parentEPascal.Communicator)
+                {
+                    switch (value)
+                    {
+                        case PressureControllerOperationMode.UNKNOWN:
+                            break;
+                        case PressureControllerOperationMode.STANDBY:
+                        case PressureControllerOperationMode.MEASURE:
+                            if (_pressureOperationMode == PressureControllerOperationMode.CONTROL)
+                            {
+                                parentChannel.ControlToggle();
+                            }
+                            if (_pressureOperationMode == PressureControllerOperationMode.VENT)
+                            {
+                                parentChannel.VentToggle();
+                            }
+                            break;
+                        case PressureControllerOperationMode.CONTROL:
+                            if (_pressureOperationMode == PressureControllerOperationMode.VENT)
+                            {
+                                parentChannel.VentToggle();
+                            }
+                            parentChannel.ControlToggle();
+                            if (_pressureOperationMode == PressureControllerOperationMode.MEASURE
+                                || _pressureOperationMode == PressureControllerOperationMode.STANDBY)
+                            {
+                                parentChannel.ControlToggle();
+                            }
+                            break;
+                        case PressureControllerOperationMode.VENT:
+                            if (_pressureOperationMode == PressureControllerOperationMode.CONTROL)
+                            {
+                                parentChannel.ControlToggle();
+                                parentChannel.VentToggle();
+                            }
+                            if (_pressureOperationMode == PressureControllerOperationMode.MEASURE
+                                || _pressureOperationMode == PressureControllerOperationMode.STANDBY)
+                            {
+                                parentChannel.VentToggle();
+                            }
+                            break;
+                        default:
+                            throw new Exception($"set {value} while {_pressureOperationMode}");
+                            break;
+                    }
+                }
+
+            }
         }
+
+        public Scale Scale => thisScale;
+
         #endregion
 
-        public override string ToString()
+        public override string ToString() => $" {ElmetroPascal.Name}({parentChannel.parentEPascal.Communicator}) {parentChannel.Name} {thisScale} ";
+
+        public void Zero()
         {
-            return Scale.ToString();
+            parentChannel.Zero();
         }
 
-        public override void Activate()
-        {
-            EnqueueInstrumentCmd(new EPascalCommand_Set_Active_Module_Range(this));
-            parentChannel.ActiveSpan = this;
-
-        }
-
-        public override void Zero()
-        {
-//                var epascal = parentChannel.parent as ElmetroPascal;
-//                if (epascal == null) throw new NullReferenceException($"{parentChannel} parent is null");
-
-//                epascal.Zeroing();
-
-                var cmd = new EPascalCommand_Zeroing_Pressure(this);
-                EnqueueInstrumentCmd(cmd);
-        }
     }
 }

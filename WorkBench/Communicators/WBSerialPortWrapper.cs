@@ -10,7 +10,7 @@ namespace WorkBench.Communicators
 {
     public class WBSerialPortWrapper : IWBSerialPortWrapper
     {
-        SerialPort port;
+        readonly SerialPort port;
         public WBSerialPortWrapper(
             string serialPortName,
             int baudrate,
@@ -59,18 +59,18 @@ namespace WorkBench.Communicators
             DataReceived?.Invoke(this, e);
         }
 
-        public void DiscardInBuffer()
+        public virtual void DiscardInBuffer()
         {
             port.DiscardInBuffer();
         }
 
-        public void DiscardOutBuffer()
+        public virtual void DiscardOutBuffer()
         {
             port.DiscardOutBuffer();
         }
 
 
-        public int ReadByte()
+        public virtual int ReadByte()
         {
             try
             {
@@ -82,7 +82,7 @@ namespace WorkBench.Communicators
             }
         }
 
-        public void Write(string str)
+        public virtual void Write(string str)
         {
             port.Write(str);
         }
@@ -91,7 +91,7 @@ namespace WorkBench.Communicators
             return string.Format("последовательный порт {0}", port.PortName);
         }
 
-        public Stream BaseStream
+        public virtual Stream BaseStream
         {
             get => port.BaseStream;
         }

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using WorkBench.Communicators;
 using WorkBench.Interfaces;
 using WorkBench.TestEquipment.EK;
-using WorkBench.TestEquipment.CPC6000;
+//using WorkBench.TestEquipment.CPC6000;
 using WorkBench.TestEquipment.ElmetroPascal;
-using WorkBench.TestEquipment.EVolta;
+//using WorkBench.TestEquipment.EVolta;
 
 namespace WorkBench
 {
@@ -18,69 +18,74 @@ namespace WorkBench
     {
         log4net.ILog logger = log4net.LogManager.GetLogger(typeof(Factory));
 
-        static public IInstrument GetFakeEK (string portName)
+        static public EK GetFakeEK (string portName)
         {
-            var communicator = new FakeEKCommunicator(portName);
+            var fakeEKserialPort = new FakeEKSerialPort(portName, 115200, Parity.Odd, 8, StopBits.One);
+            var communicator = new SerialEKCommunicator(fakeEKserialPort, "\r\n");
 
             var ek = new EK(communicator);
 
             return ek;
         }
 
-        static public IInstrument GetEK_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        static public EK GetEK_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
         {
             EK ek = null;
 
             if (IsSerialPortPresentInSystem(serialPortName))
             {
-                var communicator = new SerialEKCommunicator(serialPortName, baudrate, parity, dataBits, stopBits, "\r\n");
+                var serialPort = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
+                var communicator = new SerialEKCommunicator(serialPort, "\r\n");
 
                 ek = new EK(communicator);
 
             }
             return ek;
         }
-        static public IInstrument GetEK_on_SerialPort_with_default_Port_Settings(string portName)
+        static public EK GetEK_on_SerialPort_with_default_Port_Settings(string portName)
         {
             return GetEK_on_SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
         }
-        static public IInstrument GetEVolta_on_SerialPort_with_default_Port_Settings(string portName)
+        //static public IInstrument GetEVolta_on_SerialPort_with_default_Port_Settings(string portName)
+        //{
+        //    EVolta evolta = null;
+
+        //    if (IsSerialPortPresentInSystem(portName))
+        //    {
+        //        var communicator = new SerialEKCommunicator(portName, 9600, Parity.None, 8, StopBits.One, "\r\n");
+
+        //        evolta = new EVolta(communicator);
+
+        //    }
+        //    return evolta;
+        //}
+
+        //static public IInstrument GetFakeEVolta(string portName)
+        //{
+        //    var communicator = new FakeEVoltaCommunicator(portName);
+
+        //    var evolta = new EVolta(communicator);
+
+        //    return evolta;
+        //}
+        static public ElmetroPascal GetFakeEPascal(string portName)
         {
-            EVolta evolta = null;
-
-            if (IsSerialPortPresentInSystem(portName))
-            {
-                var communicator = new SerialEKCommunicator(portName, 9600, Parity.None, 8, StopBits.One, "\r\n");
-
-                evolta = new EVolta(communicator);
-
-            }
-            return evolta;
-        }
-
-        static public IInstrument GetFakeEVolta(string portName)
-        {
-            var communicator = new FakeEVoltaCommunicator(portName);
-
-            var evolta = new EVolta(communicator);
-
-            return evolta;
-        }
-        static public IInstrument GetFakeEPascal(string portName)
-        {
-            var communicator = new FakeEPascalCommunicator(portName);
+            var fakeEPascalSerialPort = new FakeEPascalSerialPort(portName, 115200, Parity.Odd, 8, StopBits.One);
+            var communicator = new SerialEKCommunicator(fakeEPascalSerialPort, "\r\n");
 
             var ek = new ElmetroPascal(communicator);
 
             return ek;
         }
-        static public IInstrument GetEPascal_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        static public ElmetroPascal GetEPascal_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
         {
             ElmetroPascal ep = null;
 
             if (IsSerialPortPresentInSystem(serialPortName))
             {
-                var communicator = new SerialEKCommunicator(serialPortName, baudrate, parity, dataBits, stopBits, "\r\n");
+                var serialPort = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
+
+                var communicator = new SerialEKCommunicator(serialPort, "\r\n");
 
                 ep = new ElmetroPascal(communicator);
 
@@ -88,39 +93,39 @@ namespace WorkBench
 
             return ep;
         }
-        static public IInstrument GetEPascal_on_SerialPort_with_default_Port_Settings(string portName)
+        static public ElmetroPascal GetEPascal_on_SerialPort_with_default_Port_Settings(string portName)
         {
             return GetEPascal_on_SerialPort(portName, 19200, Parity.Odd, 8, StopBits.One);
         }
-        static public IInstrument GetCPC6000_on_Fake_SerialPort()
-        {
-            var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
-            var communicator = new SerialCPC6000Communicator(fakeSerialPortWrapper);
+        //static public IInstrument GetCPC6000_on_Fake_SerialPort()
+        //{
+        //    var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
+        //    var communicator = new SerialCPC6000Communicator(fakeSerialPortWrapper);
 
-            var cpc = new CPC6000(communicator);
+        //    var cpc = new CPC6000(communicator);
 
-            return cpc;
-        }
-        static public IInstrument GetCPC6000_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
-        {
-            CPC6000 cpc = null;
+        //    return cpc;
+        //}
+        //static public IInstrument GetCPC6000_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        //{
+        //    CPC6000 cpc = null;
 
-            if (IsSerialPortPresentInSystem(serialPortName))
-            {
-                var serialPortWrapper = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
-                var communicator = new SerialCPC6000Communicator(serialPortWrapper);
+        //    if (IsSerialPortPresentInSystem(serialPortName))
+        //    {
+        //        var serialPortWrapper = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
+        //        var communicator = new SerialCPC6000Communicator(serialPortWrapper);
 
-                cpc = new CPC6000(communicator);
+        //        cpc = new CPC6000(communicator);
 
-            }
+        //    }
 
-            return cpc;
-        }
+        //    return cpc;
+        //}
 
-        static public IInstrument GetCPC6000_on_SerialPort_with_default_Port_Settings(string portName)
-        {
-            return GetCPC6000_on_SerialPort(portName, 57600, Parity.None, 8, StopBits.One);
-        }
+        //static public IInstrument GetCPC6000_on_SerialPort_with_default_Port_Settings(string portName)
+        //{
+        //    return GetCPC6000_on_SerialPort(portName, 57600, Parity.None, 8, StopBits.One);
+        //}
 
 
         /// <summary>
@@ -151,7 +156,7 @@ namespace WorkBench
                     {
                         try
                         {
-                            opened = tryPort.Open().GetAwaiter().GetResult();
+                            opened = tryPort.Open();
                         }
                         catch (Exception e)
                         {

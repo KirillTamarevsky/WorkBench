@@ -10,7 +10,7 @@ namespace WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan
 {
     public abstract class AbstractInstrumentChannelSpanReader_and_Generator : AbstractInstrumentChannelSpanReader, IInstrumentChannelSpanGenerator
     {
-        public abstract void GetSetPoint(Action<OneMeasure> reportTo);
+        public abstract OneMeasure GetSetPoint();
         public abstract void SetSetPoint(OneMeasure value);
     }
 }

@@ -13,24 +13,29 @@ namespace WorkBench.TestEquipment.EK
     {
         #region EK hardware interface commands
         //------------------------------------------------------------------------------------------
-        internal string SetActiveChannel(int channelNumber)
+        private EKchanNum activeChannel;
+        internal string SetActiveChannel(EKchanNum channelNumber)
         {
-            if (channelNumber < 1 | channelNumber > 8)
+            if (channelNumber == EKchanNum.None)
             {
-                throw new ArgumentOutOfRangeException($"Номер канала ({channelNumber}) вне допустимого диапазона (1...8) ! ");
+                activeChannel = EKchanNum.None;
+                return ("0");
             }
-            
-            //TODO check if elmetro kelvin actually selected desired channel
-            
-            return Communicator.QueryCommand($"CHAN {channelNumber}");
+            if (activeChannel != channelNumber)
+            {
+                //TODO check if elmetro kelvin actually selected desired channel
+                activeChannel = channelNumber;
+                return Communicator.QueryCommand($"CHAN {(int)channelNumber}");
+            }
+            return ((int)channelNumber).ToString();
         }
 
-        internal OneMeasure Read_0_20_Current_with_ext_pwr(EKchanNum eKChannel)
-        {
-            SetActiveChannel((int)eKChannel);
-            double.TryParse(Communicator.QueryCommand("CURR?").Replace(".", ","), out double result);
-            return new OneMeasure(result, new mA(), DateTime.Now);
-        }
+        //internal OneMeasure Read_0_20_Current_with_ext_pwr(EKchanNum eKChannel)
+        //{
+        //    SetActiveChannel(eKChannel);
+        //    double.TryParse(Communicator.QueryCommand("CURR?").Replace(".", ","), out double result);
+        //    return new OneMeasure(result, new mA(), DateTime.Now);
+        //}
         //------------------------------------------------------------------------------------------
         #endregion
     }

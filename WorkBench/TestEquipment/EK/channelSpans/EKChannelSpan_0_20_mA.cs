@@ -1,37 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Dispatcher;
 using System.Text;
 using System.Threading.Tasks;
-using WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan;
+//using WorkBench.AbstractClasses.InstrumentChannel;
+//using WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan;
 using WorkBench.Interfaces;
-using WorkBench.TestEquipment.EK.commands;
+using WorkBench.Interfaces.InstrumentChannel;
+using WorkBench.UOMS;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkBench.TestEquipment.EK.channelSpans
 {
-    public class EKChannelSpan_0_20_mA : AbstractInstrumentChannelSpanReader
+    public class EKChannelSpan_0_20_mA : IInstrumentChannelSpanReader
     {
-        public override void Activate()
+        private OneMeasure LastValue { get; set; }
+
+        public EKChannel parentChannel { get; }
+
+        public Scale Scale { get; }
+
+        public EKChannelSpan_0_20_mA(EKChannel parent)
         {
-            parentChannel.ActiveSpan = this;
+            parentChannel = parent;
+            Scale = new Scale(0, 20, new mA());
+            LastValue = new OneMeasure(0, new mA());
         }
-
-        public override void Read(IUOM uom, Action<OneMeasure> reportTo)
+        private bool readingnow;
+        public OneMeasure Read(IUOM uom)
         {
-            var cmd = new EKCommand_Read_0_20_mA(this, reportTo);
-            
-            EnqueueInstrumentCmd(cmd);
+            var ek = parentChannel.ParentEK;
+            var skipActualReading = readingnow == true;
+            lock (parentChannel.ParentEK.Communicator)
+            {
+                if (!skipActualReading)
+                {
+                    readingnow = true;
 
+
+                    ek.SetActiveChannel(this.parentChannel.EKchanNum);
+                    //--------------Read_0_20_Current_with_ext_pwr-------------------
+                    //CURR?
+                    //Измерение тока в режиме «0 - 20».
+                    //В случае успешного выполнения команды возвращается результат измерения(мА).
+                    //В противном случае возвращается «ERROR».
+                    //Пример
+                    //Команда: CURR?
+                    //Ответ: 2.0501
+                    //
+                    //TODO добавить проверку ответа на ERROR
+                    var ekReply = parentChannel.ParentEK.Communicator.QueryCommand("CURR?");
+                    double.TryParse(ekReply.Replace(".", ","), out double result);
+                    
+                    LastValue = new OneMeasure(result, new mA(), DateTime.Now);
+                    readingnow = false;
+                }
+            }
+            return LastValue;
         }
 
         public override string ToString()
         {
-            return $"измерение тока {Scale}, внешний источник питания";
+            return $"{parentChannel.Name} измерение тока {Scale}, внешний источник питания";
         }
 
-        public override void Zero()
+        public void Zero()
         {
             throw new NotImplementedException("EK channel 0 - 20 mA zeriong not implemented");
         }
+
     }
 }

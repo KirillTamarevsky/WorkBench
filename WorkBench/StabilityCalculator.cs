@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.Enums;
 using WorkBench.Interfaces;
 
 namespace WorkBench
@@ -20,13 +21,14 @@ namespace WorkBench
         public TimeSpan MinTimeToStabilize { get; set; }
 
         public TrendStatus TrendStatus { get; private set; }
-        public double MeanValue { get => Measures.Average(m => m.Value); }
+        public double MeanValue { get; private set; }
         public double StdDeviation { get; private set; }
         public double LRSlope { get; private set; }
         public StabilityCalculator(int minMeasuresCount, TimeSpan minTimeToStabilize)
         {
             MinMeasuresCount = minMeasuresCount;
             MinTimeToStabilize = minTimeToStabilize;
+
             TrendStatus = TrendStatus.Unknown;
             Measures  = new List<OneMeasure>();
             StableMeasures  = new List<OneMeasure>();
@@ -41,6 +43,7 @@ namespace WorkBench
         }
         public void AddMeasure(OneMeasure oneMeasure)
         {
+            if (oneMeasure == null) return;
             Measures.Add(oneMeasure);
             DateTime mintimestamp;
             TimeSpan timespan;
@@ -58,16 +61,16 @@ namespace WorkBench
 
             MeasuringTimeSpan = timespan;
 
-            var averageValue = Measures.Average((om) => om.Value);
+            MeanValue = Measures.Average((om) => om.Value);
 
-            StdDeviation = Math.Sqrt(Measures.Sum(meas => Math.Pow( meas.Value - averageValue, 2))) ;
+            StdDeviation = Math.Sqrt(Measures.Sum(meas => Math.Pow( meas.Value - MeanValue, 2))) ;
 
             LRSlopeCalc();
 
             if (MeasuresCount >= MinMeasuresCount)
             {
 
-                if (Math.Round(LRSlope, 3) == 0)
+                if (Math.Round(LRSlope, 3, MidpointRounding.ToZero) == 0)
                 {
                     TrendStatus = TrendStatus.Stable;
                     StableMeasures.Add(oneMeasure);
@@ -96,19 +99,17 @@ namespace WorkBench
         {
             double x = 1;
             double xtotal = 0;
-            double y = 0;
+            //double y = 0;
             double ytotal = 0;
-            double XmultY = 0;
             double XmultYtotal = 0;
-            double Xsqr = 0;
             double Xsqrtotal = 0;
             foreach (var item in Measures)
             {
                 xtotal += x;
                 ytotal += item.Value;
-                XmultY = item.Value * x;
+                double XmultY = item.Value * x;
                 XmultYtotal += XmultY;
-                Xsqr = Math.Pow(x, 2);
+                double Xsqr = Math.Pow(x, 2);
                 Xsqrtotal += Xsqr;
                 x++;
             }

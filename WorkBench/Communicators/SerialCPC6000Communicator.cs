@@ -27,7 +27,6 @@ namespace WorkBench.Communicators
         /// <value>The timeout.</value>
         public TimeSpan Timeout { get; set; }
 
-        AutoResetEvent _waitForSerialData;
         /// <summary>
         /// 
         /// </summary>
@@ -39,7 +38,7 @@ namespace WorkBench.Communicators
         /// <param name="lineEndToken">символы конца строки</param>
         public SerialCPC6000Communicator(
             IWBSerialPortWrapper serialPortWrapper,
-            string lineEndToken = "\n")
+            string lineEndToken )
         {
             _serialPort = serialPortWrapper;
             
@@ -65,19 +64,11 @@ namespace WorkBench.Communicators
         {
             bool serialPortOpened = false;
             
-
             if (_serialPort != null)
             {
                 try
                 {
-
-                    
-                    //_serialPort.DataReceived += new SerialDataReceivedEventHandler( OnDataReceivedFromSerialPort );
-
                     serialPortOpened = TryOpenSerialPort(_serialPort);
-
-                    _waitForSerialData = new AutoResetEvent(false);
-                    
                 }
                 catch (Exception e)
                 {
@@ -118,6 +109,7 @@ namespace WorkBench.Communicators
                     BitConverter.ToString(_receivedBytes.ToArray()),
                     _serialPort.BytesToRead
                     ));
+                logger.Warn($"{ex.Message}");
                 return string.Empty;
             }
             catch (Exception ex)
@@ -136,41 +128,6 @@ namespace WorkBench.Communicators
             return answer.TrimEnd(NewLine.ToCharArray());
         }
 
-        private void OnDataReceivedFromSerialPort(object sender, SerialDataReceivedEventArgs e)
-        {
-            var sp = (IWBSerialPortWrapper)sender;
-
-            logger.Debug($"OnDataReceivedFromSerialPort fired for {sp.PortName} | bytes to read = {sp.BytesToRead}");
-
-            switch (e.EventType)
-            {
-                case SerialData.Chars:
-
-                    while (sp.BytesToRead > 0)
-                    {
-                        byte nextByte = (byte)sp.ReadByte();
-            
-                        logger.Debug($"OnDataReceivedFromSerialPort readed from {sp.PortName} | byte = {nextByte} | char = {Encoding.ASCII.GetString(new byte[] { nextByte }).Replace("\r","\\r").Replace("\n", "\\n")}");
-
-                        _receivedBytes.Add(nextByte);
-
-                        if (ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).EndsWith(NewLine))
-                        {
-                            _waitForSerialData.Set();
-                            return;
-                        }
-                    }
-                    break;
-
-                case SerialData.Eof:
-
-                    _waitForSerialData.Set();
-                    break;
-
-                default:
-                    break;
-            }
-        }
         public bool SendLine(string cmd)
         {
             logger.Debug($"Start SendLine( {_serialPort.PortName} )");
@@ -197,8 +154,6 @@ namespace WorkBench.Communicators
                     BitConverter.ToString(Encoding.ASCII.GetBytes(dataToSend)))
                     );
 
-
-
                 DateTime startTime = DateTime.Now;
 
                 _serialPort.Write(dataToSend);
@@ -220,7 +175,6 @@ namespace WorkBench.Communicators
 
             _serialPort.DiscardOutBuffer();
             _serialPort.DiscardInBuffer();
-            _waitForSerialData.Reset();
 
             return SendLine(cmd) ? ReadLine(Timeout) : "";
         }
@@ -238,7 +192,8 @@ namespace WorkBench.Communicators
 
             var ADDITIONAL_WAIT_TIME_AFTER_SEND = 20;
 
-            TimeSpan requiredTransmissionTime = TimeSpan.FromMilliseconds(REQUIRED_TRANSMISSION_TIME_FOR_BYTE * dataLength + ADDITIONAL_WAIT_TIME_AFTER_SEND);
+            TimeSpan requiredTransmissionTime = TimeSpan.FromMilliseconds(
+                REQUIRED_TRANSMISSION_TIME_FOR_BYTE * dataLength + ADDITIONAL_WAIT_TIME_AFTER_SEND);
                 //Convert.ToInt32(REQUIRED_TRANSMISSION_TIME_FOR_BYTE * dataLength + ADDITIONAL_WAIT_TIME_AFTER_SEND));
             return startTime + requiredTransmissionTime - DateTime.Now;
         }
@@ -271,7 +226,6 @@ namespace WorkBench.Communicators
             return false;
         }
 
-        // the callback function of button checks the serial ports
         private bool TryOpenSerialPort(IWBSerialPortWrapper serialPort)
         {
             bool res = false;
@@ -282,7 +236,7 @@ namespace WorkBench.Communicators
                 logger.Debug($"tryOpenSerialPort({ serialPort.PortName }) t.Start();");
                 t.Start();
                 logger.Debug($"tryOpenSerialPort({ serialPort.PortName }) t.Wait(1500);");
-                t.Wait(1500);
+                t.Wait(2500);
                 logger.Debug($"tryOpenSerialPort({ serialPort.PortName }) after t.Wait(1500); { t.Status}");
 
             }

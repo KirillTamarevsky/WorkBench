@@ -38,7 +38,7 @@ namespace benchGUI
 
         #region PressureInstrument
 
-        private async void btn_openPressureMeasureInstrument_Click(object sender, EventArgs e)
+        private void btn_openPressureMeasureInstrument_Click(object sender, EventArgs e)
         {
             switch (startedCPC)
             {
@@ -46,15 +46,23 @@ namespace benchGUI
                     PressureInstrument = (IInstrument)cb_PressureGeneratorInstrument.SelectedItem;
 
                     lbl_cpcStatus.Text = "поиск...";
-
-                    if (await PressureInstrument.Open())
-                    {
-                        PressureInstrument_start();
-                    }
-                    else
-                    {
-                        lbl_cpcStatus.Text = "нет связи";
-                    }
+                    Task.Factory.StartNew(() =>
+                    { 
+                        if ( PressureInstrument.Open())
+                        {
+                            InvokeControlAction(this, () =>
+                            {
+                                PressureInstrument_start();
+                            });
+                        }
+                        else
+                        {
+                            InvokeControlAction(this, () =>
+                            {
+                                lbl_cpcStatus.Text = "нет связи";
+                            });
+                        }
+                    });
 
                     break;
                 case true:
@@ -69,11 +77,7 @@ namespace benchGUI
                     lbl_cpc_read.BackColor = Color.Transparent;
 
                     break;
-                default:
-                    break;
             }
-
-
         }
         #region PressureInstrument start/stop routines
 
@@ -192,14 +196,14 @@ namespace benchGUI
             return double.Parse(
                     tb_cpcStep.Text.Replace(',', '.'),
                     NumberStyles.Float,
-                    new CultureInfo((int)CultureTypes.NeutralCultures));
+                    CultureInfo.InvariantCulture);
         }
         double getPressureSetPointValue()
         {
             return double.Parse(
                     tb_PressureSetPoint.Text.Replace(',', '.'),
                     NumberStyles.Float,
-                    new CultureInfo((int)CultureTypes.NeutralCultures));
+                    CultureInfo.InvariantCulture);
         }
 
         double getPressureFineStepValue()
@@ -207,7 +211,7 @@ namespace benchGUI
             return double.Parse(
                 tb_pressureMicroStep.Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures));
+                CultureInfo.InvariantCulture);
         }
         private void PutOneMeasureToTextBox(OneMeasure oneMeasure, TextBox textBox)
         {
@@ -222,7 +226,7 @@ namespace benchGUI
             if (double.TryParse(
                     ((TextBox)sender).Text.Replace(',', '.'),
                     NumberStyles.Float,
-                    new CultureInfo((int)CultureTypes.NeutralCultures),
+                    CultureInfo.InvariantCulture,
                     out _))
             {
                 btn_StepUp.Enabled = true;
@@ -239,7 +243,7 @@ namespace benchGUI
             if (double.TryParse(
                 ((TextBox)sender).Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures),
+                CultureInfo.InvariantCulture,
                 out _))
             {
                 btn_pressureMicrostepUP.Enabled = true;
@@ -257,7 +261,7 @@ namespace benchGUI
             if (double.TryParse(
                 ((TextBox)sender).Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures),
+                CultureInfo.InvariantCulture,
                 out double parsedSP))
             {
                 newSetPoint = parsedSP;
@@ -285,11 +289,11 @@ namespace benchGUI
 
             if (double.TryParse(tbScaleMin.Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures),
+                CultureInfo.InvariantCulture,
                 out pressureScaleMin) 
                 && double.TryParse(tbScaleMax.Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures),
+                CultureInfo.InvariantCulture,
                 out pressureScaleMax)
                 )
             {
@@ -303,17 +307,16 @@ namespace benchGUI
                 if (newSetPoint > maxmaxsetpoint) newSetPoint = maxmaxsetpoint;
             }
 
-            pressureGeneratorSpan.SetSetPoint(new OneMeasure(newSetPoint, selectedPressureUOM, DateTime.Now));
+            pressureGeneratorSpan.SetPoint = new OneMeasure(newSetPoint, selectedPressureUOM, DateTime.Now);
 
-            pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+            PutOneMeasureToTextBox(pressureGeneratorSpan.SetPoint, tb_PressureSetPoint);
 
         }
 
         private void setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode operationMode)
         {
             if (pressureGeneratorSpan == null) return;
-
-            pressureGeneratorSpan.SetPressureOperationMode(operationMode);
+            Task.Factory.StartNew(() => pressureGeneratorSpan.PressureOperationMode = operationMode);
 
         }
 
@@ -384,14 +387,14 @@ namespace benchGUI
             var chanspan = pressureReaderSpan as IInstrumentChannelSpan;
             if (chanspan != null)
             {
-                chanspan.Activate();
+                //chanspan.Activate();
             }
 
 
             pressureGeneratorSpan = (IInstrumentChannelSpanPressureGenerator)pressureReaderSpan;
 
             //tb_cpcSetPoint.Text = pressureGeneratorSpan.GetSetPoint().Value.ToString("N4");
-            pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+            //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
 
 
             ReadPressureInstrumentOperationModeToRadioButtons();
@@ -472,7 +475,8 @@ namespace benchGUI
         }
         private void ReadPressureInstrumentOperationModeToRadioButtons()
         {
-            pressureGeneratorSpan.GetPressureOperationMode(FillPressureGenerationModeRadioButtons);
+            var mode = pressureGeneratorSpan.PressureOperationMode;
+            FillPressureGenerationModeRadioButtons(mode);
         }
 
         private void FillPressureGenerationModeRadioButtons(PressureControllerOperationMode  pressureControllerOperationMode)
@@ -511,7 +515,7 @@ namespace benchGUI
 
         private void btn_ZeroPressure_Click(object sender, EventArgs e)
         {
-            pressureGeneratorSpan.Zero();
+            Task.Run(() => pressureGeneratorSpan.Zero());
         }
 
 

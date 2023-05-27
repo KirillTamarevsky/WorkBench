@@ -11,9 +11,8 @@ namespace WorkBench.Interfaces.InstrumentChannel
         int NUM { get; }
         string Name { get; }
         
-        //IInstrument parent { get; }
+        //IInstrument ParentInstrument { get; }
         IInstrumentChannelSpan[] AvailableSpans { get; }
-        IInstrumentChannelSpan ActiveSpan { get; }
     }
 
 }

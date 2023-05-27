@@ -8,77 +8,45 @@ using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 namespace WorkBench
 {
-    public class CyclicChannelSpanReader
+    public class CyclicChannelSpanReader : ICyclicChannelSpanReader
     {
-        IInstrumentChannelSpanReader InstrumentChannelSpanReader;
-
-        IUOM UOM;
+        readonly IInstrumentChannelSpanReader InstrumentChannelSpanReader;
+        readonly IUOM UOM;
 
         public event EventHandler<OneMeasure> OneMeasureReaded;
 
         Task cyclicReaderTask;
 
-        CancellationTokenSource cancellationTokenSource;
-
-        CancellationToken cancellationToken;
-
         bool Active;
 
-        System.Threading.EventWaitHandle waitingForNewMeasure = new EventWaitHandle(false, EventResetMode.ManualReset);
         public CyclicChannelSpanReader(IInstrumentChannelSpanReader instrumentChannelSpanReader, IUOM uOM)
         {
-            if (instrumentChannelSpanReader == null ) throw new ArgumentNullException(nameof(instrumentChannelSpanReader));
-            
-            if (uOM == null) throw new ArgumentNullException(nameof(uOM));
-
-            InstrumentChannelSpanReader = instrumentChannelSpanReader;
-            UOM = uOM;
+            InstrumentChannelSpanReader = instrumentChannelSpanReader ?? throw new ArgumentNullException(nameof(instrumentChannelSpanReader));
+            UOM = uOM ?? throw new ArgumentNullException(nameof(uOM));
         }
 
         public void Start()
         {
-            //cancellationTokenSource = new CancellationTokenSource();
-            //cancellationToken = cancellationTokenSource.Token;
-            //cyclicReaderTask = Task.Run(() => CyclicReader()); //, cancellationToken, TaskCreationOptions.LongRunning);
-            //cyclicReaderTask.ConfigureAwait(false);
-            //cyclicReaderTask.Start();
-
+            if (cyclicReaderTask != null) throw new Exception("cyclic reader task already exists");
             Active = true;
-            InstrumentChannelSpanReader.Read(UOM, OnOneMeasureReaded);
+            cyclicReaderTask = Task.Factory.StartNew(() =>
+            {
+                while (Active)
+                {
+                    OneMeasureReaded?.Invoke(this, InstrumentChannelSpanReader.Read(UOM));
+                }
+            });
 
         }
         public void Stop()
         {
-            //cancellationTokenSource.Cancel();
-            //cyclicReaderTask.Wait();
-            //cancellationTokenSource.Dispose();
-
             Active = false;
+            log4net.LogManager.GetLogger("Communication").Debug("stopping cyclic reader");
+            cyclicReaderTask.Wait();
+            log4net.LogManager.GetLogger("Communication").Debug("cyclic reader stopped");
+            cyclicReaderTask.Dispose();
+            cyclicReaderTask = null;
         }
 
-        //private void CyclicReader()
-        //{
-        //    do
-        //    {
-        //        waitingForNewMeasure.Reset();
-        //        InstrumentChannelSpanReader.Read(UOM, OnOneMeasureReaded);
-        //        waitingForNewMeasure.WaitOne(1500);
-
-        //    } while (!cancellationToken.IsCancellationRequested);
-        //}
-
-        private void OnOneMeasureReaded(OneMeasure oneMeasure)
-        {
-            if (Active)
-            {
-                if (oneMeasure != null)
-                {
-                    OneMeasureReaded?.Invoke(this, oneMeasure);
-                }
-                //waitingForNewMeasure.Set();
-                InstrumentChannelSpanReader.Read(UOM, OnOneMeasureReaded);
-            }
-
-        }
     }
 }

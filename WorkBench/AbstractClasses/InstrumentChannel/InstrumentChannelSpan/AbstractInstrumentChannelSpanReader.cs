@@ -11,40 +11,7 @@ namespace WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan
 {
     public abstract class AbstractInstrumentChannelSpanReader : AbstractInstrumentChannelSpan, IInstrumentChannelSpanReader
     {
-        //internal bool _cyclicRead;
-        //public bool CyclicRead { 
-        //    get
-        //    {
-        //        return _cyclicRead;
-        //    }
-        //    set
-        //    { 
-        //        _cyclicRead = value;
-        //    }
-        //}
-
         OneMeasure _lastValue;
-        public OneMeasure LastValue
-        {
-            get { return _lastValue; }
-            internal set 
-            { 
-                _lastValue = value;
-                //RaiseNewValueReaded(_lastValue);
-                //if (CyclicRead)
-                //{
-                //    Read(LastValue.UOM);
-                //}
-            }
-        }
-
-        //public event NewValueReaded NewValueReaded;
-
-        //void RaiseNewValueReaded(OneMeasure oneMeasure)
-        //{
-        //    NewValueReaded?.Invoke(oneMeasure);
-        //}
-
-        public abstract void Read(IUOM uom, Action<OneMeasure> reportTo);
+        public abstract OneMeasure Read(IUOM uom);
     }
 }

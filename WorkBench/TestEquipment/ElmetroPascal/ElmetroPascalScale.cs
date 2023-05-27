@@ -9,16 +9,18 @@ namespace WorkBench.TestEquipment.ElmetroPascal
 {
     public class ElmetroPascalScale : Scale
     {
-        public ElmetroPascalScale(double min, double max, IUOM uom) : base(min, max, uom)
+        public ElmetroPascalScale(double min, double max, IUOM uom, int modulenum, int rangenum) : base(min, max, uom)
         {
+            Module = modulenum;
+            RangeNum = rangenum;
         }
 
-        public int Module { get; set; }
-        public int RangeNum { get; set; }
+        public int Module { get; }
+        public int RangeNum { get; }
 
         public override string ToString()
         {
-            return String.Format("M{0}:{1}", Module, base.ToString());
+            return String.Format($"M{Module}:{base.ToString()}");
         }
     }
 }

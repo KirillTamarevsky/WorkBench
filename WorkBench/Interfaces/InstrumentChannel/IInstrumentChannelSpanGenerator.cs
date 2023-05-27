@@ -8,7 +8,6 @@ namespace WorkBench.Interfaces.InstrumentChannel
 {
     public interface IInstrumentChannelSpanGenerator : IInstrumentChannelSpan
     {
-        void GetSetPoint(Action<OneMeasure> reportTo);
-        void SetSetPoint(OneMeasure value);
+        OneMeasure SetPoint { get; set; }
     }
 }

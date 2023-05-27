@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WorkBench.UOMS
 {
-    public class kgfcmsq : PressureUOM
+    public class Kgfcmsq : PressureUOM
     {
         public override string Name => "kgf/cm²";
 

@@ -1,0 +1,45 @@
+﻿<UserControl x:Class="WBGUIWPF.views.PressureGeneratorReferenceInstrumentChannelSpanView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WBGUIWPF.views"
+             xmlns:vm="clr-namespace:WBGUIWPF.viewmodels"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:PressureGeneratorReferenceInstrumentChannelSpanVM, IsDesignTimeCreatable=True}"
+             d:DesignHeight="300" d:DesignWidth="800"
+             d:Background="White"
+             >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="200"/>
+            <RowDefinition Height="100"/>
+        </Grid.RowDefinitions>
+        <Border 
+            Grid.Row="0"
+            BorderBrush="Black"
+            BorderThickness="1"
+            Margin="5">
+            <Viewbox>
+                    <TextBlock Text="{Binding LastMeasure}"
+                               FontFamily="Consolas"/>
+            </Viewbox>
+        </Border>
+        <Viewbox Grid.Row="1">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Content="StandBy" 
+                             Command="{Binding SetPressureModeStandByCommand}"
+                             Margin="5"/>
+                <RadioButton Content="Measure" 
+                             Command="{Binding SetPressureModeMeasureCommand}"
+                             Margin="5"/>
+                <RadioButton Content="Control" 
+                             Command="{Binding SetPressureModeControlCommand}"
+                             Margin="5"/>
+                <RadioButton Content="Vent" 
+                             Command="{Binding SetPressureModeVentCommand}"
+                             Margin="5"/>
+            </StackPanel>
+        </Viewbox>
+    </Grid>
+</UserControl>

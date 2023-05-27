@@ -1,0 +1,48 @@
+﻿<Window x:Class="WBGUIWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WBGUIWPF" xmlns:local1="clr-namespace:WBGUIWPF.views"
+        xmlns:vm="clr-namespace:WBGUIWPF.viewmodels"
+        xmlns:views="clr-namespace:WBGUIWPF.views"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowVM, IsDesignTimeCreatable=True}"
+        Title="MainWindow" Height="450" MinWidth="800">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:PressureInstrumentCalibrationVM}">
+            <views:PressureInstrumentCalibrationView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EKConfigurationVM}">
+            <views:EKConfigurationView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EPascalConfigurationVM}">
+            <views:EPascalConfigurationView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SerialPortConfigurationVM}">
+            <views:SerialPortConfigurationView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BenchConfigurationVM}">
+            <views:BenchConfigurationView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PressureGeneratorReferenceInstrumentChannelSpanVM}">
+            <views:PressureGeneratorReferenceInstrumentChannelSpanView/>
+        </DataTemplate>
+    </Window.Resources>
+    <!--<Window.DataContext>
+        <vm:MainWindowVM/>
+    </Window.DataContext>-->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <ToolBar>
+            <Button Content="Настройки" Margin="5" Command="{Binding SwitchToConfigCommand}" />
+            <Button Content="Калибровка СИ давления" Margin="5" Command="{Binding SwitchToPressureCalibrationCommand}"/>
+        </ToolBar>
+        <ContentControl 
+            Grid.Row="1"
+            Content="{Binding CurrentVM}"/>
+    </Grid>
+</Window>

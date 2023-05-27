@@ -1,0 +1,70 @@
+﻿<UserControl x:Class="WBGUIWPF.views.SerialPortConfigurationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WBGUIWPF.views"
+             mc:Ignorable="d" 
+             Height="180" Width="350"
+             Padding="10"
+             xmlns:vm="clr-namespace:WBGUIWPF.viewmodels"
+             d:Background="White"   
+             d:DataContext="{d:DesignInstance Type=vm:SerialPortConfigurationVM, IsDesignTimeCreatable=True}"
+             >
+    <UserControl.Resources>
+        <ResourceDictionary >
+            <Style TargetType="Grid">
+                <Style.Resources>
+                    <Style TargetType="RowDefinition">
+                        <Setter Property="Height" Value="25"/>
+                    </Style>
+
+                </Style.Resources>
+            </Style>
+            <Style TargetType="ColumnDefinition" x:Key="EKPropertyName">
+                <Setter Property="Width" Value="120"/>
+            </Style>
+            <Style TargetType="ColumnDefinition" x:Key="EKPropertyValue">
+                <Setter Property="Width" Value="200"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Style="{DynamicResource EKPropertyName}"/>
+            <ColumnDefinition Style="{DynamicResource EKPropertyValue}"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Последовательный Порт"/>
+        <TextBlock Grid.Row="1" Text="Номер"/>
+        <TextBlock Grid.Row="1" Grid.Column="1"
+                       Text="{Binding SerialPortName}"/>
+        <TextBlock Grid.Row="2" Text="Скорость"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" 
+                  ItemsSource="{Binding AvailableBaudRates}"
+                  SelectedValue="{Binding BaudRate}" 
+                  />
+        <TextBlock Grid.Row="3" Text="Биты Данных"/>
+        <ComboBox Grid.Row="3" Grid.Column="1"
+                  ItemsSource="{Binding AvailableDataBits}"
+                  SelectedValue="{Binding DataBits}"
+                  />
+        <TextBlock Grid.Row="4" Text="Стоп биты"/>
+        <ComboBox Grid.Row="4" Grid.Column="1"
+                  ItemsSource="{Binding AvailableStopBits}"
+                  SelectedValue="{Binding StopBits}"
+                  />
+        <TextBlock Grid.Row="5" Text="Чётность"/>
+        <ComboBox Grid.Row="5" Grid.Column="1"
+                  ItemsSource="{Binding AvailableParities}"
+                  SelectedValue="{Binding Parity}"
+                  />
+    </Grid>
+</UserControl>

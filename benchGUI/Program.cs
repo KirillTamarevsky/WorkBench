@@ -18,6 +18,7 @@ namespace benchGUI
         {
             log4net.Config.XmlConfigurator.Configure();
             Application.EnableVisualStyles();
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
         }

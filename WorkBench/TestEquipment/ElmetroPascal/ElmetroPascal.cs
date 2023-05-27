@@ -2,103 +2,95 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
-using WorkBench.AbstractClasses.Instrument;
 
 namespace WorkBench.TestEquipment.ElmetroPascal
 {
-    public partial class ElmetroPascal : AbstractInstrument // IInstrument, IDisposable
+    public partial class ElmetroPascal : IInstrument, IDisposable
     {
-        log4net.ILog logger = log4net.LogManager.GetLogger(typeof(ElmetroPascal));
+        log4net.ILog logger = log4net.LogManager.GetLogger("EPascalCommunication");
 
-        IInstrumentChannel[] _channels = new ElmetroPascalChannel[1];
+        internal ITextCommunicator Communicator { get; }
+        public IInstrumentChannel[] Channels { get; }
 
         private bool _in_REMOTE_mode;
-        public override bool IsOpen => base.IsOpen && _in_REMOTE_mode;
+        public bool IsOpen => _in_REMOTE_mode;
 
-        public ElmetroPascal(ITextCommunicator communicator): base(communicator)
+        public ElmetroPascal(ITextCommunicator communicator)
         {
             logger.Info($"ElmetroPascal created for {communicator}");
-
+            Communicator = communicator;
+            Channels = new ElmetroPascalChannel[1];
             _in_REMOTE_mode = false;
-
         }
-        public IInstrumentChannel this[int i]
+
+        public static string Name => "Элметро-Паскаль";
+
+        public static string Description => "Калибратор-контроллер давления";
+
+        public bool Close()
         {
-            get
+            if (_in_REMOTE_mode)
             {
-                if (i != 0) throw new ArgumentOutOfRangeException($"номер канала {i} вне допустимого диапазона");
-
-                return _channels[i];
-            }
-        }
-
-        public override IInstrumentChannel[] Channels
-        {
-            get
-            {
-                return _channels;
-            }
-        }
-
-        public override string Name
-        {
-            get => "Элметро-Паскаль";
-        }
-
-        public override string Description
-        {
-            get => "Калибратор-контроллер давления";
-        }
-
-        public override bool Close()
-        {
-            base.Close();
-
-            SwitchToLOCALMode();
-
-            Communicator.Close();
-
-            return true;
-        }
-
-        public override async Task<bool> Open()
-        {
-             return await Task.Run(async () =>
-            {
-
-                if (Communicator.Open())
+                lock (Communicator)
                 {
-                    await base.Open();
+                    SwitchToLOCALMode();
 
-                    if (SwitchToREMOTEMode())
-                    {
-
-                        #region Setup Channels
-                        var epch = new ElmetroPascalChannel(this);
-
-                        //epch._parent = this;
-
-                        _channels[0] = epch;
-
-                        #endregion
-
-                        return true;
-                    }
-
-                    base.Close();
                     Communicator.Close();
+
+                    return true;
                 }
+            }
+            return false;
+        }
 
-                return false;
-            });
+        public bool Open()
+        {
+            lock (Communicator)
+            {
+                if (!IsOpen)
+                {
+                    if (Communicator.Open())
+                    {
+                        if (SwitchToREMOTEMode())
+                        {
+                            Communicator.QueryCommand("RANGE 1,1");
+                            Thread.Sleep(2000);
+                            var reply = Communicator.QueryCommand("ON_KEY_VENT");
+                            Thread.Sleep(100);
+                            if (reply == "VENT_OFF")
+                            {
+                                Communicator.QueryCommand("ON_KEY_VENT");
+                                Thread.Sleep(100);
+                            }
+                            #region Setup Channels
+                            var epChannel = new ElmetroPascalChannel(this);
+                            
+                            Channels[0] = epChannel;
+                            
+                            #endregion
 
+                            return true;
+                        }
+
+                        Communicator.Close();
+                    }
+                }
+            }
+
+            return false;
         }
         public override string ToString()
         {
-            return String.Format("{0} {1}({2})", Description, Name, Communicator.ToString()); 
+            return $"{Description} {Name}({Communicator})";
+        }
+
+        public void Dispose()
+        {
+            Close();
         }
     }
 }

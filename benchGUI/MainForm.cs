@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using WorkBench;
+using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 using WorkBench.TestEquipment.EK;
@@ -21,8 +22,8 @@ namespace benchGUI
 {
     public partial class MainForm : Form
     {
-        int TIMETOSTABLE = 5;
-        int COUNTTOSTABLE = 50;
+        int TIMETOSTABLE = 15;
+        int COUNTTOSTABLE = 80;
         public MainForm()
         {
             InitializeComponent();
@@ -51,10 +52,10 @@ namespace benchGUI
 
             cbPressureScaleUOM.Items.Clear();
             cbPressureScaleUOM.Items.Add(new kPa());
-            cbPressureScaleUOM.Items.Add(new mbar());
-            cbPressureScaleUOM.Items.Add(new bar());
+            cbPressureScaleUOM.Items.Add(new Mbar());
+            cbPressureScaleUOM.Items.Add(new Bar());
             cbPressureScaleUOM.Items.Add(new MPa());
-            cbPressureScaleUOM.Items.Add(new kgfcmsq());
+            cbPressureScaleUOM.Items.Add(new Kgfcmsq());
             cbPressureScaleUOM.Items.Add(new Pa());
             cbPressureScaleUOM.Items.Add(new mmH2OAt4DegreesCelsius());
             cbPressureScaleUOM.Items.Add(new DegreeCelcius());
@@ -81,17 +82,17 @@ namespace benchGUI
         {
             if (double.TryParse(tbScaleMin.Text.Replace(',', '.'),
                     NumberStyles.Float,
-                    new CultureInfo((int)CultureTypes.NeutralCultures),
+                    CultureInfo.InvariantCulture,
                     out pressureScaleMin) &
                 double.TryParse(tbScaleMax.Text.Replace(',', '.'),
                     NumberStyles.Float,
-                    new CultureInfo((int)CultureTypes.NeutralCultures),
+                    CultureInfo.InvariantCulture,
                     out pressureScaleMax)
                     )
             {
                 foreach (DataGridViewRow item in dataGridView1.Rows)
                 {
-                    item.Cells["calcPressure"].Value = (pressureScaleMax - pressureScaleMin) * ((double)(item.Cells["percent"].Value)) / (double)100 + pressureScaleMin;
+                    item.Cells["calcPressure"].Value = ((pressureScaleMax - pressureScaleMin) * ((double)(item.Cells["percent"].Value)) / (double)100 + pressureScaleMin).ToString("N4");
                 }
 
 
@@ -123,10 +124,10 @@ namespace benchGUI
 
             foreach (var item in Factory.GetSerialPortsNames())
             {
-                cb_CurrentMeasuringInstruments.Items.Add(Factory.GetEVolta_on_SerialPort_with_default_Port_Settings(item));
+                //cb_CurrentMeasuringInstruments.Items.Add(Factory.GetEVolta_on_SerialPort_with_default_Port_Settings(item));
             }
 #if DEBUG
-            cb_CurrentMeasuringInstruments.Items.Add(Factory.GetFakeEVolta("COM222"));
+            //cb_CurrentMeasuringInstruments.Items.Add(Factory.GetFakeEVolta("COM222"));
 #endif
 
             if (cb_CurrentMeasuringInstruments.Items.Count > 0)
@@ -140,10 +141,10 @@ namespace benchGUI
 
             foreach (var item in Factory.GetSerialPortsNames())
             {
-                cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings(item));
+                //cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings(item));
             }
 #if DEBUG
-            cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_Fake_SerialPort());
+            //cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_Fake_SerialPort());
 #endif
 
             //===========================ЭЛМЕТРО - ПАСКАЛЬ===============================================================================
@@ -218,19 +219,25 @@ namespace benchGUI
                 if (
                 ((double.TryParse(tbScaleMin.Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures),
+                CultureInfo.InvariantCulture,
                 out pressureScaleMin)
                     &
                 double.TryParse(tbScaleMax.Text.Replace(',', '.'),
                 NumberStyles.Float,
-                new CultureInfo((int)CultureTypes.NeutralCultures),
+                CultureInfo.InvariantCulture,
                 out pressureScaleMax)))
                 && startedEK && startedCPC
                 )
                 {
-                    InvokeControlAction(chart_result, () => chart_result.Series.Clear() );
-                    //InvokeControlAction(chart_result, () => chart_result.ChartAreas[0].AxisX.Minimum = pressureScaleMin );
-                    //InvokeControlAction(chart_result, () => chart_result.ChartAreas[0].AxisX.Maximum = pressureScaleMax );
+                    InvokeControlAction(chart_result, () =>
+                                                                {
+                                                                    chart_result.Series.Clear();
+                                                                    chart_result.ChartAreas[0].AxisX.Minimum = 1;
+                                                                    chart_result.ChartAreas[0].AxisX.Maximum = dataGridView1.Rows.Count;
+                                                                    chart_result.ChartAreas[0].AxisY.Minimum = -0.1;
+                                                                    chart_result.ChartAreas[0].AxisY.Maximum = 0.1;
+                                                                }
+                    );
 
                     do
                     {
@@ -243,15 +250,18 @@ namespace benchGUI
 
                         var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
                         chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-                        chartSeries.XValueType = ChartValueType.Double;
+                        chartSeries.XValueType = ChartValueType.Int32;
+                        chartSeries.YAxisType = AxisType.Primary;
+                        
+                        
                         InvokeControlAction(chart_result, () => chart_result.Series.Add(chartSeries));
 
-                        pressureGeneratorSpan.SetSetPoint(new OneMeasure(0, selectedPressureUOM, DateTime.Now ));
+                        pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now );
 
                         //setTextBoxText(pressureGeneratorSpan.GetSetPoint().ToString(), tb_cpcSetPoint);
-                        pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+                        //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
 
-                        pressureGeneratorSpan.SetPressureOperationMode(WorkBench.Enums.PressureControllerOperationMode.CONTROL);
+                        pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.CONTROL;
                         ReadPressureInstrumentOperationModeToRadioButtons();
 
                         while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } // { Application.DoEvents(); }
@@ -261,12 +271,12 @@ namespace benchGUI
 
                             if (!cancellationToken.IsCancellationRequested)
                             {
-                                double setpoint = (double)item.Cells[calcPressure.Name].Value;
+                                double setpoint = double.Parse(item.Cells[calcPressure.Name].Value.ToString());
 
-                                pressureGeneratorSpan.SetSetPoint(new OneMeasure(setpoint, selectedPressureUOM, DateTime.Now ));
+                                pressureGeneratorSpan.SetPoint = new OneMeasure(setpoint, selectedPressureUOM, DateTime.Now );
 
                                 //setTextBoxText(pressureGeneratorSpan.GetSetPoint().ToString(), tb_cpcSetPoint);
-                                pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+                                //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
 
 
                                 currentStabilityCalc.Reset();
@@ -280,7 +290,16 @@ namespace benchGUI
                                     item.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToString("N4");
                                     var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
                                     item.Cells[error.Name].Value = discrepancy.ToString("N4");
-                                    InvokeControlAction(chart_result, () => chartSeries.Points.AddXY(item.Cells[cpcPressure.Name].Value, discrepancy));
+                                    InvokeControlAction(chart_result, () =>
+                                    {
+                                    chartSeries.Points.AddXY(item.Index + 1 , discrepancy);
+                                        var absDiscrepancy = Math.Round( Math.Abs(discrepancy));
+                                    if (absDiscrepancy > Math.Abs(chart_result.ChartAreas[0].AxisY.Minimum))
+                                    {
+                                            chart_result.ChartAreas[0].AxisY.Minimum = absDiscrepancy * -1.1;
+                                            chart_result.ChartAreas[0].AxisY.Maximum = absDiscrepancy * 1.1;
+                }
+                                    });
                                 }
                             }
                         }
@@ -291,12 +310,12 @@ namespace benchGUI
                         }
                     } while (nUD_CalibrationCyclesCount.Value - 1 >= nUD_CalibrationCyclesCount.Minimum);
 
-                    pressureGeneratorSpan.SetSetPoint(new OneMeasure(0, selectedPressureUOM, DateTime.Now ));
-                    pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+                    pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now );
+                    //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
 
                     while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } // { Application.DoEvents(); }
 
-                    pressureGeneratorSpan.SetPressureOperationMode(WorkBench.Enums.PressureControllerOperationMode.VENT);
+                    pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.VENT;
 
                     ReadPressureInstrumentOperationModeToRadioButtons();
 
@@ -323,15 +342,25 @@ namespace benchGUI
 
                 var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
                 chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-
+                        chartSeries.MarkerSize = 2;
+                        chartSeries.YAxisType = AxisType.Primary;
+                        chartSeries.YValueType = ChartValueType.Double;
                 chartSeries.XValueType = ChartValueType.Time;
                 DateTime minDate = currentStabilityCalc.Measures.OrderBy(m => m.TimeStamp).Select(m => m.TimeStamp).First();
                 DateTime maxDate = currentStabilityCalc.Measures.OrderByDescending(m => m.TimeStamp).Select(m => m.TimeStamp).First();
-                InvokeControlAction(chart_measures, () => chart_measures.ChartAreas[0].AxisX.Minimum = minDate.ToOADate());
-                InvokeControlAction(chart_measures, () => chart_measures.ChartAreas[0].AxisX.Maximum = maxDate.ToOADate());
+                chart_measures.ChartAreas[0].AxisX.Minimum = maxDate.AddSeconds(-TIMETOSTABLE).ToOADate(); // minDate.ToOADate());
+                chart_measures.ChartAreas[0].AxisX.Maximum = maxDate.ToOADate();
+                        chart_measures.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
+                        chart_measures.ChartAreas[0].AxisX.MinorGrid.Enabled = false;
+                        chart_measures.ChartAreas[0].AxisY.MajorGrid.Enabled = false;
+                        chart_measures.ChartAreas[0].AxisY.MinorGrid.Enabled = false;
+                        chart_measures.ChartAreas[0].AxisY2.MajorGrid.Enabled = false;
+                        chart_measures.ChartAreas[0].AxisY2.MinorGrid.Enabled = false;
+                        chart_measures.ChartAreas[0].AxisY.Minimum = 4 - 16 * 0.05;
+                        chart_measures.ChartAreas[0].AxisY.Maximum = 20 + 16 * 0.05;
 
 
-                InvokeControlAction(chart_measures, () => chart_measures.Series.Add(chartSeries));
+                        InvokeControlAction(chart_measures, () => chart_measures.Series.Add(chartSeries));
 
                 foreach (var item in currentStabilityCalc.Measures)
                 {
@@ -345,16 +374,31 @@ namespace benchGUI
             {
 
                 var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
-                chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+                        chartSeries.YAxisType = AxisType.Secondary;
 
-                chartSeries.XValueType = ChartValueType.Time;
-                DateTime minDate = pressureStabilityCalc.Measures.OrderBy(m => m.TimeStamp).Select(m => m.TimeStamp).First();
-                DateTime maxDate = pressureStabilityCalc.Measures.OrderByDescending(m => m.TimeStamp).Select(m => m.TimeStamp).First();
-                InvokeControlAction(chart_measures, () => chart_measures.ChartAreas[0].AxisX.Minimum = minDate.ToOADate());
-                InvokeControlAction(chart_measures, () => chart_measures.ChartAreas[0].AxisX.Maximum = maxDate.ToOADate());
+                        chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+                        chartSeries.MarkerSize = 2;
 
 
-                InvokeControlAction(chart_measures, () => chart_measures.Series.Add(chartSeries));
+                        chartSeries.XValueType = ChartValueType.Time;
+
+                        if (
+                        ((double.TryParse(tbScaleMin.Text.Replace(',', '.'),
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out pressureScaleMin)
+                        &
+                        double.TryParse(tbScaleMax.Text.Replace(',', '.'),
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out pressureScaleMax))))
+                        {
+                            var fullscale = pressureScaleMax - pressureScaleMin;
+                            chart_measures.ChartAreas[0].AxisY2.Minimum = pressureScaleMin - fullscale * 0.05;
+                            chart_measures.ChartAreas[0].AxisY2.Maximum= pressureScaleMax + fullscale * 0.05;
+                        }
+
+                            chart_measures.Series.Add(chartSeries);
 
                 foreach (var item in pressureStabilityCalc.Measures)
                 {
@@ -413,19 +457,18 @@ namespace benchGUI
             {
                 if (pressureGeneratorSpan == null) return;
 
-                pressureGeneratorSpan.GetPressureOperationMode(mode =>
+                var mode = pressureGeneratorSpan.PressureOperationMode;
+                
+                if (mode == WorkBench.Enums.PressureControllerOperationMode.CONTROL)
                 {
-                    if (mode == WorkBench.Enums.PressureControllerOperationMode.CONTROL)
-                    {
-                        setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.VENT);
-                        ReadPressureInstrumentOperationModeToRadioButtons();
-                    }
-                    if (mode == WorkBench.Enums.PressureControllerOperationMode.VENT || mode == WorkBench.Enums.PressureControllerOperationMode.UNKNOWN)
-                    {
-                        setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.CONTROL);
-                        ReadPressureInstrumentOperationModeToRadioButtons();
-                    }
-                });
+                    setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.VENT);
+                    ReadPressureInstrumentOperationModeToRadioButtons();
+                }
+                if (mode == WorkBench.Enums.PressureControllerOperationMode.VENT || mode == WorkBench.Enums.PressureControllerOperationMode.UNKNOWN)
+                {
+                    setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.CONTROL);
+                    ReadPressureInstrumentOperationModeToRadioButtons();
+                }
             }
         }
 

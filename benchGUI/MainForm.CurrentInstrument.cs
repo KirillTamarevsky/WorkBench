@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WorkBench;
+using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 using WorkBench.UOMS;
@@ -27,13 +28,13 @@ namespace benchGUI
 
         private CyclicChannelSpanReader CurrentChannelSpanCyclicReader;
 
-        private async void btn_openCurrentMeasureInstrument_Click(object sender, EventArgs e)
+        private void btn_openCurrentMeasureInstrument_Click(object sender, EventArgs e)
         {
             switch (startedEK)
             {
                 case false:
                     CurrentMeasuringInstrument = (IInstrument)cb_CurrentMeasuringInstruments.SelectedItem;
-                    if (await CurrentMeasuringInstrument.Open())
+                    if (CurrentMeasuringInstrument.Open())
                     {
                         //для обновления информации, считанной из прибора, например, серийный номер
                         cb_CurrentMeasuringInstruments.Items.Remove(CurrentMeasuringInstrument);
@@ -71,8 +72,6 @@ namespace benchGUI
                     currentStabilityCalc.Reset();
                     lbl_cnahValue.BackColor = Color.Transparent;
 
-                    break;
-                default:
                     break;
             }
         }
@@ -187,8 +186,6 @@ namespace benchGUI
                     var press = (ma - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin;
                     setLabelText($"{press:N2} {selectedPressureUOM.Name}", lbl_cnahValue);
                     break;
-                default:
-                    break;
             }
 
             fillMeasuresChart();
@@ -208,8 +205,6 @@ namespace benchGUI
                     {
                         showCurrentInPressureUnits = true;
                     }
-                    break;
-                default:
                     break;
             }
         }

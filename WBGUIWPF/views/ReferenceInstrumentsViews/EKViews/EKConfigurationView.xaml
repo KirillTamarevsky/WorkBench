@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="WBGUIWPF.views.EKConfigurationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:WBGUIWPF.viewmodels"
+             xmlns:local="clr-namespace:WBGUIWPF.views"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="400"
+             d:Background="White"   
+             d:DataContext="{d:DesignInstance Type=vm:EKConfigurationVM, IsDesignTimeCreatable=True}"
+             >
+    <UserControl.Resources>
+        <ResourceDictionary >
+            <Style TargetType="Grid">
+                <Style.Resources>
+                    <Style TargetType="RowDefinition">
+                        <Setter Property="Height" Value="25"/>
+                    </Style>
+                    
+                </Style.Resources>
+            </Style>
+            <d:DataTemplate DataType="{x:Type vm:SerialPortConfigurationVM}">
+                <local:SerialPortConfigurationView/>
+            </d:DataTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="280"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Элметро-Кельвин"/>
+        <TextBlock Text="Мультиметр прецизионный многоканальный" Grid.Column="1"/>
+        <TextBlock Grid.Row="1" Text="Заводской номер:"/>
+        <TextBox Grid.Row="1" Grid.Column="1"
+                       Text="{Binding SerialNumber}"/>
+        <TextBlock Grid.Row="2" Text="Последовательный порт:"/>
+        <ComboBox 
+            Grid.Row="2"
+            Grid.Column="1"
+            ItemsSource="{Binding AvailableSerialPortConfigurations}"
+            SelectedItem="{Binding SelectedSerialPortConfiguration}"
+            DisplayMemberPath="DisplayShortName"/>
+    </Grid>
+</UserControl>

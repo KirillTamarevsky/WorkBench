@@ -23,8 +23,6 @@ namespace WorkBench.Communicators
 
         string _serialPortLineEndToken;
 
-        string _sendedCommand;
-
         string _currentUOM = "Pascal";
 
         string _setpt = "0.1234";
@@ -84,120 +82,6 @@ namespace WorkBench.Communicators
         internal int _timeout;
         public int ReadTimeout { get => _timeout; set => _timeout = value; }
 
-        public Task<string> ReadLine(TimeSpan readLineTimeout)
-        {
-            logger.Debug($"Start ReadLine({this})");
-
-            string answer = "";
-            
-            logger.Debug($"Start ReadLine({this}) is open");
-
-            switch (_sendedCommand.Trim())
-            {
-                case "ID?":
-                    answer = "EMENSOR, 600, 12345, 666";
-                    break;
-                case "RangeMin?":
-                    switch (_currentChannel)
-                    {
-                        case "A":
-                            answer = " -1";
-                            break;
-                        case "B":
-                            answer = " 0";
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case "RangeMax?":
-                    switch (_currentChannel)
-                    {
-                        case "A":
-                            answer = " 15";
-                            break;
-                        case "B":
-                            answer = " 65";
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case "Units?":
-                    answer = string.Format(" {0}", _currentUOM);
-                    break;
-                case "A?":
-                    Thread.Sleep(25);
-                    answer = string.Format(
-                        " {0}", 
-                        ((new System.Random()).NextDouble() * 35).ToString("N4")
-                        );
-                    break;
-                case "B?":
-                    Thread.Sleep(500);
-                    answer = string.Format(
-                        " {0}",
-                        ((new System.Random()).NextDouble() * 35 + 35).ToString("N4")
-                        );
-                    break;
-                case "Setpt?":
-                    answer = _setpt;
-                    break;
-                case "":
-
-                    break;
-                case "Mode?":
-                    answer = " CONTROL";
-                    break;
-                default :
-                    break;
-            }
-
-            logger.Info(
-                string.Format(
-                    "ReadLine( {0} ) answer = \"{1}\" | {2}",
-                    this.ToString(),
-                    answer.Replace("\r", "\\r").Replace("\n", "\\n"),
-                    BitConverter.ToString(Encoding.ASCII.GetBytes(answer))));
-
-            return Task.FromResult( answer);
-        }
-
-        public bool SendLine(string cmd)
-        {
-            logger.Debug($"Start SendLine({this})");
-
-            var dataToSend = cmd + "\r";
-
-            logger.Info(
-                string.Format("SendLine( {0} ) dataToSend = \"{1}\" | {2}",
-                this.ToString(), 
-                dataToSend.Replace("\r", "\\r").Replace("\n", "\\n"),
-                BitConverter.ToString(Encoding.ASCII.GetBytes(dataToSend)))
-                );
-
-            _sendedCommand =dataToSend;
-
-            var cmdparts = _sendedCommand.Split(' ');
-
-            switch (cmdparts[0])
-            {
-                case "Units":
-                    _currentUOM = cmdparts[1];
-                    break;
-                case "Setpt":
-                    _setpt = cmdparts[1];
-                    break;
-                case "Chan":
-                    _currentChannel = cmdparts[1].Trim();
-                    break;
-                default:
-                    break;
-            }
-
-            return true;
-
-        }
 
         public void Dispose()
         {
@@ -289,7 +173,7 @@ namespace WorkBench.Communicators
                 default:
                     break;
             }
-            answer += "\n";
+            answer += _serialPortLineEndToken;
             foreach (byte item in answer.ToCharArray())
             {
                 answerBytesQueue.Enqueue(item);
