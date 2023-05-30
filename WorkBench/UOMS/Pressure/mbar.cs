@@ -8,7 +8,7 @@ using WorkBench.Interfaces;
 
 namespace WorkBench.UOMS
 {
-    public class Mbar : PressureUOM
+    public class mbar : PressureUOM
     {
         public override string Name => "mbar";
 

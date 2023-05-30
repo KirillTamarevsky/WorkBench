@@ -11,42 +11,20 @@ using WorkBench.UOMS;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    internal class CPC6000ChannelSpan : AbstractInstrumentChannelSpanReader_and_Generator, IInstrumentChannelSpanPressureGenerator
+    internal class CPC6000ChannelSpan : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader
     {
+        private CPC6000Channel parentChannel { get; }
+        private Scale Scale { get; }
         public CPC6000ChannelSpan(CPC6000Channel _parentChannel, Scale _scale)
         {
             parentChannel = _parentChannel;
 
             Scale = _scale;
         }
-        public override void GetSetPoint(Action<OneMeasure> reportTo)
+
+        public void Zero()
         {
-            EnqueueInstrumentCmd(new CPC6000Command_GetSetPoint(reportTo));
-        }
-        public override void SetSetPoint(OneMeasure value)
-        {
-            EnqueueInstrumentCmd(new CPC6000Command_SetSetPoint(value));
-        }
-
-        public override void Activate()
-        {
-            parentChannel.ActiveSpan = this;
-        }
-
-        public override void Read(IUOM uom, Action<OneMeasure> reportTo)
-        {
-                if (uom.UOMType != UOMType.Pressure) throw new ArgumentException($"wrong UOM! {uom.UOMType} is not {UOMType.Pressure}");
-
-                var cmd = new CPC6000Command_Get_Actual_Pressure_on_channel(uom, reportTo);
-
-                EnqueueInstrumentCmd(cmd);
-
-        }
-
-        public override void Zero()
-        {
-            var cmd = new cpc6000Command_AutoZero();
-            EnqueueInstrumentCmd(cmd);
+            parentChannel.parent.Communicator.SendLine("Autozero");
         }
 
         public void GetPressureOperationMode(Action<PressureControllerOperationMode> reportTo)

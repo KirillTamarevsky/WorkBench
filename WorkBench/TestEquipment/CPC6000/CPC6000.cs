@@ -9,73 +9,40 @@ using System.Threading.Tasks;
 using WorkBench.Communicators;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Runtime.Remoting.Channels;
-using WorkBench.AbstractClasses.Instrument;
 using WorkBench.Interfaces.InstrumentChannel;
-using WorkBench.AbstractClasses.InstrumentCommand;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
     public partial class CPC6000 : IInstrument
     {
         log4net.ILog logger = log4net.LogManager.GetLogger(typeof(CPC6000));
-        private ITextCommunicator Communicator;
+        internal ITextCommunicator Communicator { get; }
+
+
         public CPC6000(ITextCommunicator communicator)
         {
-            logger.Info($"CPC created for {communicator}" );
+            logger.Info($"CPC created for {communicator}");
             Communicator = communicator;
         }
 
-        private IInstrumentChannel[] _channels;
-        public IInstrumentChannel[] Channels 
-        { 
-            get => _channels;
-        }
-
-        public IInstrumentChannel this[int i] 
-        { 
-            get
-            {
-                if (i > 0 | i < 3)
-                {
-                    return _channels[i];
-                }
-                return null;
-            }
-        }
-
-        public CPC6000Channel this[CPC6000ChannelNumber chanNum]
-        {
-            set
-            {
-                value.NUM = (int)chanNum;
-
-                value.parent = this;
-
-                _channels[(int)chanNum - 1] = value;
-            }
-            get
-            {
-                return (CPC6000Channel)_channels[(int)chanNum - 1];
-            }
-        }
+        public IInstrumentChannel[] Channels { get; private set; }
 
         /// <summary>
         /// название типа прибора
         /// </summary>
         public static string Name
-        { 
-            get => "CPC6000";  
+        {
+            get => "CPC6000";
         }
 
         /// <summary>
         /// Наименование прибора
         /// </summary>
-        public static string Description 
-        { 
+        public static string Description
+        {
             get => "Калибратор давления";
         }
-        public bool IsOpen { get; }
+        public bool IsOpen { get; private set; }
         /// <summary>
         /// устанавливает связь с прибором.
         /// </summary>
@@ -85,7 +52,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public bool Open()
         {
             if (IsOpen) return true;
-                
+
             bool cpcanswered = false;
 
             var logger = log4net.LogManager.GetLogger("CPC6000Communication");
@@ -96,65 +63,60 @@ namespace WorkBench.TestEquipment.CPC6000
 
             logger.Debug($"CPC6000.Open( {Communicator} ) communicatorOpened = {communicatorOpened}");
 
-            if (communicatorOpened)
+            if (!communicatorOpened) return false;
+
+            string answer = Query("ID?");
+
+            string[] answerParts;
+
+            if (!string.IsNullOrEmpty(answer))
             {
-                string answer = Query("ID?");
-
-                string[] answerParts;
-
-                if (!string.IsNullOrEmpty(answer))
+                answerParts = answer.Split(new char[] { ',' });
+                for (int i = 0; i < answerParts.Length; i++)
                 {
-                    answerParts = answer.Split(new char[] { ',' });
-                    for (int i = 0; i < answerParts.Length; i++)
-                    {
-                        answerParts[i] = answerParts[i].Trim();
-                    }
-
-                    if (answerParts[0] == "MENSOR" && answerParts[1] == "600")
-                    {
-                        cpcanswered = true;
-                        _serialNo = answerParts[2];
-                        _swVer = answerParts[3];
-
-
-                        isConnected = true; // если пришел ответ, то прибор перешел в режим удаленной работы.
-                                            // необходимо перевести в локальный режим по окончании сеанса связи
-                        //KeyLock(true); 
-
-                        SetUOMOnChannel(CPC6000ChannelNumber.A, "kPa");
-                        SetUOMOnChannel(CPC6000ChannelNumber.B, "kPa");
-
-                        #region Setup Channels
-                            _channels = new CPC6000Channel[2];
-
-                            this[CPC6000ChannelNumber.A] = new CPC6000Channel(this, CPC6000ChannelNumber.A);
-
-                            this[CPC6000ChannelNumber.B] = new CPC6000Channel(this, CPC6000ChannelNumber.B);
-
-                            //this[CPC6000ChannelNumber.Baro] = new CPC6000ChannelBase();
-                        #endregion
-
-                    }
-                }
-                if (!cpcanswered)
-                {
-                    log4net.LogManager.GetLogger("CPC6000Communication").Debug($"communicator close( {Communicator} ) ");
-                    Communicator.Close();
-                    isConnected = false;
+                    answerParts[i] = answerParts[i].Trim();
                 }
 
+                if (answerParts[0] == "MENSOR" && answerParts[1] == "600")
+                {
+                    cpcanswered = true;
+                    _serialNo = answerParts[2];
+                    _swVer = answerParts[3];
+
+
+                    IsOpen = true; // если пришел ответ, то прибор перешел в режим удаленной работы.
+                                   // необходимо перевести в локальный режим по окончании сеанса связи
+                                   //KeyLock(true); 
+
+                    SetUOMOnChannel(CPC6000ChannelNumber.A, "kPa");
+                    SetUOMOnChannel(CPC6000ChannelNumber.B, "kPa");
+
+                    #region Setup Channels
+
+                    var CPC6000ChannelA = new CPC6000Channel(this, CPC6000ChannelNumber.A);
+
+                    var CPC6000ChannelB = new CPC6000Channel(this, CPC6000ChannelNumber.B);
+
+                    Channels = new IInstrumentChannel[] { (IInstrumentChannel)CPC6000ChannelA, (IInstrumentChannel)CPC6000ChannelB };
+
+                    //this[CPC6000ChannelNumber.Baro] = new CPC6000ChannelBase();
+                    #endregion
+
+                }
             }
+            if (!cpcanswered)
+            {
+                log4net.LogManager.GetLogger("CPC6000Communication").Debug($"communicator close( {Communicator} ) ");
+                Communicator.Close();
+                IsOpen = false;
+            }
+
             return cpcanswered;
         }
-        public override bool Close()
+        public bool Close()
         {
-            StopCommandQueueProcessor();
-            if (isConnected)
-            {
-                //KeyLock(false); // <===== НЕ РАБОТАЕТ! 
-                isConnected = false;
-            }
-            return Communicator.Close();
+            IsOpen = Communicator.Close();
+            return IsOpen;
         }
 
         public override string ToString()
@@ -162,15 +124,5 @@ namespace WorkBench.TestEquipment.CPC6000
             return String.Format("{0} {1} ( {2} )", Description, Name, Communicator.ToString());
         }
 
-        internal override void EnqueueInstrumentCmd(InstrumentCmd instrumentCmd)
-        {
-            CPC6000CommandBase cmd = instrumentCmd as CPC6000CommandBase;
-            
-            if (cmd == null) throw new ArgumentException($"{instrumentCmd.GetType()} не является {typeof(CPC6000CommandBase)}");
-
-            cmd.CPC = this;
-            
-            base.EnqueueInstrumentCmd(instrumentCmd);
-        }
     }
 }

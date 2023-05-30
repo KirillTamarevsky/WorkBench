@@ -72,7 +72,7 @@ namespace WorkBench.TestEquipment.CPC6000
             get
             {
                 bool flag = false;
-                if (isConnected)
+                if (IsOpen)
                 {
                     switch (Query("AS?").ToUpper())
                     {
@@ -112,7 +112,7 @@ namespace WorkBench.TestEquipment.CPC6000
             get
             {
                 bool flag = false;
-                if (isConnected)
+                if (IsOpen)
                 {
                     switch (Query("BS?").ToUpper())
                     {
@@ -159,7 +159,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public PressureControllerOperationMode GetOperationMode()
         {
             PressureControllerOperationMode mode = PressureControllerOperationMode.UNKNOWN;
-            if (isConnected)
+            if (IsOpen)
             {
                 string answer = Query("Mode?");
                 switch (answer.ToUpper())

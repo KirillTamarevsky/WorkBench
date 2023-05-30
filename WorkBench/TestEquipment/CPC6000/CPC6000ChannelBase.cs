@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
-using WorkBench.AbstractClasses.InstrumentCommand;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
-using WorkBench.AbstractClasses.InstrumentChannel;
-using WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan;
-using WorkBench.AbstractClasses.Instrument;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    public partial class CPC6000Channel : AbstractInstrumentChannel
+    public partial class CPC6000Channel : IInstrumentChannel
     {
+        public IInstrumentChannelSpan[] AvailableSpans { get; }
+
         internal CPC6000ChannelNumber ChannelNumber;
         public CPC6000Channel(CPC6000 _parent, CPC6000ChannelNumber channum)
         {
@@ -36,38 +33,16 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        UOMType lastReadType = UOMType.Pressure;
-
-        CPC6000 _parent;
-        public override AbstractInstrument parent 
-        {
-            get => _parent;
-
-            protected internal set
-            {
-                if (!(value is CPC6000 p)) throw new ArgumentException($"{value.GetType()} is not {typeof(CPC6000)}");
-
-                _parent = p;
-            }
-        }
-        public override string Name
+        internal CPC6000 parent { get; }
+        public string Name
         {
             get
             {
-                return $"{parent.Description} {parent.Name} канал {NUM} {supportedMeasureTypes.FirstOrDefault()}";
+                return $"{CPC6000.Description} {CPC6000.Name} канал {NUM} {supportedMeasureTypes.FirstOrDefault()}";
             }
-            protected internal set { }
         }
 
-        internal override void EnqueueInstrumentCmd(InstrumentCmd instrumentCmd)
-        {
-            if (!(instrumentCmd is CPC6000CommandBase cmd)) throw new ArgumentException($"{instrumentCmd.GetType()} не является {typeof(CPC6000CommandBase)}");
-
-            cmd.ChannelNumber = ChannelNumber;
-
-            base.EnqueueInstrumentCmd(instrumentCmd);
-        }
-        public override int NUM { get ; protected internal set ; }
+        public int NUM { get ; protected internal set ; }
 
         public override string ToString()
         {

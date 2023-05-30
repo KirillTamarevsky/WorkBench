@@ -52,8 +52,8 @@ namespace benchGUI
 
             cbPressureScaleUOM.Items.Clear();
             cbPressureScaleUOM.Items.Add(new kPa());
-            cbPressureScaleUOM.Items.Add(new Mbar());
-            cbPressureScaleUOM.Items.Add(new Bar());
+            cbPressureScaleUOM.Items.Add(new mbar());
+            cbPressureScaleUOM.Items.Add(new bar());
             cbPressureScaleUOM.Items.Add(new MPa());
             cbPressureScaleUOM.Items.Add(new Kgfcmsq());
             cbPressureScaleUOM.Items.Add(new Pa());
