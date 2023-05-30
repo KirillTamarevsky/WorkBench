@@ -9,15 +9,14 @@ using WorkBench.Interfaces.InstrumentChannel;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    public partial class CPC6000Channel : IInstrumentChannel
+    public abstract class CPC6000Channel : IInstrumentChannel
     {
         public IInstrumentChannelSpan[] AvailableSpans { get; }
 
-        internal CPC6000ChannelNumber ChannelNumber;
-        public CPC6000Channel(CPC6000 _parent, CPC6000ChannelNumber channum)
+        public abstract CPC6000ChannelNumber ChannelNumber { get; }
+        public CPC6000Channel(CPC6000 _parent)
         {
             parent = _parent;
-            ChannelNumber = channum;
             var _scale = _parent.GetActualScaleOnChannel(ChannelNumber);
             AvailableSpans = new IInstrumentChannelSpan[] { new CPC6000ChannelSpan(this, _scale) };
         }
@@ -48,5 +47,16 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             return Name;
         }
+    }
+
+    public class CPC6000Channel_A : CPC6000Channel
+    {
+        public CPC6000Channel_A(CPC6000 parent) : base(parent){}
+        public override CPC6000ChannelNumber ChannelNumber => CPC6000ChannelNumber.A;
+    }
+    public class CPC6000Channel_B : CPC6000Channel
+    {
+        public CPC6000Channel_B(CPC6000 parent) : base(parent) { }
+        public override CPC6000ChannelNumber ChannelNumber => CPC6000ChannelNumber.B;
     }
 }

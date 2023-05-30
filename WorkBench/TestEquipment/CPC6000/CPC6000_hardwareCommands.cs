@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WorkBench.AbstractClasses.Instrument;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.UOMS;
@@ -452,16 +451,6 @@ namespace WorkBench.TestEquipment.CPC6000
 
         #region CPC6000 high level commands
 
-        //internal Scale GetActualScaleOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
-        //{
-
-        //    var cmd = new CPC6000Command_GetChannelRange() { ChannelNumber = cPC6000ChannelNumber};
-        //    EnqueueInstrumentCmd(cmd);
-        //    while (!cmd.Executed){}
-
-        //    return cmd.Result;
-
-        //}
         internal Scale GetActualScaleOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
         {
             SetCurrentChannelNum(cPC6000ChannelNumber);

@@ -93,11 +93,11 @@ namespace WorkBench.TestEquipment.CPC6000
 
                     #region Setup Channels
 
-                    var CPC6000ChannelA = new CPC6000Channel(this, CPC6000ChannelNumber.A);
+                    var CPC6000ChannelA = new CPC6000Channel_A(this);
 
-                    var CPC6000ChannelB = new CPC6000Channel(this, CPC6000ChannelNumber.B);
+                    var CPC6000ChannelB = new CPC6000Channel_B(this);
 
-                    Channels = new IInstrumentChannel[] { (IInstrumentChannel)CPC6000ChannelA, (IInstrumentChannel)CPC6000ChannelB };
+                    Channels = new IInstrumentChannel[] { CPC6000ChannelA, CPC6000ChannelB };
 
                     //this[CPC6000ChannelNumber.Baro] = new CPC6000ChannelBase();
                     #endregion
