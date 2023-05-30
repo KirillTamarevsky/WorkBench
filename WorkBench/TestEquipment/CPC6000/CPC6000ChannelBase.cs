@@ -41,22 +41,21 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        public int NUM { get ; protected internal set ; }
+        public int NUM { get => (int)ChannelNumber ; }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() => Name;
     }
 
     public class CPC6000Channel_A : CPC6000Channel
     {
         public CPC6000Channel_A(CPC6000 parent) : base(parent){}
         public override CPC6000ChannelNumber ChannelNumber => CPC6000ChannelNumber.A;
+
     }
     public class CPC6000Channel_B : CPC6000Channel
     {
         public CPC6000Channel_B(CPC6000 parent) : base(parent) { }
         public override CPC6000ChannelNumber ChannelNumber => CPC6000ChannelNumber.B;
+
     }
 }
