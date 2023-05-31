@@ -55,10 +55,10 @@ namespace WorkBench.TestEquipment.CPC6000
             string[] errorparts = answer.Split(new char[] { '-' });
             if (errorparts.Length == 2)
             {
-                Int32.TryParse(errorparts[0].TrimStart(new char[] { 'E' }), out _lastErrNo);
+                int.TryParse(errorparts[0].TrimStart(new char[] { 'E' }), out _lastErrNo);
                 _lastErrDesc = errorparts[1];
             }
-            log4net.LogManager.GetLogger("CPC6000Communication").Debug(String.Format("{0} === {1}", _lastErrNo, _lastErrDesc));
+            log4net.LogManager.GetLogger("CPC6000Communication").Debug($"{_lastErrNo} === {_lastErrDesc}");
             return;
         }
         private void ResetError()
@@ -203,23 +203,22 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        internal double GetSetPoint()
+        internal OneMeasure GetSetPoint()
         {
-            double setpoint = double.MinValue;
+            double setpoint = double.NaN;
             string answer = Query("Setpt?").Replace(',', '.');
             double.TryParse(answer,
                              NumberStyles.Float,
-                             new CultureInfo((int)CultureTypes.NeutralCultures),
+                             CultureInfo.InvariantCulture,
                              out setpoint);
             return setpoint;
         }
         internal void SetSetPoint(double value)
         {
+            var setpoint_str = value.ToString("E04", CultureInfo.InvariantCulture);
             Communicator.SendLine(
-                    String.Format(
-                        "Setpt {0}",
-                        value.ToString("E04", new CultureInfo((int)CultureTypes.NeutralCultures))
-                        ));
+                        $"Setpt {setpoint_str}"
+                        );
         }
         public int OutForm
         {
