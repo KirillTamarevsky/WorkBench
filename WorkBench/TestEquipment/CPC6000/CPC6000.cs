@@ -22,6 +22,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public CPC6000(ITextCommunicator communicator)
         {
             logger.Info($"CPC created for {communicator}");
+            IsOpen = false;
             Communicator = communicator;
         }
 
@@ -30,18 +31,13 @@ namespace WorkBench.TestEquipment.CPC6000
         /// <summary>
         /// название типа прибора
         /// </summary>
-        public static string Name
-        {
-            get => "CPC6000";
-        }
+        public static string Name => "CPC6000";
 
         /// <summary>
         /// Наименование прибора
         /// </summary>
-        public static string Description
-        {
-            get => "Калибратор давления";
-        }
+        public static string Description => "Калибратор давления";
+
         public bool IsOpen { get; private set; }
         /// <summary>
         /// устанавливает связь с прибором.
@@ -106,6 +102,7 @@ namespace WorkBench.TestEquipment.CPC6000
             }
             if (!cpcanswered)
             {
+                log4net.LogManager.GetLogger("CPC6000Communication").Debug($"CPC000 didn't answered ");
                 log4net.LogManager.GetLogger("CPC6000Communication").Debug($"communicator close( {Communicator} ) ");
                 Communicator.Close();
                 IsOpen = false;

@@ -14,6 +14,12 @@ namespace WorkBench.TestEquipment.CPC6000
     {
         private CPC6000Channel parentChannel { get; }
         public Scale Scale { get; }
+        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, Scale _scale)
+        {
+            parentChannel = _parentChannel;
+
+            Scale = _scale;
+        }
         public PressureControllerOperationMode PressureOperationMode
         {
             get => parentChannel.parent.GetOperationMode();
@@ -25,12 +31,6 @@ namespace WorkBench.TestEquipment.CPC6000
             set => parentChannel.parent.SetSetPoint(value); 
         }
 
-        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, Scale _scale)
-        {
-            parentChannel = _parentChannel;
-
-            Scale = _scale;
-        }
 
         public void Zero()
         {
@@ -44,7 +44,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public OneMeasure Read(IUOM uom)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); 
         }
     }
 }
