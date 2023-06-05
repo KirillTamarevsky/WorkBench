@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
@@ -14,6 +15,7 @@ namespace WorkBench.TestEquipment.CPC6000
     {
         internal CPC6000 parent { get; }
         internal ITextCommunicator Communicator { get => parent.Communicator; }
+        private string Query(string cmd) => parent.Query(cmd);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
         private CPC6000ChannelSpan ActiveSpan { get; set; }
 
@@ -21,9 +23,29 @@ namespace WorkBench.TestEquipment.CPC6000
         public CPC6000Channel(CPC6000 _parent)
         {
             parent = _parent;
-
-            var _scale = _parent.GetActualScaleOnChannel(ChannelNumber);
-            AvailableSpans = new IInstrumentChannelSpan[] { new CPC6000ChannelSpan(this, _scale) };
+            parent.SetActiveChannel(ChannelNumber);
+            List<IInstrumentChannelSpan> availableSpans = new List<IInstrumentChannelSpan>();
+            //get turndowns for current channel
+            //List? => [PRI,1;SEC,1;BAR,1]
+            var existingTurnDowns = Query("List?").Trim();
+            var modules = existingTurnDowns.Split(";");
+            foreach (var module in modules)
+            {
+                var mod_turndowns = module.Split(",");
+                var modType = mod_turndowns[0].Trim().ToUpper() switch
+                {
+                    "PRI" => CPC6000PressureModule.Primary,
+                    "SEC" => CPC6000PressureModule.Secondary,
+                    "BAR" => CPC6000PressureModule.Barometer,
+                    _ => throw new ArgumentException(),
+                };
+                foreach (var turdown in mod_turndowns.Skip(1))
+                {
+                    var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown));
+                    availableSpans.Add(cpc6000channelspan);
+                }
+            }
+            AvailableSpans = availableSpans.ToArray();
         }
 
         List<Scale> supportedMeasureTypes
@@ -39,16 +61,30 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public string Name => $"{CPC6000.Description} {CPC6000.Name} канал {NUM} {supportedMeasureTypes.FirstOrDefault()}";
         internal abstract string readPressureCommand { get; }
-        internal OneMeasure ReadPressure()
-        {
-            parent.Communicator.SendLine("Outform 1");
-            var reply = parent.Communicator.QueryCommand(readPressureCommand).Trim();
-            var pressureValue = double.Parse(reply, NumberStyles.Float, CultureInfo.InvariantCulture);
-            var unit = parent.GetPUnit();
-            return new OneMeasure(pressureValue, unit);
-        }
+
         public int NUM { get => (int)ChannelNumber ; }
         public override string ToString() => Name;
+
+        internal void SetActiveTurndown(CPC6000ChannelSpan cPC6000ChannelSpan)
+        {
+            if (cPC6000ChannelSpan == null) throw new Exception();
+            if (!AvailableSpans.Any(sp => sp == cPC6000ChannelSpan)) throw new Exception("this span is not mine!");
+            parent.SetActiveChannel(this);
+            if (!(ActiveSpan == cPC6000ChannelSpan))
+            {
+
+                switch (cPC6000ChannelSpan.module)
+                {
+                    case CPC6000PressureModule.Primary:
+                        Communicator.SendLine($"Sensor P,{cPC6000ChannelSpan.turndown}");
+                        break;
+                    case CPC6000PressureModule.Secondary:
+                        Communicator.SendLine($"Sensor S,{cPC6000ChannelSpan.turndown}");
+                        break;
+                }
+                ActiveSpan = cPC6000ChannelSpan;
+            }
+        }
     }
 
     public class CPC6000Channel_A : CPC6000Channel

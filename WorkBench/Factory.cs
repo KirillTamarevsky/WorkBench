@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using WorkBench.Communicators;
 using WorkBench.Interfaces;
 using WorkBench.TestEquipment.EK;
-//using WorkBench.TestEquipment.CPC6000;
+using WorkBench.TestEquipment.CPC6000;
 using WorkBench.TestEquipment.ElmetroPascal;
 //using WorkBench.TestEquipment.EVolta;
 
@@ -97,35 +97,35 @@ namespace WorkBench
         {
             return GetEPascal_on_SerialPort(portName, 19200, Parity.Odd, 8, StopBits.One);
         }
-        //static public IInstrument GetCPC6000_on_Fake_SerialPort()
-        //{
-        //    var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
-        //    var communicator = new SerialCPC6000Communicator(fakeSerialPortWrapper);
+        static public IInstrument GetCPC6000_on_Fake_SerialPort()
+        {
+            var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
+            var communicator = new SerialCPC6000Communicator(fakeSerialPortWrapper, "\n");
 
-        //    var cpc = new CPC6000(communicator);
+            var cpc = new CPC6000(communicator);
 
-        //    return cpc;
-        //}
-        //static public IInstrument GetCPC6000_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
-        //{
-        //    CPC6000 cpc = null;
+            return cpc;
+        }
+        static public IInstrument GetCPC6000_on_SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        {
+            CPC6000 cpc = null;
 
-        //    if (IsSerialPortPresentInSystem(serialPortName))
-        //    {
-        //        var serialPortWrapper = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
-        //        var communicator = new SerialCPC6000Communicator(serialPortWrapper);
+            if (IsSerialPortPresentInSystem(serialPortName))
+            {
+                var serialPortWrapper = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
+                var communicator = new SerialCPC6000Communicator(serialPortWrapper, "\n");
 
-        //        cpc = new CPC6000(communicator);
+                cpc = new CPC6000(communicator);
 
-        //    }
+            }
 
-        //    return cpc;
-        //}
+            return cpc;
+        }
 
-        //static public IInstrument GetCPC6000_on_SerialPort_with_default_Port_Settings(string portName)
-        //{
-        //    return GetCPC6000_on_SerialPort(portName, 57600, Parity.None, 8, StopBits.One);
-        //}
+        static public IInstrument GetCPC6000_on_SerialPort_with_default_Port_Settings(string portName)
+        {
+            return GetCPC6000_on_SerialPort(portName, 57600, Parity.None, 8, StopBits.One);
+        }
 
 
         /// <summary>

@@ -144,7 +144,7 @@ namespace benchGUI
                 //cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings(item));
             }
 #if DEBUG
-            //cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_Fake_SerialPort());
+            cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_Fake_SerialPort());
 #endif
 
             //===========================ЭЛМЕТРО - ПАСКАЛЬ===============================================================================

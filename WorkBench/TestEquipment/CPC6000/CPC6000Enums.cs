@@ -16,6 +16,7 @@ namespace WorkBench.TestEquipment.CPC6000
     internal enum CPC6000PressureModule
     {
         Primary = 1,
-        Secondary = 2
+        Secondary = 2,
+        Barometer = 3
     }
 }

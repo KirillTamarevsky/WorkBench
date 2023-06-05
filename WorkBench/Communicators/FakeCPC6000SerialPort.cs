@@ -163,7 +163,28 @@ namespace WorkBench.Communicators
                 case "Chan":
                     _currentChannel = cmdparts[1].Trim();
                     break;
-
+                case "List?":
+                    switch (_currentChannel)
+                    {
+                        case "A":
+                            answer = " PRI,1;SEC,1;BAR,1";
+                            break;
+                        case "B":
+                            answer = " PRI,1;SEC,1";
+                            break;
+                    }
+                    break;
+                case "Listrange?":
+                    switch (_currentChannel)
+                    {
+                        case "A":
+                            answer = " PRI,1, +0.0000,+11.0000;SEC,1,+0.00000,+5.20000;BAR,1,+0.55158,+1.17211";
+                            break;
+                        case "B":
+                            answer = " PRI,1,  +0.000,+101.000;SEC,1, +0.0000,+31.0000";
+                            break;
+                    }
+                    break;
                 default:
                     break;
             }

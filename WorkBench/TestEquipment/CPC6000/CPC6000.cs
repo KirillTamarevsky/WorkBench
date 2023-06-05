@@ -10,6 +10,7 @@ using WorkBench.Communicators;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using WorkBench.Interfaces.InstrumentChannel;
+using System.Windows.Forms;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
@@ -123,5 +124,29 @@ namespace WorkBench.TestEquipment.CPC6000
             return String.Format("{0} {1} ( {2} )", Description, Name, Communicator.ToString());
         }
 
+        internal void SetActiveChannel(CPC6000Channel cPC6000Channel)
+        {
+            if (cPC6000Channel == null) throw new Exception("null channel!");
+            if (!Channels.Any(c => c == cPC6000Channel)) throw new Exception("this channel is not mine");
+            if (ActiveChannel != cPC6000Channel)
+            {
+                SetActiveChannel(cPC6000Channel.ChannelNumber);
+            }
+            ActiveChannel = cPC6000Channel;
+        }
+        internal void SetActiveChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
+        {
+            switch (cPC6000ChannelNumber) 
+            {
+                case CPC6000ChannelNumber.A:
+                    Communicator.SendLine("Chan A");
+                    break;
+                case CPC6000ChannelNumber.B:
+                    Communicator.SendLine("Chan B");
+                    break;
+                case CPC6000ChannelNumber.Baro:
+                    break;
+            }
+        }
     }
 }

@@ -155,21 +155,7 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        internal OneMeasure GetSetPoint()
-        {
-            double setpoint = double.NaN;
-            string answer = Query("Setpt?").Replace(',', '.');
-            double.TryParse(answer,
-                             NumberStyles.Float,
-                             CultureInfo.InvariantCulture,
-                             out setpoint);
-            return new OneMeasure(setpoint, GetPUnit());
-        }
-        internal void SetSetPoint(OneMeasure setPoint)
-        {
-            var setpoint_str = setPoint.Value.ToString("E04", CultureInfo.InvariantCulture);
-            Communicator.SendLine( $"Setpt {setpoint_str}" );
-        }
+
         public int OutForm
         {
             get
@@ -304,53 +290,6 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             Communicator.SendLine($"Units {value}"); 
         }
-        public IUOM GetPUnit()
-        {
-            var unit = Query("Units?").ToUpper();
-            Func<string, double> doubleParser = (s) => double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
-            switch (unit)
-            {
-                case "PSI" : return new customPressureUOM("psi", doubleParser("6.894757E+03"));
-                case "INHG @0C" : return new customPressureUOM("inHg @0C", doubleParser("3.386390E+03"));
-                case "INHG @60F" : return new customPressureUOM("inHg @60F", doubleParser("3.376850E+03"));
-                case "INH2O @4C" : return new customPressureUOM("inH2O @4C", doubleParser("2.490820E+02"));
-                case "INH2O @20C" : return new customPressureUOM("inH2O @20C", doubleParser("2.486410E+02"));
-                case "INH2O @60F" : return new customPressureUOM("inH2O @60F", doubleParser("2.488400E+02"));
-                case "FTH2O @4C" : return new customPressureUOM("ftH2O @4C", doubleParser("2.988980E+03"));
-                case "FTH2O @20C" : return new customPressureUOM("ftH2O @20C", doubleParser("2.983692E+03"));
-                case "FTH2O @60F" : return new customPressureUOM("ftH2O @60F", doubleParser("2.986080E+03"));
-                case "MTORR" : return new customPressureUOM("mTorr", doubleParser("1.333220E-01"));
-                case "INSW @0C 3.5% SALINITY" : return new customPressureUOM("inSW @0C 3.5% salinity", doubleParser("2.560885E+02"));
-                case "FTSW @0C 3.5% SALINITY" : return new customPressureUOM("ftSW @0C 3.5% salinity", doubleParser("3.073062E+03"));
-                case "ATM" : return new customPressureUOM("atm", doubleParser("1.013250E+05"));
-                case "BAR" : return new customPressureUOM("bar", doubleParser("1.00000E+05"));
-                case "MBAR" : return new customPressureUOM("mbar", doubleParser("1.00000E+02"));
-                case "MMH2O @4C" : return new customPressureUOM("mmH2O @4C", doubleParser("9.806378E+00"));
-                case "CMH2O @4C" : return new customPressureUOM("cmH2O @4C", doubleParser("9.806378E+01"));
-                case "MH2O @4C" : return new customPressureUOM("mH2O @4C", doubleParser("9.806378E+03"));
-                case "MMHG @0C" : return new customPressureUOM("mmHg @0C", doubleParser("1.333220E+02"));
-                case "CMHG @0C" : return new customPressureUOM("cmHg @0C", doubleParser("1.333220E+03"));
-                case "TORR" : return new customPressureUOM("Torr", doubleParser("1.333220E+02"));
-                case "KPA" : return new customPressureUOM("kPa", doubleParser("1.00000E+03"));
-                case "PA" : return new customPressureUOM("Pa", doubleParser("1.00000E+00"));
-                case "DYN/SQ CM" : return new customPressureUOM("dyn/sq cm", doubleParser("1.00000E-01"));
-                case "G/SQ CM" : return new customPressureUOM("g/sq cm", doubleParser("9.806647E+01"));
-                case "KG/SQ CM" : return new customPressureUOM("kg/sq cm", doubleParser("9.806647E+04"));
-                case "MSW @0C 3.5% SALINITY" : return new customPressureUOM("mSW @0C 3.5% salinity", doubleParser("1.008222E+04"));
-                case "OZ/SI" : return new customPressureUOM("oz/si", doubleParser("4.309223E+02"));
-                case "PSF" : return new customPressureUOM("psf", doubleParser("4.788025E+01"));
-                case "TONS/SQ FT" : return new customPressureUOM("tons/sq ft", doubleParser("9.576052E+04"));
-                case "MICRONHG @0C" : return new customPressureUOM("micronHg @0C", doubleParser("1.333220E-01"));
-                case "TONS/SQ IN" : return new customPressureUOM("tons/sq in", doubleParser("1.378951E+07"));
-                case "HPA" : return new customPressureUOM("hPa", doubleParser("1.00000E+02"));
-                case "MPA" : return new customPressureUOM("MPa", doubleParser("1.00000E+06"));
-                case "MMH2O @20C" : return new customPressureUOM("mmH2O @20C", doubleParser("9.789017E+00"));
-                case "CMH2O @20C" : return new customPressureUOM("cmH2O @20C", doubleParser("9.789017E+01"));
-                case "MH2O @20C" : return new customPressureUOM("mH2O @20C", doubleParser("9.789017E+03"));
-                default:
-                    throw new Exception($"unknown pressure units [{unit}]");
-            }
-        }
         public string PType
         {
             get
@@ -424,15 +363,6 @@ namespace WorkBench.TestEquipment.CPC6000
 
         #region CPC6000 high level commands
 
-        internal Scale GetActualScaleOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
-        {
-            SetCurrentChannelNum(cPC6000ChannelNumber);
-            var rngMin = GetRangeMin();
-            var rngMax = GetRangeMax();
-            var rngUOM = GetPUnit();
-            var Result = new Scale(rngMin, rngMax, rngUOM);
-            return Result;
-        }
         internal void SetUOMOnChannel(CPC6000ChannelNumber cPC6000ChannelNumber, string uomname)
         {
             SetCurrentChannelNum(cPC6000ChannelNumber);
@@ -447,35 +377,6 @@ namespace WorkBench.TestEquipment.CPC6000
                 return;
             }
             SetPUnits(uomname);
-        }
-
-        internal OneMeasure GetActualPressureOnChannel ( CPC6000ChannelNumber channum)
-        {
-            SetCurrentChannelNum(channum);
-
-            var uomonchannel = GetPUnit();
-
-            double? chanReading;
-
-            switch (channum)
-            {
-                case CPC6000ChannelNumber.A:
-                    chanReading = ChanAReading;
-                    break;
-                case CPC6000ChannelNumber.B:
-                    chanReading = ChanBReading;
-                    break;
-                case CPC6000ChannelNumber.Baro:
-                    chanReading = ChanBaroReading;
-                    break;
-                default:
-                    throw new Exception("Invalid channum!");
-            }
-            if (chanReading == null)
-            {
-                return null;
-            }
-            return new OneMeasure((double)chanReading, uomonchannel, DateTime.Now );
         }
         #endregion
     }
