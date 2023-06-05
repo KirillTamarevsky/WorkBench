@@ -134,21 +134,15 @@ namespace WorkBench.Communicators
                     }
                     break;
                 case "Units?":
-                    answer = string.Format(" {0}", _currentUOM);
+                    answer = $" {_currentUOM}";
                     break;
                 case "A?":
                     //Thread.Sleep(5);
-                    answer = string.Format(
-                        " {0}",
-                        ((new System.Random()).NextDouble()/10 + 5).ToString("N4")
-                        );
+                    answer = $" {(new System.Random().NextDouble() / 10 + 5).ToString("N4")}";
                     break;
                 case "B?":
                     //Thread.Sleep(500);
-                    answer = string.Format(
-                        " {0}",
-                        ((new System.Random()).NextDouble() * 35 + 35).ToString("N4")
-                        );
+                    answer = $" {(new System.Random().NextDouble() * 35 + 35).ToString("N4")}";
                     break;
                 case "Setpt?":
                     answer = _setpt;

@@ -10,29 +10,11 @@ namespace WorkBench.UOMS
 {
     public class DegreeCelcius : IUOM
     {
-        public UOMType UOMType
-        {
-            get
-            {
-                return UOMType.Temperature;
-            }
-        }
+        public UOMType UOMType => UOMType.Temperature;
 
-        public string Name
-        {
-            get
-            {
-                return "°C";
-            }
-        }
+        public string Name => "°C";
 
-        public double Factor
-        {
-            get
-            {
-                return 1;
-            }
-        }
+        public double Factor => 1;
 
         public override string ToString()
         {

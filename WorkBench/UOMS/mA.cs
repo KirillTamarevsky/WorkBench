@@ -10,29 +10,11 @@ namespace WorkBench.UOMS
 {
     public class mA : IUOM
     {
-        public UOMType UOMType
-        {
-            get
-            {
-                return UOMType.Current;
-            }
-        }
+        public UOMType UOMType => UOMType.Current;
 
-        public string Name
-        {
-            get
-            {
-                return "mA";
-            }
-        }
+        public string Name => "mA";
 
-        public double Factor
-        {
-            get
-            {
-                return 1;
-            }
-        }
+        public double Factor => 1;
 
         public override string ToString()
         {
