@@ -155,54 +155,6 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        public PressureControllerOperationMode GetOperationMode()
-        {
-            PressureControllerOperationMode mode = PressureControllerOperationMode.UNKNOWN;
-            if (IsOpen)
-            {
-                string answer = Query("Mode?");
-                switch (answer.ToUpper())
-                {
-                    case "STANDBY":
-                        mode = PressureControllerOperationMode.STANDBY;
-                        break;
-                    case "MEASURE":
-                        mode = PressureControllerOperationMode.MEASURE;
-                        break;
-                    case "CONTROL":
-                        mode = PressureControllerOperationMode.CONTROL;
-                        break;
-                    case "VENT":
-                        mode = PressureControllerOperationMode.VENT;
-                        break;
-                }
-            }
-            return mode;
-
-        }
-        public void SetOperationMode(PressureControllerOperationMode value)
-        {
-            switch (value)
-            {
-                case PressureControllerOperationMode.STANDBY:
-                    Communicator.SendLine("Mode STANDBY");
-                    break;
-                case PressureControllerOperationMode.MEASURE:
-                    Communicator.SendLine("Mode MEASURE");
-                    break;
-                case PressureControllerOperationMode.CONTROL:
-                    Communicator.SendLine("Mode CONTROL");
-                    break;
-                case PressureControllerOperationMode.VENT:
-                    Communicator.SendLine("Mode VENT");
-                    break;
-                default:
-                    log4net.LogManager.GetLogger("CPC6000Communication").Debug(
-                        string.Format("CPC6000 OperationMode( {0} ) - invalid operation mode", Communicator.ToString()));
-                    throw new Exception("CPC6000 OperationMode() - invalid operation mode");
-            }
-        }
-
         internal OneMeasure GetSetPoint()
         {
             double setpoint = double.NaN;
@@ -211,14 +163,12 @@ namespace WorkBench.TestEquipment.CPC6000
                              NumberStyles.Float,
                              CultureInfo.InvariantCulture,
                              out setpoint);
-            return setpoint;
+            return new OneMeasure(setpoint, GetPUnit());
         }
-        internal void SetSetPoint(double value)
+        internal void SetSetPoint(OneMeasure setPoint)
         {
-            var setpoint_str = value.ToString("E04", CultureInfo.InvariantCulture);
-            Communicator.SendLine(
-                        $"Setpt {setpoint_str}"
-                        );
+            var setpoint_str = setPoint.Value.ToString("E04", CultureInfo.InvariantCulture);
+            Communicator.SendLine( $"Setpt {setpoint_str}" );
         }
         public int OutForm
         {
@@ -354,7 +304,7 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             Communicator.SendLine($"Units {value}"); 
         }
-        public IUOM GetPUnits()
+        public IUOM GetPUnit()
         {
             var unit = Query("Units?").ToUpper();
             Func<string, double> doubleParser = (s) => double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
@@ -461,7 +411,7 @@ namespace WorkBench.TestEquipment.CPC6000
             {
                 GetLastError();
             
-                answer = answer.TrimStart(new Char[] { 'E' });
+                answer = answer.TrimStart(new char[] { 'E' });
             }
             
             answer = answer.Trim();
@@ -479,7 +429,7 @@ namespace WorkBench.TestEquipment.CPC6000
             SetCurrentChannelNum(cPC6000ChannelNumber);
             var rngMin = GetRangeMin();
             var rngMax = GetRangeMax();
-            var rngUOM = GetPUnits();
+            var rngUOM = GetPUnit();
             var Result = new Scale(rngMin, rngMax, rngUOM);
             return Result;
         }
@@ -503,7 +453,7 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             SetCurrentChannelNum(channum);
 
-            var uomonchannel = GetPUnits();
+            var uomonchannel = GetPUnit();
 
             double? chanReading;
 

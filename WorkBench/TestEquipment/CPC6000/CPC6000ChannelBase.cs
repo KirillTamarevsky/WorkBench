@@ -12,12 +12,16 @@ namespace WorkBench.TestEquipment.CPC6000
 {
     public abstract class CPC6000Channel : IInstrumentChannel
     {
+        internal CPC6000 parent { get; }
+        internal ITextCommunicator Communicator { get => parent.Communicator; }
         public IInstrumentChannelSpan[] AvailableSpans { get; }
+        private CPC6000ChannelSpan ActiveSpan { get; set; }
 
         public abstract CPC6000ChannelNumber ChannelNumber { get; }
         public CPC6000Channel(CPC6000 _parent)
         {
             parent = _parent;
+
             var _scale = _parent.GetActualScaleOnChannel(ChannelNumber);
             AvailableSpans = new IInstrumentChannelSpan[] { new CPC6000ChannelSpan(this, _scale) };
         }
@@ -33,25 +37,17 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        internal CPC6000 parent { get; }
-        public string Name
-        {
-            get
-            {
-                return $"{CPC6000.Description} {CPC6000.Name} канал {NUM} {supportedMeasureTypes.FirstOrDefault()}";
-            }
-        }
+        public string Name => $"{CPC6000.Description} {CPC6000.Name} канал {NUM} {supportedMeasureTypes.FirstOrDefault()}";
         internal abstract string readPressureCommand { get; }
         internal OneMeasure ReadPressure()
         {
             parent.Communicator.SendLine("Outform 1");
             var reply = parent.Communicator.QueryCommand(readPressureCommand).Trim();
             var pressureValue = double.Parse(reply, NumberStyles.Float, CultureInfo.InvariantCulture);
-            var unit = parent.GetPUnits();
+            var unit = parent.GetPUnit();
             return new OneMeasure(pressureValue, unit);
         }
         public int NUM { get => (int)ChannelNumber ; }
-
         public override string ToString() => Name;
     }
 

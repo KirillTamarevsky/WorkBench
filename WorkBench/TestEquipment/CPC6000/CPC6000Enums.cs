@@ -12,4 +12,10 @@ namespace WorkBench.TestEquipment.CPC6000
         B = 2,
         Baro =3
     }
+
+    internal enum CPC6000PressureModule
+    {
+        Primary = 1,
+        Secondary = 2
+    }
 }

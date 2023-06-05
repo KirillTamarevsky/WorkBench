@@ -27,7 +27,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
             var _SP = CPC.GetSetPoint();
 
-            var _uom = CPC.GetPUnits();
+            var _uom = CPC.GetPUnit();
 
             SetPoint = new OneMeasure(_SP, _uom, DateTime.Now);
 

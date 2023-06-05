@@ -18,6 +18,8 @@ namespace WorkBench.TestEquipment.CPC6000
         log4net.ILog logger = log4net.LogManager.GetLogger(typeof(CPC6000));
         internal ITextCommunicator Communicator { get; }
 
+        private CPC6000Channel ActiveChannel { get; set; } 
+
 
         public CPC6000(ITextCommunicator communicator)
         {
