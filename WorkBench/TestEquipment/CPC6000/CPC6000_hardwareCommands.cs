@@ -335,8 +335,6 @@ namespace WorkBench.TestEquipment.CPC6000
                 case false:
                     Communicator.SendLine("Keylock No");
                     break;
-                default:
-                    break;
             }
         }
 

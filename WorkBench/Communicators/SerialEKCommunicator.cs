@@ -54,7 +54,7 @@ namespace WorkBench.Communicators
 
                 _serialPort.Close();
             }
-            return true;
+            return false;
         }
 
         public bool Open()

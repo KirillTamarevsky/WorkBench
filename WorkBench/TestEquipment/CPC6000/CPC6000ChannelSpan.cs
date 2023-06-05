@@ -9,6 +9,7 @@ using WorkBench.Interfaces.InstrumentChannel;
 using WorkBench.UOMS;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Globalization;
+using log4net.Util;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
@@ -20,7 +21,19 @@ namespace WorkBench.TestEquipment.CPC6000
         private bool IsOpen => parentChannel.parent.IsOpen;
         private string Query(string cmd) => parentChannel.parent.Query(cmd);
         internal int turndown { get; }
-        public Scale Scale { get; }
+        public Scale Scale { get
+            {
+                lock (Communicator)
+                {
+
+                    parentChannel.SetActiveTurndown(this);
+                    var unit = GetPUnit();
+                    var minRange = double.Parse(Query("RangeMin?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
+                    var maxRange = double.Parse(Query("RangeMax?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return new Scale(minRange, maxRange, unit);
+                }
+            }
+        }
         public CPC6000ChannelSpan(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown)
         {
             parentChannel = _parentChannel;
@@ -34,22 +47,26 @@ namespace WorkBench.TestEquipment.CPC6000
                 PressureControllerOperationMode mode = PressureControllerOperationMode.UNKNOWN;
                 if (IsOpen)
                 {
-                    parentChannel.SetActiveTurndown(this);
-                    string answer = Query("Mode?");
-                    switch (answer.ToUpper())
+                    lock (Communicator)
                     {
-                        case "STANDBY":
-                            mode = PressureControllerOperationMode.STANDBY;
-                            break;
-                        case "MEASURE":
-                            mode = PressureControllerOperationMode.MEASURE;
-                            break;
-                        case "CONTROL":
-                            mode = PressureControllerOperationMode.CONTROL;
-                            break;
-                        case "VENT":
-                            mode = PressureControllerOperationMode.VENT;
-                            break;
+
+                        parentChannel.SetActiveTurndown(this);
+                        string answer = Query("Mode?");
+                        switch (answer.ToUpper())
+                        {
+                            case "STANDBY":
+                                mode = PressureControllerOperationMode.STANDBY;
+                                break;
+                            case "MEASURE":
+                                mode = PressureControllerOperationMode.MEASURE;
+                                break;
+                            case "CONTROL":
+                                mode = PressureControllerOperationMode.CONTROL;
+                                break;
+                            case "VENT":
+                                mode = PressureControllerOperationMode.VENT;
+                                break;
+                        }
                     }
                 }
                 return mode;
@@ -58,25 +75,29 @@ namespace WorkBench.TestEquipment.CPC6000
             {
                 if (IsOpen)
                 {
-                    parentChannel.SetActiveTurndown(this);
-                    switch (value)
+                    lock (Communicator)
                     {
-                        case PressureControllerOperationMode.STANDBY:
-                            Communicator.SendLine("Mode STANDBY");
-                            break;
-                        case PressureControllerOperationMode.MEASURE:
-                            Communicator.SendLine("Mode MEASURE");
-                            break;
-                        case PressureControllerOperationMode.CONTROL:
-                            Communicator.SendLine("Mode CONTROL");
-                            break;
-                        case PressureControllerOperationMode.VENT:
-                            Communicator.SendLine("Mode VENT");
-                            break;
-                        default:
-                            log4net.LogManager.GetLogger("CPC6000Communication").Debug(
-                                string.Format("CPC6000 OperationMode( {0} ) - invalid operation mode", Communicator.ToString()));
-                            throw new Exception("CPC6000 OperationMode() - invalid operation mode");
+
+                        parentChannel.SetActiveTurndown(this);
+                        switch (value)
+                        {
+                            case PressureControllerOperationMode.STANDBY:
+                                Communicator.SendLine("Mode STANDBY");
+                                break;
+                            case PressureControllerOperationMode.MEASURE:
+                                Communicator.SendLine("Mode MEASURE");
+                                break;
+                            case PressureControllerOperationMode.CONTROL:
+                                Communicator.SendLine("Mode CONTROL");
+                                break;
+                            case PressureControllerOperationMode.VENT:
+                                Communicator.SendLine("Mode VENT");
+                                break;
+                            default:
+                                log4net.LogManager.GetLogger("CPC6000Communication").Debug(
+                                    string.Format("CPC6000 OperationMode( {0} ) - invalid operation mode", Communicator.ToString()));
+                                throw new Exception("CPC6000 OperationMode() - invalid operation mode");
+                        }
                     }
                 }
             }
@@ -85,31 +106,43 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             get
             {
-                parentChannel.SetActiveTurndown(this);
+                lock (Communicator)
+                {
 
-                double setpoint = double.NaN;
-                string answer = Query("Setpt?").Replace(',', '.');
-                double.TryParse(answer,
-                                 NumberStyles.Float,
-                                 CultureInfo.InvariantCulture,
-                                 out setpoint);
-                return new OneMeasure(setpoint, GetPUnit());
+                    parentChannel.SetActiveTurndown(this);
+
+                    double setpoint = double.NaN;
+                    string answer = Query("Setpt?").Replace(',', '.');
+                    double.TryParse(answer,
+                                     NumberStyles.Float,
+                                     CultureInfo.InvariantCulture,
+                                     out setpoint);
+                    return new OneMeasure(setpoint, GetPUnit());
+                }
             }
             set
             {
-                parentChannel.SetActiveTurndown(this);
+                lock (Communicator)
+                {
 
-                var setpoint_str = value.Value.ToString("E04", CultureInfo.InvariantCulture);
-                Communicator.SendLine($"Setpt {setpoint_str}");
+                    parentChannel.SetActiveTurndown(this);
+
+                    var setpoint_str = value.Value.ToString("E04", CultureInfo.InvariantCulture);
+                    Communicator.SendLine($"Setpt {setpoint_str}");
+                }
             }
         }
 
 
         public void Zero()
         {
-            parentChannel.SetActiveTurndown(this);
+            lock (Communicator)
+            {
 
-            Communicator.SendLine("Autozero");
+                parentChannel.SetActiveTurndown(this);
+
+                Communicator.SendLine("Autozero");
+            }
         }
 
         public override string ToString()
@@ -119,15 +152,18 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public OneMeasure Read(IUOM uom)
         {
+            lock (Communicator)
+            {
 
-            if (uom.UOMType != UOMType.Pressure) throw new Exception($"not possible to read uom type {uom.Name} ");
-            
-            parentChannel.SetActiveTurndown(this);
-            Communicator.SendLine("Outform 1");
-            var reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",",".");
-            var pressureValue = double.Parse(reply, NumberStyles.Float, CultureInfo.InvariantCulture);
-            var unit = GetPUnit();
-            return new OneMeasure(pressureValue, unit);
+                if (uom.UOMType != UOMType.Pressure) throw new Exception($"not possible to read uom type {uom.Name} ");
+
+                parentChannel.SetActiveTurndown(this);
+                Communicator.SendLine("Outform 1");
+                var reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",", ".");
+                var pressureValue = double.Parse(reply, NumberStyles.Float, CultureInfo.InvariantCulture);
+                var unit = GetPUnit();
+                return new OneMeasure(pressureValue, unit);
+            }
         }
         private IUOM GetPUnit()
         {

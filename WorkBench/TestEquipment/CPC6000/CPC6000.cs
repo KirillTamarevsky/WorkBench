@@ -25,7 +25,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public CPC6000(ITextCommunicator communicator)
         {
             logger.Info($"CPC created for {communicator}");
-            IsOpen = false;
+            //IsOpen = false;
             Communicator = communicator;
         }
 
@@ -41,7 +41,7 @@ namespace WorkBench.TestEquipment.CPC6000
         /// </summary>
         public static string Description => "Калибратор давления";
 
-        public bool IsOpen { get; private set; }
+        public bool IsOpen => Communicator.IsOpen;
         /// <summary>
         /// устанавливает связь с прибором.
         /// </summary>
@@ -83,7 +83,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     _swVer = answerParts[3];
 
 
-                    IsOpen = true; // если пришел ответ, то прибор перешел в режим удаленной работы.
+                    //IsOpen = true; // если пришел ответ, то прибор перешел в режим удаленной работы.
                                    // необходимо перевести в локальный режим по окончании сеанса связи
                                    //KeyLock(true); 
 
@@ -108,15 +108,14 @@ namespace WorkBench.TestEquipment.CPC6000
                 log4net.LogManager.GetLogger("CPC6000Communication").Debug($"CPC000 didn't answered ");
                 log4net.LogManager.GetLogger("CPC6000Communication").Debug($"communicator close( {Communicator} ) ");
                 Communicator.Close();
-                IsOpen = false;
+                //IsOpen = false;
             }
 
             return cpcanswered;
         }
         public bool Close()
         {
-            IsOpen = Communicator.Close();
-            return IsOpen;
+            return Communicator.Close();
         }
 
         public override string ToString()

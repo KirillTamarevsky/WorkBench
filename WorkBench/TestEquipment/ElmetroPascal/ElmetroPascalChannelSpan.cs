@@ -155,7 +155,6 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                             break;
                         default:
                             throw new Exception($"set {value} while {_pressureOperationMode}");
-                            break;
                     }
                 }
 
