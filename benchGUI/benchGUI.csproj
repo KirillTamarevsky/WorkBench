@@ -22,7 +22,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
-  <!--<PropertyGroup>
+  <PropertyGroup>
     <ManifestCertificateThumbprint>4D9C55526AA3832CDD732B463607D80E5C56C344</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
@@ -33,7 +33,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
-  </PropertyGroup>-->
+  </PropertyGroup>
   <ItemGroup>
     <Reference Update="System">
       <HintPath>..\..\..\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll</HintPath>

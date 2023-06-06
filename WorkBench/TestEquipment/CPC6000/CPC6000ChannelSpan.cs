@@ -21,6 +21,7 @@ namespace WorkBench.TestEquipment.CPC6000
         private bool IsOpen => parentChannel.parent.IsOpen;
         private string Query(string cmd) => parentChannel.parent.Query(cmd);
         internal int turndown { get; }
+        private PressureType PressureType { get; }
         public Scale Scale { get
             {
                 lock (Communicator)
@@ -34,11 +35,12 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
             }
         }
-        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown)
+        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType)
         {
             parentChannel = _parentChannel;
             module = _module;
             turndown = _turndown;
+            PressureType = pressureType;
         }
         public PressureControllerOperationMode PressureOperationMode
         {
