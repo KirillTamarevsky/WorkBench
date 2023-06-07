@@ -29,6 +29,7 @@ namespace WorkBench.Communicators
 
         string _currentChannel = "A";
 
+        PressureType PressureType { get; set; } = PressureType.Absolute;
 
         bool isopened;
         string answer = string.Empty;
@@ -147,8 +148,33 @@ namespace WorkBench.Communicators
                 case "Setpt?":
                     answer = _setpt;
                     break;
-                case "":
-
+                case "Ptype":
+                    switch (cmdparts[1].ToUpper().Trim())
+                    {
+                        case "A":
+                        case "ABSOLUTE":
+                            PressureType = PressureType.Absolute;
+                            break;
+                        case "G":
+                        case "GAUGE":
+                            PressureType = PressureType.Gauge;
+                            break;
+                        default:
+                            throw new Exception($"bad pressure type{cmdparts[1]}");
+                    }
+                    break;
+                case "Ptype?":
+                    switch (PressureType)
+                    {
+                        case PressureType.Absolute:
+                            answer = "ABSOLUTE";
+                            break;
+                        case PressureType.Gauge:
+                            answer = "GAUGE";
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case "Mode?":
                     answer = " CONTROL";
