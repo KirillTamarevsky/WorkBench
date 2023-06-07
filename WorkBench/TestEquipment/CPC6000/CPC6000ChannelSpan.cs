@@ -15,23 +15,27 @@ namespace WorkBench.TestEquipment.CPC6000
 {
     internal class CPC6000ChannelSpan : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader
     {
-        private CPC6000Channel parentChannel { get; }
+        internal CPC6000Channel parentChannel { get; }
         private ITextCommunicator Communicator => parentChannel.Communicator;
         internal CPC6000PressureModule module { get; }
-        private bool IsOpen => parentChannel.parent.IsOpen;
-        private string Query(string cmd) => parentChannel.parent.Query(cmd);
+        private bool IsOpen => parentChannel.parentCPC6000.IsOpen;
+        private string Query(string cmd) => parentChannel.parentCPC6000.Query(cmd);
         internal int turndown { get; }
-        private PressureType PressureType { get; }
+        public PressureType PressureType { get; }
+        private OneMeasure RangeMin { get; }
+        private OneMeasure RangeMax { get; }
         public Scale Scale { get
             {
                 lock (Communicator)
                 {
-
-                    parentChannel.SetActiveTurndown(this);
+                    parentChannel.Activate();
                     var unit = GetPUnit();
-                    var minRange = double.Parse(Query("RangeMin?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
-                    var maxRange = double.Parse(Query("RangeMax?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
-                    return new Scale(minRange, maxRange, unit);
+                    OneMeasure rngmin, rngmax;
+                    if (RangeMin.TryConvertTo(unit, out rngmin) && RangeMax.TryConvertTo(unit, out rngmax))
+                    {
+                        return new Scale(rngmin.Value, rngmax.Value, unit);
+                    }
+                    throw new Exception();
                 }
             }
         }
@@ -41,6 +45,11 @@ namespace WorkBench.TestEquipment.CPC6000
             module = _module;
             turndown = _turndown;
             PressureType = pressureType;
+            parentChannel.SetActiveTurndown(this);
+            var unit = GetPUnit();
+            RangeMin = new OneMeasure(double.Parse(Query("RangeMin?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+            RangeMax = new OneMeasure(double.Parse(Query("RangeMax?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+
         }
         public PressureControllerOperationMode PressureOperationMode
         {
@@ -149,7 +158,19 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public override string ToString()
         {
-            return $"{parentChannel} - {Scale}";
+            string presstype = string.Empty;
+            switch (PressureType)
+            {
+                case PressureType.Absolute:
+                    presstype = "(abs)";
+                    break;
+                case PressureType.Gauge:
+                    presstype = "(gauge)";
+                    break;
+                default:
+                    break;
+            }
+            return $"{parentChannel} - {Scale} {presstype}";
         }
 
         public OneMeasure Read(IUOM uom)

@@ -13,17 +13,17 @@ namespace WorkBench.TestEquipment.CPC6000
 {
     public abstract class CPC6000Channel : IInstrumentChannel
     {
-        internal CPC6000 parent { get; }
-        internal ITextCommunicator Communicator { get => parent.Communicator; }
-        private string Query(string cmd) => parent.Query(cmd);
+        internal CPC6000 parentCPC6000 { get; }
+        internal ITextCommunicator Communicator { get => parentCPC6000.Communicator; }
+        private string Query(string cmd) => parentCPC6000.Query(cmd);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
         private CPC6000ChannelSpan ActiveSpan { get; set; }
 
         public abstract CPC6000ChannelNumber ChannelNumber { get; }
         public CPC6000Channel(CPC6000 _parent)
         {
-            parent = _parent;
-            parent.SetActiveChannel(ChannelNumber);
+            parentCPC6000 = _parent;
+            parentCPC6000.SetActiveChannel(ChannelNumber);
             List<IInstrumentChannelSpan> availableSpans = new List<IInstrumentChannelSpan>();
             Communicator.SendLine("Ptype A");
             if (Query("Ptype?").Trim().ToUpper() == "ABSOLUTE")
@@ -45,6 +45,30 @@ namespace WorkBench.TestEquipment.CPC6000
                     foreach (var turdown in mod_turndowns.Skip(1))
                     {
                         var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown), PressureType.Absolute);
+                        availableSpans.Add(cpc6000channelspan);
+                    }
+                }
+            }
+            Communicator.SendLine("Ptype G");
+            if (Query("Ptype?").Trim().ToUpper() == "GAUGE")
+            {
+                //get turndowns for current channel
+                //List? => [PRI,1;SEC,1;BAR,1]
+                var existingTurnDowns = Query("List?").Trim();
+                var modules = existingTurnDowns.Split(";");
+                foreach (var module in modules)
+                {
+                    var mod_turndowns = module.Split(",");
+                    var modType = mod_turndowns[0].Trim().ToUpper() switch
+                    {
+                        "PRI" => CPC6000PressureModule.Primary,
+                        "SEC" => CPC6000PressureModule.Secondary,
+                        "BAR" => CPC6000PressureModule.Barometer,
+                        _ => throw new ArgumentException(),
+                    };
+                    foreach (var turdown in mod_turndowns.Skip(1))
+                    {
+                        var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown), PressureType.Gauge);
                         availableSpans.Add(cpc6000channelspan);
                     }
                 }
@@ -72,11 +96,10 @@ namespace WorkBench.TestEquipment.CPC6000
         internal void SetActiveTurndown(CPC6000ChannelSpan cPC6000ChannelSpan)
         {
             if (cPC6000ChannelSpan == null) throw new Exception();
-            if (!AvailableSpans.Any(sp => sp == cPC6000ChannelSpan)) throw new Exception("this span is not mine!");
-            parent.SetActiveChannel(this);
+            if (cPC6000ChannelSpan.parentChannel != this) throw new Exception("this span is not mine!");
+            Activate();
             if (!(ActiveSpan == cPC6000ChannelSpan))
             {
-
                 switch (cPC6000ChannelSpan.module)
                 {
                     case CPC6000PressureModule.Primary:
@@ -86,8 +109,23 @@ namespace WorkBench.TestEquipment.CPC6000
                         Communicator.SendLine($"Sensor S,{cPC6000ChannelSpan.turndown}");
                         break;
                 }
+                switch (cPC6000ChannelSpan.PressureType)
+                {
+                    case PressureType.Absolute:
+                        Communicator.SendLine("Ptype A");
+                        break;
+                    case PressureType.Gauge:
+                        Communicator.SendLine("Ptype G");
+                        break;
+                    default:
+                        break;
+                }
                 ActiveSpan = cPC6000ChannelSpan;
             }
+        }
+        internal void Activate()
+        {
+            parentCPC6000.SetActiveChannel(this);
         }
     }
 

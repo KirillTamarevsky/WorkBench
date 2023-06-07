@@ -126,7 +126,7 @@ namespace WorkBench.TestEquipment.CPC6000
         internal void SetActiveChannel(CPC6000Channel cPC6000Channel)
         {
             if (cPC6000Channel == null) throw new Exception("null channel!");
-            if (!Channels.Any(c => c == cPC6000Channel)) throw new Exception("this channel is not mine");
+            if (cPC6000Channel.parentCPC6000 != this) throw new Exception("this channel is not mine");
             if (ActiveChannel != cPC6000Channel)
             {
                 SetActiveChannel(cPC6000Channel.ChannelNumber);
