@@ -178,12 +178,16 @@ namespace WorkBench.TestEquipment.CPC6000
             {
 
                 if (uom.UOMType != UOMType.Pressure) throw new Exception($"not possible to read uom type {uom.Name} ");
-                SetPUnit(uom);
                 parentChannel.SetActiveTurndown(this);
+                var unit = GetPUnit();
+                if (unit.Factor != uom.Factor)
+                {
+                    SetPUnit(uom);
+                    unit = GetPUnit();
+                }
                 Communicator.SendLine("Outform 1");
                 var reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",", ".");
                 var pressureValue = double.Parse(reply, NumberStyles.Float, CultureInfo.InvariantCulture);
-                var unit = GetPUnit();
                 return new OneMeasure(pressureValue, unit);
             }
         }
