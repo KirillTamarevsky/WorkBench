@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 using WorkBench.UOMS;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkBench.TestEquipment.EK.channelSpans
 {
