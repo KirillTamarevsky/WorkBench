@@ -9,6 +9,7 @@ using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 using WorkBench.UOMS;
+using WorkBench.UOMS.Pressure;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
@@ -184,7 +185,16 @@ namespace WorkBench.TestEquipment.CPC6000
         }
         internal void SetPUnit(IUOM targetUOM)
         {
-            Communicator.SendLine($"Units {targetUOM.Name}");
+            var cpc6000UnitCode = targetUOM.Name;
+            if (targetUOM.GetType() == typeof(Kgfcmsq))
+            {
+                cpc6000UnitCode = "KG/CM2";
+            }
+            if (targetUOM.GetType() == typeof(mmH2OAt4DegreesCelsius))
+            {
+                cpc6000UnitCode = "MMH2O 4C";
+            }
+            Communicator.SendLine($"Units {cpc6000UnitCode}");
             ActiveUOM = targetUOM;
         }
     }
