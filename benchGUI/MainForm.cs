@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ScottPlot;
+using ScottPlot.Plottable;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -32,6 +34,7 @@ namespace benchGUI
 
             pressureStabilityCalc = new StabilityCalculator(COUNTTOSTABLE, TimeSpan.FromSeconds(TIMETOSTABLE));
             currentStabilityCalc = new StabilityCalculator(COUNTTOSTABLE, TimeSpan.FromSeconds(TIMETOSTABLE));
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -50,6 +53,11 @@ namespace benchGUI
                 dataGridView1.Rows.Add(datagridviewrow);
             }
 
+#if DEBUG
+            tbScaleMin.Text = "0";
+            tbScaleMax.Text = "40";
+            fillComputedPressure();
+#endif
             cbPressureScaleUOM.Items.Clear();
             cbPressureScaleUOM.Items.Add(new kPa());
             cbPressureScaleUOM.Items.Add(new mbar());
@@ -61,23 +69,27 @@ namespace benchGUI
             cbPressureScaleUOM.Items.Add(new DegreeCelcius());
             cbPressureScaleUOM.SelectedIndex = 0;
 
-            chart_result.Series.Clear();
+            // init Measurung Instrument Error Deviation Plot
+            plot_result.Plot.Clear();
 
             var random = new Random();
+            Random rand = new Random(1234);
             for (int i = 0; i < 20; i++)
             {
-
-                var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
-                chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-                chartSeries.XValueType = ChartValueType.Double;
-                chart_result.Series.Add(chartSeries);
-                for (int x = 0; x < 110; x = x + 10)
-                {
-                    chartSeries.Points.AddXY(x, random.NextDouble());
-                }
+                double[] xs = new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                double[] ys = DataGen.Random(rand, 10);
+                plot_result.Plot.AddScatter(xs, ys);
             }
-        }
+            plot_result.Refresh();
 
+            // inti Standard Measuring Instruments Readings Plot
+            plot_measures.Plot.SetAxisLimitsY(0, 24);
+            currentMeasuresScatterPlot = plot_measures.Plot.AddScatter(new double[] { 0 }, new double[] { 0 });
+            pressureMeasuresScatterPlot = plot_measures.Plot.AddScatter(new double[] { 0 }, new double[] { 0 });
+            plot_measures.Refresh();
+        }
+        ScatterPlot currentMeasuresScatterPlot;
+        ScatterPlot pressureMeasuresScatterPlot;
         private void fillComputedPressure()
         {
             if (double.TryParse(tbScaleMin.Text.Replace(',', '.'),
@@ -211,7 +223,10 @@ namespace benchGUI
                 AutoCalCancellationTokenSource.Cancel();
             }
         }
-
+        private double[] chart_result_Xs { get; set; }
+        private double[] chart_result_Ys { get; set; }
+        private double currentChartDiscrepancy { get; set; }
+        private ScatterPlot resultScatter { get; set; }
         void StartAutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
             AutoCalibrationTask = Task.Run(() =>
@@ -229,13 +244,23 @@ namespace benchGUI
                 && startedEK && startedCPC
                 )
                 {
-                    InvokeControlAction(chart_result, () =>
+                    InvokeControlAction(plot_result, () =>
                                                                 {
-                                                                    chart_result.Series.Clear();
-                                                                    chart_result.ChartAreas[0].AxisX.Minimum = 1;
-                                                                    chart_result.ChartAreas[0].AxisX.Maximum = dataGridView1.Rows.Count;
-                                                                    chart_result.ChartAreas[0].AxisY.Minimum = -0.1;
-                                                                    chart_result.ChartAreas[0].AxisY.Maximum = 0.1;
+                                                                    currentChartDiscrepancy = 0.1;
+                                                                    chart_result_Xs = new double[dataGridView1.Rows.Count];
+                                                                    for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
+                                                                    {
+                                                                        chart_result_Xs[i - 1] = i;
+                                                                    }
+                                                                    chart_result_Ys = new double[dataGridView1.Rows.Count];
+                                                                    for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
+                                                                    {
+                                                                        chart_result_Ys[i - 1] = 0;
+                                                                    }
+                                                                    plot_result.Plot.Clear();
+                                                                    resultScatter = plot_result.Plot.AddScatter(chart_result_Xs, chart_result_Ys);
+                                                                    plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
+                                                                    plot_result.Refresh();
                                                                 }
                     );
 
@@ -247,14 +272,6 @@ namespace benchGUI
                             item.Cells[ekCurrent.Name].Value = "";
                             item.Cells[error.Name].Value = "";
                         }
-
-                        var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
-                        chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-                        chartSeries.XValueType = ChartValueType.Int32;
-                        chartSeries.YAxisType = AxisType.Primary;
-
-
-                        InvokeControlAction(chart_result, () => chart_result.Series.Add(chartSeries));
 
                         pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
 
@@ -290,15 +307,17 @@ namespace benchGUI
                                     item.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToString("N4");
                                     var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
                                     item.Cells[error.Name].Value = discrepancy.ToString("N4");
-                                    InvokeControlAction(chart_result, () =>
+                                    InvokeControlAction(plot_result, () =>
                                     {
-                                        chartSeries.Points.AddXY(item.Index + 1, discrepancy);
+                                        chart_result_Xs[item.Index] = item.Index + 1;
+                                        chart_result_Ys[item.Index] = discrepancy;
                                         var absDiscrepancy = Math.Round(Math.Abs(discrepancy));
-                                        if (absDiscrepancy > Math.Abs(chart_result.ChartAreas[0].AxisY.Minimum))
+                                        if (absDiscrepancy > Math.Abs(currentChartDiscrepancy))
                                         {
-                                            chart_result.ChartAreas[0].AxisY.Minimum = absDiscrepancy * -1.1;
-                                            chart_result.ChartAreas[0].AxisY.Maximum = absDiscrepancy * 1.1;
+                                            currentChartDiscrepancy = absDiscrepancy * 1.1;
+                                            plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
                                         }
+                                        plot_result.Refresh();
                                     });
                                 }
                             }
@@ -331,80 +350,52 @@ namespace benchGUI
         void fillMeasuresChart()
         {
 
-            InvokeControlAction(chart_measures, () =>
+            InvokeControlAction(this, () =>
             {
                 try
                 {
+                    double xAxisMinLimit = DateTime.Now.AddSeconds(-TIMETOSTABLE).ToOADate();
+                    double xAxisMaxLimit = DateTime.Now.ToOADate();
+                    plot_measures.Plot.SetAxisLimitsX(xAxisMinLimit, xAxisMaxLimit);
 
-                    chart_measures.Series.Clear();
+                    //chart_measures.Series.Clear();
                     if (currentStabilityCalc != null && currentStabilityCalc.MeasuresCount > 0)
                     {
-
-                        var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
-                        chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-                        chartSeries.MarkerSize = 2;
-                        chartSeries.YAxisType = AxisType.Primary;
-                        chartSeries.YValueType = ChartValueType.Double;
-                        chartSeries.XValueType = ChartValueType.Time;
-                        DateTime minDate = currentStabilityCalc.Measures.OrderBy(m => m.TimeStamp).Select(m => m.TimeStamp).First();
-                        DateTime maxDate = currentStabilityCalc.Measures.OrderByDescending(m => m.TimeStamp).Select(m => m.TimeStamp).First();
-                        chart_measures.ChartAreas[0].AxisX.Minimum = maxDate.AddSeconds(-TIMETOSTABLE).ToOADate(); // minDate.ToOADate());
-                        chart_measures.ChartAreas[0].AxisX.Maximum = maxDate.ToOADate();
-                        chart_measures.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-                        chart_measures.ChartAreas[0].AxisX.MinorGrid.Enabled = false;
-                        chart_measures.ChartAreas[0].AxisY.MajorGrid.Enabled = false;
-                        chart_measures.ChartAreas[0].AxisY.MinorGrid.Enabled = false;
-                        chart_measures.ChartAreas[0].AxisY2.MajorGrid.Enabled = false;
-                        chart_measures.ChartAreas[0].AxisY2.MinorGrid.Enabled = false;
-                        chart_measures.ChartAreas[0].AxisY.Minimum = 4 - 16 * 0.05;
-                        chart_measures.ChartAreas[0].AxisY.Maximum = 20 + 16 * 0.05;
-
-
-                        InvokeControlAction(chart_measures, () => chart_measures.Series.Add(chartSeries));
-
-                        foreach (var item in currentStabilityCalc.Measures)
-                        {
-                            chartSeries.Points.AddXY(item.TimeStamp.ToOADate(), item.Value);
-                        }
-
+                        plot_measures.Plot.XAxis.DateTimeFormat(true);
+                        var currentMeasurePointsToPlot = currentStabilityCalc.Measures;
+                        double[] xs = currentMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
+                        double[] ys = currentMeasurePointsToPlot.Select(m => m.Value).ToArray();
+                        currentMeasuresScatterPlot.Update(xs, ys);
+                        currentMeasuresScatterPlot.YAxisIndex = 0;
                     }
 
                     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                     if (pressureStabilityCalc != null && pressureStabilityCalc.MeasuresCount > 0)
                     {
-
-                        var chartSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
-                        chartSeries.YAxisType = AxisType.Secondary;
-
-                        chartSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-                        chartSeries.MarkerSize = 2;
-
-
-                        chartSeries.XValueType = ChartValueType.Time;
+                        plot_measures.Plot.XAxis.DateTimeFormat(true);
+                        var pressureMeasurePointsToPlot = pressureStabilityCalc.Measures;
+                        double[] xs = pressureMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
+                        double[] ys = pressureMeasurePointsToPlot.Select(m => m.Value).ToArray();
+                        pressureMeasuresScatterPlot.Update(xs, ys);
+                        pressureMeasuresScatterPlot.YAxisIndex = 1;
 
                         if (
-                        ((double.TryParse(tbScaleMin.Text.Replace(',', '.'),
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out pressureScaleMin)
-                        &
-                        double.TryParse(tbScaleMax.Text.Replace(',', '.'),
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out pressureScaleMax))))
+                            ((double.TryParse(tbScaleMin.Text.Replace(',', '.'),
+                            NumberStyles.Float,
+                            CultureInfo.InvariantCulture,
+                            out pressureScaleMin)
+                            &
+                            double.TryParse(tbScaleMax.Text.Replace(',', '.'),
+                            NumberStyles.Float,
+                            CultureInfo.InvariantCulture,
+                            out pressureScaleMax))))
                         {
                             var fullscale = pressureScaleMax - pressureScaleMin;
-                            chart_measures.ChartAreas[0].AxisY2.Minimum = pressureScaleMin - fullscale * 0.05;
-                            chart_measures.ChartAreas[0].AxisY2.Maximum = pressureScaleMax + fullscale * 0.05;
-                        }
-
-                        chart_measures.Series.Add(chartSeries);
-
-                        foreach (var item in pressureStabilityCalc.Measures)
-                        {
-                            chartSeries.Points.AddXY(item.TimeStamp.ToOADate(), item.Value);
+                            plot_measures.Plot.SetAxisLimits( yMin: pressureScaleMin - fullscale * 0.05, yMax: pressureScaleMax + fullscale * 0.05, yAxisIndex: 1 );
+                            plot_measures.Plot.RightAxis.Hide(false);
                         }
                     }
+                    plot_measures.Refresh();
                 }
                 catch (Exception)
                 {

@@ -42,6 +42,7 @@ namespace benchGUI
                         cb_CurrentMeasuringInstruments.SelectedItem = CurrentMeasuringInstrument;
 
                         btn_openCurrentMeasureInstrument.Text = "Разорвать связь";
+                        btn_openCurrentMeasureInstrument.BackColor = Color.LightYellow;
                         cb_CurrentInstrumentChannels.Items.Clear();
                         cb_CurrentInstrumentChannels.Items.AddRange( CurrentMeasuringInstrument.Channels );
 
@@ -63,6 +64,7 @@ namespace benchGUI
                     StopCurrentCyclicReading();
                     CurrentMeasuringInstrument.Close();
                     btn_openCurrentMeasureInstrument.Text = "Установить связь";
+                    btn_openCurrentMeasureInstrument.BackColor = Control.DefaultBackColor;
                     lbl_cnahValue.Text = "--.----";
                     cb_CurrentInstrumentChannels.Items.Clear();
                     cb_CurrentInstrumentChannels.Enabled=false;
