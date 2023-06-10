@@ -78,7 +78,6 @@ namespace benchGUI
             plot_result.Refresh();
 
             // inti Standard Measuring Instruments Readings Plot
-            plot_measures.Plot.SetAxisLimitsY(0, 24);
             currentMeasuresScatterPlot = plot_measures.Plot.AddScatter(new double[] { 0 }, new double[] { 0 });
             pressureMeasuresScatterPlot = plot_measures.Plot.AddScatter(new double[] { 0 }, new double[] { 0 });
             plot_measures.Refresh();
@@ -361,6 +360,7 @@ namespace benchGUI
                         double[] xs = currentMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
                         double[] ys = currentMeasurePointsToPlot.Select(m => m.Value).ToArray();
                         currentMeasuresScatterPlot.Update(xs, ys);
+                        plot_measures.Plot.SetAxisLimitsY(0, 24);
                         currentMeasuresScatterPlot.YAxisIndex = 0;
                     }
 
@@ -386,7 +386,7 @@ namespace benchGUI
                             out pressureScaleMax))))
                         {
                             var fullscale = pressureScaleMax - pressureScaleMin;
-                            plot_measures.Plot.SetAxisLimits( yMin: pressureScaleMin - fullscale * 0.05, yMax: pressureScaleMax + fullscale * 0.05, yAxisIndex: 1 );
+                            plot_measures.Plot.SetAxisLimits(yMin: pressureScaleMin - fullscale * 0.05, yMax: pressureScaleMax + fullscale * 0.05, yAxisIndex: 1);
                             plot_measures.Plot.RightAxis.Hide(false);
                         }
                     }
