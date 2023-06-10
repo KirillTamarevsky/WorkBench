@@ -2,21 +2,16 @@
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using WorkBench;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
-using WorkBench.Interfaces.InstrumentChannel;
-using WorkBench.TestEquipment.EK;
 using WorkBench.UOMS;
 using WorkBench.UOMS.Pressure;
 
