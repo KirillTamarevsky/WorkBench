@@ -360,6 +360,7 @@ namespace benchGUI
                         double[] xs = currentMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
                         double[] ys = currentMeasurePointsToPlot.Select(m => m.Value).ToArray();
                         currentMeasuresScatterPlot.Update(xs, ys);
+                        currentMeasuresScatterPlot.MarkerShape = MarkerShape.none;
                         plot_measures.Plot.SetAxisLimitsY(0, 24);
                         currentMeasuresScatterPlot.YAxisIndex = 0;
                     }
@@ -372,6 +373,7 @@ namespace benchGUI
                         double[] xs = pressureMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
                         double[] ys = pressureMeasurePointsToPlot.Select(m => m.Value).ToArray();
                         pressureMeasuresScatterPlot.Update(xs, ys);
+                        pressureMeasuresScatterPlot.MarkerShape = MarkerShape.none;
                         pressureMeasuresScatterPlot.YAxisIndex = 1;
 
                         if (
@@ -390,6 +392,10 @@ namespace benchGUI
                             plot_measures.Plot.RightAxis.Hide(false);
                         }
                     }
+                    plot_measures.Plot.XAxis.Layout(padding: 0);
+                    plot_measures.Plot.XAxis2.Layout(padding: 0);
+                    plot_measures.Plot.YAxis.Layout(padding: 0);
+                    plot_measures.Plot.YAxis2.Layout(padding: 0);
                     plot_measures.Refresh();
                 }
                 catch (Exception)
