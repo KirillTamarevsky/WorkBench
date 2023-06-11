@@ -165,7 +165,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
 
         #endregion
 
-        public override string ToString() => $" {ElmetroPascal.Name}({parentChannel.parentEPascal.Communicator}) {parentChannel.Name} {thisScale} ";
+        public override string ToString() => $" {parentChannel.parentEPascal.Name}({parentChannel.parentEPascal.Communicator}) {parentChannel.Name} {thisScale} ";
 
         public void Zero()
         {

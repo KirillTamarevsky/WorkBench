@@ -7,8 +7,8 @@ namespace WorkBench.Interfaces
         //ITextCommunicator _communicator { get; }
         //IInstrumentChannel this[int i] { get; }
         IInstrumentChannel[] Channels { get; }
-        static string Name { get; }
-        static string Description { get; }
+        string Name { get; }
+        string Description { get; }
         bool Open();
         bool Close();
         bool IsOpen { get; }

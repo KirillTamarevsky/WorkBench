@@ -20,7 +20,7 @@ namespace WorkBench.TestEquipment.EK
         #region AbstractInstrumentChannel
 
         public int NUM => (int)EKchanNum;
-        public string Name => $"{EK.Name}({ParentEK.Communicator}), канал {NUM}";
+        public string Name => $"{ParentEK.Name}({ParentEK.Communicator}), канал {NUM}";
 
         public EK ParentEK{ get; }
         public IInstrumentChannelSpan[] AvailableSpans { get; }

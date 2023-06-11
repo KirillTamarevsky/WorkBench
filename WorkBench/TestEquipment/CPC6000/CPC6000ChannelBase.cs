@@ -74,7 +74,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 thisChannelRangeMin.TryConvertTo(ActiveUOM, out OneMeasure rngmin);
                 thisChannelRangeMax.TryConvertTo(ActiveUOM, out OneMeasure rngmax);
 
-                return $"{CPC6000.Description} {CPC6000.Name} канал {NUM} {rngmin.Value}...{rngmax.Value} {ActiveUOM.Name}";
+                return $"{parentCPC6000.Description} {parentCPC6000.Name} канал {NUM} {rngmin.Value}...{rngmax.Value} {ActiveUOM.Name}";
             }
         }
         internal abstract string readPressureCommand { get; }

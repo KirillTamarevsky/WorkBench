@@ -35,12 +35,12 @@ namespace WorkBench.TestEquipment.CPC6000
         /// <summary>
         /// название типа прибора
         /// </summary>
-        public static string Name => "CPC6000";
+        public string Name => "CPC6000";
 
         /// <summary>
         /// Наименование прибора
         /// </summary>
-        public static string Description => "Калибратор давления";
+        public string Description => "Калибратор давления";
 
         public bool IsOpen => Communicator.IsOpen;
         /// <summary>

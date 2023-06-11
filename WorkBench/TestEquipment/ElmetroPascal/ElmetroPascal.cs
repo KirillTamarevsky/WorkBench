@@ -27,9 +27,9 @@ namespace WorkBench.TestEquipment.ElmetroPascal
             _in_REMOTE_mode = false;
         }
 
-        public static string Name => "Элметро-Паскаль";
+        public string Name => "Элметро-Паскаль";
 
-        public static string Description => "Калибратор-контроллер давления";
+        public string Description => "Калибратор-контроллер давления";
 
         public bool Close()
         {

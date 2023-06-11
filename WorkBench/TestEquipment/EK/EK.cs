@@ -58,12 +58,12 @@ namespace WorkBench.TestEquipment.EK
         /// <summary>
         /// название типа прибора
         /// </summary>
-        public static string Name => "Элметро-Кельвин";
+        public string Name => "Элметро-Кельвин";
 
         /// <summary>
         /// Наименование прибора
         /// </summary>
-        public static string Description => "Мультиметр многоканальный";
+        public string Description => "Мультиметр многоканальный";
         /// <summary>
         /// устанавливает связь с прибором.
         /// </summary>
