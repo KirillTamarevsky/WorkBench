@@ -29,6 +29,7 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             parentCPC6000 = _parent;
             parentCPC6000.SetActiveChannel(ChannelNumber);
+            SetPUnit(new kPa());
             List<CPC6000ChannelSpan> availableSpans = new List<CPC6000ChannelSpan>();
             Communicator.SendLine("Ptype A");
             if (Query("Ptype?").Trim().ToUpper() == "ABSOLUTE")
@@ -103,7 +104,7 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             if (cPC6000ChannelSpan == null) throw new Exception();
             if (cPC6000ChannelSpan.parentChannel != this) throw new Exception("this span is not mine!");
-            Activate();
+            parentCPC6000.SetActiveChannel(this);
             if (!(ActiveSpan == cPC6000ChannelSpan))
             {
                 switch (cPC6000ChannelSpan.module)
@@ -128,10 +129,6 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
                 ActiveSpan = cPC6000ChannelSpan;
             }
-        }
-        internal void Activate()
-        {
-            parentCPC6000.SetActiveChannel(this);
         }
         internal IUOM GetPUnit()
         {
