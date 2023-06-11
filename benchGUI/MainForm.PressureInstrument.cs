@@ -40,6 +40,7 @@ namespace benchGUI
 
         private void btn_openPressureMeasureInstrument_Click(object sender, EventArgs e)
         {
+            btn_openPressureInstrument.Enabled = false;
             switch (startedCPC)
             {
                 case false:
@@ -62,6 +63,7 @@ namespace benchGUI
                                 lbl_cpcStatus.Text = "нет связи";
                             });
                         }
+                        InvokeControlAction(this, () => btn_openPressureInstrument.Enabled = true);
                     });
 
                     break;
@@ -76,8 +78,10 @@ namespace benchGUI
                     pressureStabilityCalc.Reset();
                     lbl_cpc_read.BackColor = Color.Transparent;
 
+                    btn_openPressureInstrument.Enabled = true;
                     break;
             }
+
         }
         #region PressureInstrument start/stop routines
 
@@ -104,7 +108,7 @@ namespace benchGUI
 
             }
 
-            btn_openCPC.Text = "Разорвать связь";
+            btn_openPressureInstrument.Text = "Разорвать связь";
             //*************************************************************
 
 
@@ -132,7 +136,7 @@ namespace benchGUI
 
             cb_PressureReaderGeneratorSpan.Items.Clear();
 
-            btn_openCPC.Text = "Установить связь";
+            btn_openPressureInstrument.Text = "Установить связь";
             //*************************************************************
 
             StopPressureCyclicRead();

@@ -34,7 +34,7 @@ namespace benchGUI
             lbl_cnahValue = new System.Windows.Forms.Label();
             btn_openCurrentMeasureInstrument = new System.Windows.Forms.Button();
             cb_PressureGeneratorInstrument = new System.Windows.Forms.ComboBox();
-            btn_openCPC = new System.Windows.Forms.Button();
+            btn_openPressureInstrument = new System.Windows.Forms.Button();
             cb_cpcChannels = new System.Windows.Forms.ComboBox();
             lbl_cpc_read = new System.Windows.Forms.Label();
             tb_cpcStep = new System.Windows.Forms.TextBox();
@@ -148,14 +148,14 @@ namespace benchGUI
             // 
             // btn_openCPC
             // 
-            btn_openCPC.Location = new System.Drawing.Point(650, 102);
-            btn_openCPC.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            btn_openCPC.Name = "btn_openCPC";
-            btn_openCPC.Size = new System.Drawing.Size(134, 27);
-            btn_openCPC.TabIndex = 6;
-            btn_openCPC.Text = "Установить связь";
-            btn_openCPC.UseVisualStyleBackColor = true;
-            btn_openCPC.Click += btn_openPressureMeasureInstrument_Click;
+            btn_openPressureInstrument.Location = new System.Drawing.Point(650, 102);
+            btn_openPressureInstrument.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btn_openPressureInstrument.Name = "btn_openCPC";
+            btn_openPressureInstrument.Size = new System.Drawing.Size(134, 27);
+            btn_openPressureInstrument.TabIndex = 6;
+            btn_openPressureInstrument.Text = "Установить связь";
+            btn_openPressureInstrument.UseVisualStyleBackColor = true;
+            btn_openPressureInstrument.Click += btn_openPressureMeasureInstrument_Click;
             // 
             // cb_cpcChannels
             // 
@@ -745,7 +745,7 @@ namespace benchGUI
             Controls.Add(tb_newSetPoint);
             Controls.Add(tb_cpcStep);
             Controls.Add(cb_cpcChannels);
-            Controls.Add(btn_openCPC);
+            Controls.Add(btn_openPressureInstrument);
             Controls.Add(cb_PressureGeneratorInstrument);
             Controls.Add(btn_openCurrentMeasureInstrument);
             Controls.Add(lbl_cpc_read);
@@ -774,7 +774,7 @@ namespace benchGUI
         private System.Windows.Forms.Label lbl_cnahValue;
         private System.Windows.Forms.Button btn_openCurrentMeasureInstrument;
         private System.Windows.Forms.ComboBox cb_PressureGeneratorInstrument;
-        private System.Windows.Forms.Button btn_openCPC;
+        private System.Windows.Forms.Button btn_openPressureInstrument;
         private System.Windows.Forms.ComboBox cb_cpcChannels;
         private System.Windows.Forms.Label lbl_cpc_read;
         private System.Windows.Forms.TextBox tb_cpcStep;
