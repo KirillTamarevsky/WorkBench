@@ -96,7 +96,7 @@ namespace benchGUI
             cb_CurrentMeasuringInstruments.Location = new System.Drawing.Point(15, 15);
             cb_CurrentMeasuringInstruments.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_CurrentMeasuringInstruments.Name = "cb_CurrentMeasuringInstruments";
-            cb_CurrentMeasuringInstruments.Size = new System.Drawing.Size(497, 23);
+            cb_CurrentMeasuringInstruments.Size = new System.Drawing.Size(500, 23);
             cb_CurrentMeasuringInstruments.TabIndex = 0;
             // 
             // cb_CurrentInstrumentChannels
@@ -106,7 +106,7 @@ namespace benchGUI
             cb_CurrentInstrumentChannels.Location = new System.Drawing.Point(15, 43);
             cb_CurrentInstrumentChannels.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_CurrentInstrumentChannels.Name = "cb_CurrentInstrumentChannels";
-            cb_CurrentInstrumentChannels.Size = new System.Drawing.Size(497, 23);
+            cb_CurrentInstrumentChannels.Size = new System.Drawing.Size(500, 23);
             cb_CurrentInstrumentChannels.TabIndex = 2;
             cb_CurrentInstrumentChannels.SelectedIndexChanged += cb_chanNUM_SelectedIndexChanged;
             // 
@@ -116,10 +116,10 @@ namespace benchGUI
             lbl_cnahValue.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lbl_cnahValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 65.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             lbl_cnahValue.ForeColor = System.Drawing.SystemColors.ControlText;
-            lbl_cnahValue.Location = new System.Drawing.Point(14, 156);
+            lbl_cnahValue.Location = new System.Drawing.Point(15, 129);
             lbl_cnahValue.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_cnahValue.Name = "lbl_cnahValue";
-            lbl_cnahValue.Size = new System.Drawing.Size(614, 124);
+            lbl_cnahValue.Size = new System.Drawing.Size(600, 124);
             lbl_cnahValue.TabIndex = 3;
             lbl_cnahValue.Text = "---.----";
             lbl_cnahValue.Click += lbl_cnahValue_Click;
@@ -127,10 +127,10 @@ namespace benchGUI
             // btn_openCurrentMeasureInstrument
             // 
             btn_openCurrentMeasureInstrument.BackColor = System.Drawing.SystemColors.Control;
-            btn_openCurrentMeasureInstrument.Location = new System.Drawing.Point(15, 102);
+            btn_openCurrentMeasureInstrument.Location = new System.Drawing.Point(525, 15);
             btn_openCurrentMeasureInstrument.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_openCurrentMeasureInstrument.Name = "btn_openCurrentMeasureInstrument";
-            btn_openCurrentMeasureInstrument.Size = new System.Drawing.Size(134, 27);
+            btn_openCurrentMeasureInstrument.Size = new System.Drawing.Size(90, 50);
             btn_openCurrentMeasureInstrument.TabIndex = 4;
             btn_openCurrentMeasureInstrument.Text = "Установить связь";
             btn_openCurrentMeasureInstrument.UseVisualStyleBackColor = false;
@@ -140,18 +140,18 @@ namespace benchGUI
             // 
             cb_PressureGeneratorInstrument.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cb_PressureGeneratorInstrument.FormattingEnabled = true;
-            cb_PressureGeneratorInstrument.Location = new System.Drawing.Point(650, 15);
+            cb_PressureGeneratorInstrument.Location = new System.Drawing.Point(624, 15);
             cb_PressureGeneratorInstrument.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_PressureGeneratorInstrument.Name = "cb_PressureGeneratorInstrument";
-            cb_PressureGeneratorInstrument.Size = new System.Drawing.Size(518, 23);
+            cb_PressureGeneratorInstrument.Size = new System.Drawing.Size(500, 23);
             cb_PressureGeneratorInstrument.TabIndex = 5;
             // 
-            // btn_openCPC
+            // btn_openPressureInstrument
             // 
-            btn_openPressureInstrument.Location = new System.Drawing.Point(650, 102);
+            btn_openPressureInstrument.Location = new System.Drawing.Point(1134, 15);
             btn_openPressureInstrument.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            btn_openPressureInstrument.Name = "btn_openCPC";
-            btn_openPressureInstrument.Size = new System.Drawing.Size(134, 27);
+            btn_openPressureInstrument.Name = "btn_openPressureInstrument";
+            btn_openPressureInstrument.Size = new System.Drawing.Size(90, 50);
             btn_openPressureInstrument.TabIndex = 6;
             btn_openPressureInstrument.Text = "Установить связь";
             btn_openPressureInstrument.UseVisualStyleBackColor = true;
@@ -162,10 +162,10 @@ namespace benchGUI
             cb_cpcChannels.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cb_cpcChannels.Enabled = false;
             cb_cpcChannels.FormattingEnabled = true;
-            cb_cpcChannels.Location = new System.Drawing.Point(650, 43);
+            cb_cpcChannels.Location = new System.Drawing.Point(624, 43);
             cb_cpcChannels.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_cpcChannels.Name = "cb_cpcChannels";
-            cb_cpcChannels.Size = new System.Drawing.Size(518, 23);
+            cb_cpcChannels.Size = new System.Drawing.Size(500, 23);
             cb_cpcChannels.TabIndex = 7;
             cb_cpcChannels.SelectedIndexChanged += cb_cpcChannels_SelectedIndexChanged;
             // 
@@ -173,10 +173,10 @@ namespace benchGUI
             // 
             lbl_cpc_read.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lbl_cpc_read.Font = new System.Drawing.Font("Microsoft Sans Serif", 65.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            lbl_cpc_read.Location = new System.Drawing.Point(650, 156);
+            lbl_cpc_read.Location = new System.Drawing.Point(624, 129);
             lbl_cpc_read.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_cpc_read.Name = "lbl_cpc_read";
-            lbl_cpc_read.Size = new System.Drawing.Size(604, 124);
+            lbl_cpc_read.Size = new System.Drawing.Size(600, 124);
             lbl_cpc_read.TabIndex = 3;
             lbl_cpc_read.Text = "---.----";
             // 
@@ -184,25 +184,27 @@ namespace benchGUI
             // 
             tb_cpcStep.Enabled = false;
             tb_cpcStep.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            tb_cpcStep.Location = new System.Drawing.Point(786, 381);
+            tb_cpcStep.Location = new System.Drawing.Point(761, 334);
             tb_cpcStep.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_cpcStep.Name = "tb_cpcStep";
             tb_cpcStep.Size = new System.Drawing.Size(132, 44);
             tb_cpcStep.TabIndex = 9;
             tb_cpcStep.Text = "1.0";
+            tb_cpcStep.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             tb_cpcStep.WordWrap = false;
             tb_cpcStep.TextChanged += tb_cpcStep_TextChanged;
             // 
             // tb_PressureSetPoint
             // 
             tb_PressureSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            tb_PressureSetPoint.Location = new System.Drawing.Point(923, 381);
+            tb_PressureSetPoint.Location = new System.Drawing.Point(901, 334);
             tb_PressureSetPoint.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_PressureSetPoint.Name = "tb_PressureSetPoint";
             tb_PressureSetPoint.ReadOnly = true;
             tb_PressureSetPoint.Size = new System.Drawing.Size(140, 44);
             tb_PressureSetPoint.TabIndex = 10;
             tb_PressureSetPoint.Text = "0.0";
+            tb_PressureSetPoint.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             tb_PressureSetPoint.WordWrap = false;
             tb_PressureSetPoint.KeyDown += tb_PressureSetPoint_KeyDown;
             // 
@@ -210,10 +212,10 @@ namespace benchGUI
             // 
             btn_StepUp.Enabled = false;
             btn_StepUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            btn_StepUp.Location = new System.Drawing.Point(786, 323);
+            btn_StepUp.Location = new System.Drawing.Point(761, 284);
             btn_StepUp.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_StepUp.Name = "btn_StepUp";
-            btn_StepUp.Size = new System.Drawing.Size(133, 51);
+            btn_StepUp.Size = new System.Drawing.Size(132, 44);
             btn_StepUp.TabIndex = 11;
             btn_StepUp.Text = "+";
             btn_StepUp.UseVisualStyleBackColor = true;
@@ -223,10 +225,10 @@ namespace benchGUI
             // 
             btn_StepDown.Enabled = false;
             btn_StepDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            btn_StepDown.Location = new System.Drawing.Point(786, 437);
+            btn_StepDown.Location = new System.Drawing.Point(761, 384);
             btn_StepDown.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_StepDown.Name = "btn_StepDown";
-            btn_StepDown.Size = new System.Drawing.Size(133, 51);
+            btn_StepDown.Size = new System.Drawing.Size(132, 44);
             btn_StepDown.TabIndex = 12;
             btn_StepDown.Text = "-";
             btn_StepDown.UseVisualStyleBackColor = true;
@@ -236,10 +238,10 @@ namespace benchGUI
             // 
             btn_setSetPoint.Enabled = false;
             btn_setSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 17F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            btn_setSetPoint.Location = new System.Drawing.Point(1073, 381);
+            btn_setSetPoint.Location = new System.Drawing.Point(1047, 333);
             btn_setSetPoint.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_setSetPoint.Name = "btn_setSetPoint";
-            btn_setSetPoint.Size = new System.Drawing.Size(174, 51);
+            btn_setSetPoint.Size = new System.Drawing.Size(174, 44);
             btn_setSetPoint.TabIndex = 13;
             btn_setSetPoint.Text = "New Set Point";
             btn_setSetPoint.UseVisualStyleBackColor = true;
@@ -249,12 +251,13 @@ namespace benchGUI
             // 
             tb_newSetPoint.Enabled = false;
             tb_newSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            tb_newSetPoint.Location = new System.Drawing.Point(1073, 323);
+            tb_newSetPoint.Location = new System.Drawing.Point(1047, 284);
             tb_newSetPoint.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_newSetPoint.Name = "tb_newSetPoint";
             tb_newSetPoint.Size = new System.Drawing.Size(173, 44);
             tb_newSetPoint.TabIndex = 14;
             tb_newSetPoint.Text = "0";
+            tb_newSetPoint.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             tb_newSetPoint.WordWrap = false;
             tb_newSetPoint.TextChanged += tb_newSetPoint_TextChanged;
             tb_newSetPoint.KeyPress += tb_newSetPoint_KeyPress;
@@ -262,7 +265,7 @@ namespace benchGUI
             // rb_StandBY
             // 
             rb_StandBY.AutoSize = true;
-            rb_StandBY.Location = new System.Drawing.Point(650, 284);
+            rb_StandBY.Location = new System.Drawing.Point(628, 258);
             rb_StandBY.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             rb_StandBY.Name = "rb_StandBY";
             rb_StandBY.Size = new System.Drawing.Size(75, 19);
@@ -275,7 +278,7 @@ namespace benchGUI
             // rb_Measure
             // 
             rb_Measure.AutoSize = true;
-            rb_Measure.Location = new System.Drawing.Point(746, 284);
+            rb_Measure.Location = new System.Drawing.Point(724, 258);
             rb_Measure.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             rb_Measure.Name = "rb_Measure";
             rb_Measure.Size = new System.Drawing.Size(77, 19);
@@ -288,7 +291,7 @@ namespace benchGUI
             // rb_Control
             // 
             rb_Control.AutoSize = true;
-            rb_Control.Location = new System.Drawing.Point(843, 284);
+            rb_Control.Location = new System.Drawing.Point(821, 258);
             rb_Control.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             rb_Control.Name = "rb_Control";
             rb_Control.Size = new System.Drawing.Size(79, 19);
@@ -301,7 +304,7 @@ namespace benchGUI
             // rb_Vent
             // 
             rb_Vent.AutoSize = true;
-            rb_Vent.Location = new System.Drawing.Point(940, 284);
+            rb_Vent.Location = new System.Drawing.Point(918, 258);
             rb_Vent.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             rb_Vent.Name = "rb_Vent";
             rb_Vent.Size = new System.Drawing.Size(53, 19);
@@ -314,7 +317,7 @@ namespace benchGUI
             // lbl_cpcStatus
             // 
             lbl_cpcStatus.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_cpcStatus.Location = new System.Drawing.Point(650, 129);
+            lbl_cpcStatus.Location = new System.Drawing.Point(624, 102);
             lbl_cpcStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_cpcStatus.Name = "lbl_cpcStatus";
             lbl_cpcStatus.Size = new System.Drawing.Size(602, 27);
@@ -325,10 +328,10 @@ namespace benchGUI
             // 
             lbl_cpcmean.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lbl_cpcmean.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_cpcmean.Location = new System.Drawing.Point(130, 650);
+            lbl_cpcmean.Location = new System.Drawing.Point(102, 650);
             lbl_cpcmean.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_cpcmean.Name = "lbl_cpcmean";
-            lbl_cpcmean.Size = new System.Drawing.Size(107, 26);
+            lbl_cpcmean.Size = new System.Drawing.Size(80, 26);
             lbl_cpcmean.TabIndex = 20;
             lbl_cpcmean.Text = "--------";
             // 
@@ -339,13 +342,13 @@ namespace benchGUI
             lbl_ekmean.Location = new System.Drawing.Point(15, 650);
             lbl_ekmean.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_ekmean.Name = "lbl_ekmean";
-            lbl_ekmean.Size = new System.Drawing.Size(107, 26);
+            lbl_ekmean.Size = new System.Drawing.Size(80, 26);
             lbl_ekmean.TabIndex = 21;
             lbl_ekmean.Text = "--------";
             // 
             // btn_copyMeansToClipboard
             // 
-            btn_copyMeansToClipboard.Location = new System.Drawing.Point(244, 650);
+            btn_copyMeansToClipboard.Location = new System.Drawing.Point(187, 650);
             btn_copyMeansToClipboard.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_copyMeansToClipboard.Name = "btn_copyMeansToClipboard";
             btn_copyMeansToClipboard.Size = new System.Drawing.Size(52, 27);
@@ -361,7 +364,7 @@ namespace benchGUI
             lbl_EKstdev.Location = new System.Drawing.Point(15, 683);
             lbl_EKstdev.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_EKstdev.Name = "lbl_EKstdev";
-            lbl_EKstdev.Size = new System.Drawing.Size(107, 26);
+            lbl_EKstdev.Size = new System.Drawing.Size(80, 26);
             lbl_EKstdev.TabIndex = 23;
             lbl_EKstdev.Text = "--------";
             // 
@@ -369,10 +372,10 @@ namespace benchGUI
             // 
             lbl_CPCstdev.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lbl_CPCstdev.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_CPCstdev.Location = new System.Drawing.Point(130, 683);
+            lbl_CPCstdev.Location = new System.Drawing.Point(102, 683);
             lbl_CPCstdev.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_CPCstdev.Name = "lbl_CPCstdev";
-            lbl_CPCstdev.Size = new System.Drawing.Size(107, 26);
+            lbl_CPCstdev.Size = new System.Drawing.Size(80, 26);
             lbl_CPCstdev.TabIndex = 24;
             lbl_CPCstdev.Text = "--------";
             // 
@@ -383,7 +386,7 @@ namespace benchGUI
             lbl_EKLRSlope.Location = new System.Drawing.Point(15, 717);
             lbl_EKLRSlope.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_EKLRSlope.Name = "lbl_EKLRSlope";
-            lbl_EKLRSlope.Size = new System.Drawing.Size(107, 26);
+            lbl_EKLRSlope.Size = new System.Drawing.Size(80, 26);
             lbl_EKLRSlope.TabIndex = 25;
             lbl_EKLRSlope.Text = "--------";
             // 
@@ -391,10 +394,10 @@ namespace benchGUI
             // 
             lbl_CPCLRSlope.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lbl_CPCLRSlope.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_CPCLRSlope.Location = new System.Drawing.Point(130, 717);
+            lbl_CPCLRSlope.Location = new System.Drawing.Point(102, 717);
             lbl_CPCLRSlope.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_CPCLRSlope.Name = "lbl_CPCLRSlope";
-            lbl_CPCLRSlope.Size = new System.Drawing.Size(107, 26);
+            lbl_CPCLRSlope.Size = new System.Drawing.Size(80, 26);
             lbl_CPCLRSlope.TabIndex = 26;
             lbl_CPCLRSlope.Text = "--------";
             // 
@@ -405,7 +408,7 @@ namespace benchGUI
             lbl_EKstability.Location = new System.Drawing.Point(15, 750);
             lbl_EKstability.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_EKstability.Name = "lbl_EKstability";
-            lbl_EKstability.Size = new System.Drawing.Size(107, 26);
+            lbl_EKstability.Size = new System.Drawing.Size(80, 26);
             lbl_EKstability.TabIndex = 27;
             lbl_EKstability.Text = "--------";
             // 
@@ -413,10 +416,10 @@ namespace benchGUI
             // 
             lbl_CPCstability.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lbl_CPCstability.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_CPCstability.Location = new System.Drawing.Point(130, 750);
+            lbl_CPCstability.Location = new System.Drawing.Point(102, 750);
             lbl_CPCstability.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_CPCstability.Name = "lbl_CPCstability";
-            lbl_CPCstability.Size = new System.Drawing.Size(107, 26);
+            lbl_CPCstability.Size = new System.Drawing.Size(80, 26);
             lbl_CPCstability.TabIndex = 28;
             lbl_CPCstability.Text = "--------";
             // 
@@ -426,12 +429,12 @@ namespace benchGUI
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { percent, calcPressure, cpcPressure, ekCurrent, error });
-            dataGridView1.Location = new System.Drawing.Point(15, 403);
+            dataGridView1.Location = new System.Drawing.Point(15, 366);
             dataGridView1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
             dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new System.Drawing.Size(613, 232);
+            dataGridView1.Size = new System.Drawing.Size(599, 275);
             dataGridView1.TabIndex = 32;
             // 
             // percent
@@ -475,7 +478,7 @@ namespace benchGUI
             // 
             // tbScaleMin
             // 
-            tbScaleMin.Location = new System.Drawing.Point(15, 314);
+            tbScaleMin.Location = new System.Drawing.Point(15, 281);
             tbScaleMin.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tbScaleMin.Name = "tbScaleMin";
             tbScaleMin.Size = new System.Drawing.Size(107, 23);
@@ -484,7 +487,7 @@ namespace benchGUI
             // 
             // tbScaleMax
             // 
-            tbScaleMax.Location = new System.Drawing.Point(130, 313);
+            tbScaleMax.Location = new System.Drawing.Point(130, 280);
             tbScaleMax.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tbScaleMax.Name = "tbScaleMax";
             tbScaleMax.Size = new System.Drawing.Size(98, 23);
@@ -494,7 +497,7 @@ namespace benchGUI
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(14, 295);
+            label1.Location = new System.Drawing.Point(14, 262);
             label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(72, 15);
@@ -504,7 +507,7 @@ namespace benchGUI
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(132, 295);
+            label2.Location = new System.Drawing.Point(132, 262);
             label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(76, 15);
@@ -513,10 +516,10 @@ namespace benchGUI
             // 
             // btnStartAutoCal
             // 
-            btnStartAutoCal.Location = new System.Drawing.Point(389, 312);
+            btnStartAutoCal.Location = new System.Drawing.Point(469, 309);
             btnStartAutoCal.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnStartAutoCal.Name = "btnStartAutoCal";
-            btnStartAutoCal.Size = new System.Drawing.Size(88, 27);
+            btnStartAutoCal.Size = new System.Drawing.Size(135, 27);
             btnStartAutoCal.TabIndex = 31;
             btnStartAutoCal.Text = "Старт";
             btnStartAutoCal.UseVisualStyleBackColor = true;
@@ -525,17 +528,17 @@ namespace benchGUI
             // cbPressureScaleUOM
             // 
             cbPressureScaleUOM.FormattingEnabled = true;
-            cbPressureScaleUOM.Location = new System.Drawing.Point(233, 313);
+            cbPressureScaleUOM.Location = new System.Drawing.Point(236, 280);
             cbPressureScaleUOM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cbPressureScaleUOM.Name = "cbPressureScaleUOM";
-            cbPressureScaleUOM.Size = new System.Drawing.Size(140, 23);
+            cbPressureScaleUOM.Size = new System.Drawing.Size(119, 23);
             cbPressureScaleUOM.TabIndex = 35;
             cbPressureScaleUOM.SelectedIndexChanged += cbScaleUOM_SelectedIndexChanged;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(236, 294);
+            label3.Location = new System.Drawing.Point(236, 261);
             label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(49, 15);
@@ -547,10 +550,10 @@ namespace benchGUI
             cb_PressureReaderGeneratorSpan.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cb_PressureReaderGeneratorSpan.Enabled = false;
             cb_PressureReaderGeneratorSpan.FormattingEnabled = true;
-            cb_PressureReaderGeneratorSpan.Location = new System.Drawing.Point(650, 72);
+            cb_PressureReaderGeneratorSpan.Location = new System.Drawing.Point(624, 72);
             cb_PressureReaderGeneratorSpan.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_PressureReaderGeneratorSpan.Name = "cb_PressureReaderGeneratorSpan";
-            cb_PressureReaderGeneratorSpan.Size = new System.Drawing.Size(518, 23);
+            cb_PressureReaderGeneratorSpan.Size = new System.Drawing.Size(500, 23);
             cb_PressureReaderGeneratorSpan.TabIndex = 36;
             cb_PressureReaderGeneratorSpan.SelectedIndexChanged += cb_PressureReaderGeneratorSpan_SelectedIndexChanged;
             // 
@@ -562,7 +565,7 @@ namespace benchGUI
             cb_currentReaderSpan.Location = new System.Drawing.Point(15, 73);
             cb_currentReaderSpan.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_currentReaderSpan.Name = "cb_currentReaderSpan";
-            cb_currentReaderSpan.Size = new System.Drawing.Size(497, 23);
+            cb_currentReaderSpan.Size = new System.Drawing.Size(500, 23);
             cb_currentReaderSpan.TabIndex = 37;
             cb_currentReaderSpan.SelectedIndexChanged += cb_currentReaderSpan_SelectedIndexChanged;
             // 
@@ -585,12 +588,12 @@ namespace benchGUI
             cb_HART_SerialPort.Location = new System.Drawing.Point(7, 17);
             cb_HART_SerialPort.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cb_HART_SerialPort.Name = "cb_HART_SerialPort";
-            cb_HART_SerialPort.Size = new System.Drawing.Size(140, 23);
+            cb_HART_SerialPort.Size = new System.Drawing.Size(99, 23);
             cb_HART_SerialPort.TabIndex = 39;
             // 
             // btn_ReadHART_Scale
             // 
-            btn_ReadHART_Scale.Location = new System.Drawing.Point(180, 15);
+            btn_ReadHART_Scale.Location = new System.Drawing.Point(112, 15);
             btn_ReadHART_Scale.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_ReadHART_Scale.Name = "btn_ReadHART_Scale";
             btn_ReadHART_Scale.Size = new System.Drawing.Size(105, 27);
@@ -601,7 +604,7 @@ namespace benchGUI
             // 
             // btn_HART_ZEROTRIM
             // 
-            btn_HART_ZEROTRIM.Location = new System.Drawing.Point(318, 15);
+            btn_HART_ZEROTRIM.Location = new System.Drawing.Point(226, 15);
             btn_HART_ZEROTRIM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_HART_ZEROTRIM.Name = "btn_HART_ZEROTRIM";
             btn_HART_ZEROTRIM.Size = new System.Drawing.Size(40, 27);
@@ -615,11 +618,11 @@ namespace benchGUI
             gb_HART.Controls.Add(btn_HART_ZEROTRIM);
             gb_HART.Controls.Add(btn_ReadHART_Scale);
             gb_HART.Controls.Add(cb_HART_SerialPort);
-            gb_HART.Location = new System.Drawing.Point(14, 344);
+            gb_HART.Location = new System.Drawing.Point(14, 311);
             gb_HART.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             gb_HART.Name = "gb_HART";
             gb_HART.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            gb_HART.Size = new System.Drawing.Size(614, 50);
+            gb_HART.Size = new System.Drawing.Size(447, 50);
             gb_HART.TabIndex = 42;
             gb_HART.TabStop = false;
             gb_HART.Text = "HART";
@@ -628,10 +631,10 @@ namespace benchGUI
             // 
             btn_pressureMicroStepDown.Enabled = false;
             btn_pressureMicroStepDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            btn_pressureMicroStepDown.Location = new System.Drawing.Point(650, 437);
+            btn_pressureMicroStepDown.Location = new System.Drawing.Point(625, 384);
             btn_pressureMicroStepDown.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_pressureMicroStepDown.Name = "btn_pressureMicroStepDown";
-            btn_pressureMicroStepDown.Size = new System.Drawing.Size(133, 51);
+            btn_pressureMicroStepDown.Size = new System.Drawing.Size(132, 44);
             btn_pressureMicroStepDown.TabIndex = 45;
             btn_pressureMicroStepDown.Text = "-";
             btn_pressureMicroStepDown.UseVisualStyleBackColor = true;
@@ -641,10 +644,10 @@ namespace benchGUI
             // 
             btn_pressureMicrostepUP.Enabled = false;
             btn_pressureMicrostepUP.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            btn_pressureMicrostepUP.Location = new System.Drawing.Point(650, 323);
+            btn_pressureMicrostepUP.Location = new System.Drawing.Point(624, 285);
             btn_pressureMicrostepUP.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_pressureMicrostepUP.Name = "btn_pressureMicrostepUP";
-            btn_pressureMicrostepUP.Size = new System.Drawing.Size(133, 51);
+            btn_pressureMicrostepUP.Size = new System.Drawing.Size(133, 44);
             btn_pressureMicrostepUP.TabIndex = 44;
             btn_pressureMicrostepUP.Text = "+";
             btn_pressureMicrostepUP.UseVisualStyleBackColor = true;
@@ -654,18 +657,19 @@ namespace benchGUI
             // 
             tb_pressureMicroStep.Enabled = false;
             tb_pressureMicroStep.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            tb_pressureMicroStep.Location = new System.Drawing.Point(650, 381);
+            tb_pressureMicroStep.Location = new System.Drawing.Point(625, 334);
             tb_pressureMicroStep.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_pressureMicroStep.Name = "tb_pressureMicroStep";
             tb_pressureMicroStep.Size = new System.Drawing.Size(132, 44);
             tb_pressureMicroStep.TabIndex = 43;
             tb_pressureMicroStep.Text = "1.0";
+            tb_pressureMicroStep.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             tb_pressureMicroStep.WordWrap = false;
             tb_pressureMicroStep.TextChanged += tb_pressureMicroStep_TextChanged;
             // 
             // nUD_CalibrationCyclesCount
             // 
-            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(483, 313);
+            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(469, 280);
             nUD_CalibrationCyclesCount.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             nUD_CalibrationCyclesCount.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nUD_CalibrationCyclesCount.Name = "nUD_CalibrationCyclesCount";
@@ -676,7 +680,7 @@ namespace benchGUI
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(486, 297);
+            label4.Location = new System.Drawing.Point(479, 264);
             label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label4.Name = "label4";
             label4.Size = new System.Drawing.Size(114, 15);
@@ -685,18 +689,18 @@ namespace benchGUI
             // 
             // plot_result
             // 
-            plot_result.Location = new System.Drawing.Point(649, 494);
+            plot_result.Location = new System.Drawing.Point(622, 434);
             plot_result.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             plot_result.Name = "plot_result";
-            plot_result.Size = new System.Drawing.Size(600, 289);
+            plot_result.Size = new System.Drawing.Size(602, 349);
             plot_result.TabIndex = 49;
             // 
             // plot_measures
             // 
-            plot_measures.Location = new System.Drawing.Point(299, 650);
+            plot_measures.Location = new System.Drawing.Point(246, 643);
             plot_measures.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             plot_measures.Name = "plot_measures";
-            plot_measures.Size = new System.Drawing.Size(351, 133);
+            plot_measures.Size = new System.Drawing.Size(368, 133);
             plot_measures.TabIndex = 50;
             // 
             // MainForm
@@ -704,7 +708,7 @@ namespace benchGUI
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            ClientSize = new System.Drawing.Size(1259, 781);
+            ClientSize = new System.Drawing.Size(1236, 781);
             Controls.Add(plot_measures);
             Controls.Add(plot_result);
             Controls.Add(label4);
