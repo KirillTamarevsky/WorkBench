@@ -31,51 +31,33 @@ namespace WorkBench.TestEquipment.CPC6000
             parentCPC6000.SetActiveChannel(ChannelNumber);
             SetPUnit(new kPa());
             List<CPC6000ChannelSpan> availableSpans = new List<CPC6000ChannelSpan>();
-            Communicator.SendLine("Ptype A");
-            if (Query("Ptype?").Trim().ToUpper() == "ABSOLUTE")
+            foreach (var pressureType in new List<PressureType>() { PressureType.Absolute, PressureType.Gauge })
             {
-                //get turndowns for current channel
-                //List? => [PRI,1;SEC,1;BAR,1]
-                var existingTurnDowns = Query("List?").Trim();
-                var modules = existingTurnDowns.Split(";");
-                foreach (var module in modules)
+                var command = pressureType switch { PressureType.Gauge => "Ptype G", PressureType.Absolute => "Ptype A" };
+                var expectedResponse = pressureType switch { PressureType.Gauge => "GAUGE", PressureType.Absolute => "ABSOLUTE" };
+                Communicator.SendLine(command);
+                if (Query("Ptype?").Trim().ToUpper() == expectedResponse)
                 {
-                    var mod_turndowns = module.Split(",");
-                    var modType = mod_turndowns[0].Trim().ToUpper() switch
+                    var existingTurnDowns = Query("List?").Trim();
+                    var modules = existingTurnDowns.Split(";");
+                    foreach (var module in modules)
                     {
-                        "PRI" => CPC6000PressureModule.Primary,
-                        "SEC" => CPC6000PressureModule.Secondary,
-                        "BAR" => CPC6000PressureModule.Barometer,
-                        _ => throw new ArgumentException(),
-                    };
-                    foreach (var turdown in mod_turndowns.Skip(1))
-                    {
-                        var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown), PressureType.Absolute);
-                        availableSpans.Add(cpc6000channelspan);
-                    }
-                }
-            }
-            Communicator.SendLine("Ptype G");
-            if (Query("Ptype?").Trim().ToUpper() == "GAUGE")
-            {
-                //get turndowns for current channel
-                //List? => [PRI,1;SEC,1;BAR,1]
-                var existingTurnDowns = Query("List?").Trim();
-                var modules = existingTurnDowns.Split(";");
-                foreach (var module in modules)
-                {
-                    var mod_turndowns = module.Split(",");
-                    var modType = mod_turndowns[0].Trim().ToUpper() switch
-                    {
-                        "PRI" => CPC6000PressureModule.Primary,
-                        "SEC" => CPC6000PressureModule.Secondary,
-                        "BAR" => CPC6000PressureModule.Barometer,
-                        _ => throw new ArgumentException(),
-                    };
-                    foreach (var turdown in mod_turndowns.Skip(1))
-                    {
-                        var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown), PressureType.Gauge);
-                        availableSpans.Add(cpc6000channelspan);
+                        var mod_turndowns = module.Split(",");
+                        var modType = mod_turndowns[0].Trim().ToUpper() switch
+                        {
+                            "PRI" => CPC6000PressureModule.Primary,
+                            "SEC" => CPC6000PressureModule.Secondary,
+                            "BAR" => CPC6000PressureModule.Barometer,
+                            _ => throw new ArgumentException(),
+                        };
+                        if (modType == CPC6000PressureModule.Primary || modType == CPC6000PressureModule.Secondary)
+                        {
+                            foreach (var turdown in mod_turndowns.Skip(1))
+                            {
+                                var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown), pressureType);
+                                availableSpans.Add(cpc6000channelspan);
+                            }
+                        }
                     }
                 }
             }
