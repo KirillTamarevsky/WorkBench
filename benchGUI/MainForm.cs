@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using WorkBench;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
+using WorkBench.TestEquipment.Calys150;
 using WorkBench.UOMS;
 using WorkBench.UOMS.Pressure;
 
@@ -124,6 +125,17 @@ namespace benchGUI
             }
 #if DEBUG
             cb_CurrentMeasuringInstruments.Items.Add(Factory.GetFakeEK("COM222"));
+#endif
+
+
+            //=========================== Calys 150 ==============================================================================
+            foreach (var item in Factory.GetSerialPortsNames())
+            {
+                cb_CurrentMeasuringInstruments.Items.Add(new Calys150(item));
+            }
+#if DEBUG
+            cb_CurrentMeasuringInstruments.Items.Add(new Calys150(Calys150.GetSimulationCalys150SerialPortCommunicatorWithDefaultSettings("150")));
+
 #endif
 
             //===========================ЭЛМЕТРО - ВОЛЬТА===============================================================================
