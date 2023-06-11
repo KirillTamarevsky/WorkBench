@@ -375,6 +375,7 @@ namespace benchGUI
                 cb_PressureReaderGeneratorSpan.SelectedIndex = 0;
             }
 
+            cb_PressureReaderGeneratorSpan.Enabled = false;
             if (cb_PressureReaderGeneratorSpan.Items.Count > 1)
             {
                 cb_PressureReaderGeneratorSpan.Enabled = true;
@@ -388,18 +389,9 @@ namespace benchGUI
 
             pressureReaderSpan = (IInstrumentChannelSpanReader)((ComboBox)sender).SelectedItem;
 
-            var chanspan = pressureReaderSpan as IInstrumentChannelSpan;
-            if (chanspan != null)
-            {
-                //chanspan.Activate();
-            }
-
-
             pressureGeneratorSpan = (IInstrumentChannelSpanPressureGenerator)pressureReaderSpan;
 
-            //tb_cpcSetPoint.Text = pressureGeneratorSpan.GetSetPoint().Value.ToString("N4");
-            //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
-
+            tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToString("N4");
 
             ReadPressureInstrumentOperationModeToRadioButtons();
             
@@ -446,24 +438,21 @@ namespace benchGUI
                 setLabelText(pressureStabilityCalc.StdDeviation.ToString("N4"), lbl_CPCstdev);
                 setLabelText(pressureStabilityCalc.LRSlope.ToString("N4"), lbl_CPCLRSlope);
 
-                switch (pressureStabilityCalc.TrendStatus)
+                var trendStatusText = pressureStabilityCalc.TrendStatus switch
                 {
-                    case TrendStatus.Unknown:
-                        setLabelText("неизвестно", lbl_CPCstability);
-                        break;
-                    case TrendStatus.GrowUP:
-                        setLabelText("увеличивается", lbl_CPCstability);
-                        break;
-                    case TrendStatus.FallDown:
-                        setLabelText("уменьшается", lbl_CPCstability);
-                        break;
-                    case TrendStatus.Stable:
-                        setLabelText("стабильно", lbl_CPCstability);
-                        backColor = Color.Yellow;
-                        break;
-                    default:
-                        break;
-                }
+                    TrendStatus.Unknown => "неизвестно",
+                    TrendStatus.GrowUP => "увеличивается",
+                    TrendStatus.FallDown => "уменьшается",
+                    TrendStatus.Stable => "стабильно",
+                    _ => throw new ArgumentException($"not supported status {pressureStabilityCalc.TrendStatus}"),
+                };
+                setLabelText(trendStatusText, lbl_CPCstability);
+
+                backColor = pressureStabilityCalc.TrendStatus switch
+                {
+                    TrendStatus.Stable => Color.Yellow,
+                    _ => Color.Transparent
+                };
             }
             if (pressureStabilityCalc.Ready)
             {

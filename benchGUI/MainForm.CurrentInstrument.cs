@@ -151,25 +151,21 @@ namespace benchGUI
                 setLabelText(currentStabilityCalc.MeanValue.ToString("N4"), lbl_ekmean);
                 setLabelText(currentStabilityCalc.StdDeviation.ToString("N4"), lbl_EKstdev);
                 setLabelText(currentStabilityCalc.LRSlope.ToString("N4"), lbl_EKLRSlope);
-                
-                switch (currentStabilityCalc.TrendStatus)
+
+                var trendStatusText = currentStabilityCalc.TrendStatus switch
                 {
-                    case TrendStatus.Unknown:
-                        setLabelText("неизвестно", lbl_EKstability);
-                        break;
-                    case TrendStatus.GrowUP:
-                        setLabelText("увеличивается", lbl_EKstability);
-                        break;
-                    case TrendStatus.FallDown:
-                        setLabelText("уменьшается", lbl_EKstability);
-                        break;
-                    case TrendStatus.Stable:
-                        setLabelText("стабильно", lbl_EKstability);
-                        backColor = Color.Yellow;
-                        break;
-                    default:
-                        break;
-                }
+                    TrendStatus.Unknown => "неизвестно",
+                    TrendStatus.GrowUP => "увеличивается",
+                    TrendStatus.FallDown => "уменьшается",
+                    TrendStatus.Stable => "стабильно",
+                    _ => throw new ArgumentException($"unknown trendstatus {currentStabilityCalc.TrendStatus}")
+                };
+                setLabelText(trendStatusText, lbl_EKstability);
+                backColor = currentStabilityCalc.TrendStatus switch
+                {
+                    TrendStatus.Stable => Color.Yellow,
+                    _ => Color.Transparent
+                };
             }
             if (currentStabilityCalc.Ready)
             {
