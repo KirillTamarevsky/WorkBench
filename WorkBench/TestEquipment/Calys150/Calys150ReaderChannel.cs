@@ -15,7 +15,11 @@ namespace WorkBench.TestEquipment.Calys150
 
         public string Name => "измерительный канал";
 
-        public IInstrumentChannelSpan[] AvailableSpans => new IInstrumentChannelSpan[] { new Calys150_4_20Current_ReaderSpan(this) };
+        public IInstrumentChannelSpan[] AvailableSpans => new IInstrumentChannelSpan[] { new Calys150_4_20Current_ReaderSpan(this)
+                                                                                         , new Calys150_0Current_ReaderSpan(this) 
+                                                                                         , new Calys150_4Current_ReaderSpan(this)
+                                                                                         , new Calys150_0_100Current_ReaderSpan(this)
+                                                                                        };
 
         public Calys150ReaderChannel(Calys150 calys150)
         {
