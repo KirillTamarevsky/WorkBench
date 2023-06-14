@@ -16,10 +16,11 @@ namespace WorkBench.TestEquipment.Calys150
         public string Description => "многофункциональный калибратор";
         public string SerialNumber { get; private set; }
         public string FWVersion{ get; private set; }
-        ITextCommunicator Communicator { get; }
+        internal ITextCommunicator Communicator { get; }
         internal bool SendLine(string command) => Communicator.SendLine(command);
         internal string ReadLine(TimeSpan readLineTimeout) => Communicator.ReadLine(readLineTimeout);
         internal string Query(string command) => Communicator.QueryCommand(command);
+#region Constructors
         public Calys150(ITextCommunicator textCommunicator) 
         {
             Communicator = textCommunicator;
@@ -28,15 +29,15 @@ namespace WorkBench.TestEquipment.Calys150
         public Calys150(string SerialPortName) : this(GetSerialPortCommunicatorWithDefaultSettings(SerialPortName)){}
         public static ITextCommunicator GetSerialPortCommunicatorWithDefaultSettings(string serialPortName)
         {
-            return new SerialEKCommunicator(new WBSerialPortWrapper(serialPortName, 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n");
+            return new SerialEKCommunicator(new WBSerialPortWrapper(serialPortName, 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n", timeout: 5);
         }
         public static ITextCommunicator GetSimulationCalys150SerialPortCommunicatorWithDefaultSettings(string serialPortName)
         {
             return new SerialEKCommunicator(new FakeCalys150SerialPort($"DEMO[{serialPortName}]", 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n");
         }
-
+#endregion
         public IInstrumentChannel[] Channels { get; }
-
+        Calys150ReaderChannel ActiveChannel { get; set; }
         public bool IsOpen => Communicator.IsOpen;
         public bool Open()
         {
@@ -81,6 +82,16 @@ namespace WorkBench.TestEquipment.Calys150
         public override string ToString()
         {
             return $"{Description} {Name} - {Communicator}";
+        }
+
+        internal void ActivateChannel(Calys150ReaderChannel calys150ReaderChannel)
+        {
+            if (calys150ReaderChannel.parentCalys150 != this) throw new ArgumentException("not my channel");
+            if (ActiveChannel != calys150ReaderChannel)
+            {
+                Communicator.SendLine($"SENS{calys150ReaderChannel.NUM}:RUN");
+                ActiveChannel = calys150ReaderChannel;
+            }
         }
     }
 }

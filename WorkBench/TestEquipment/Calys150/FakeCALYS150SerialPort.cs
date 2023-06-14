@@ -89,10 +89,10 @@ namespace WorkBench.TestEquipment.Calys150
                 case "*IDN?":
                     answer = "AOIP˽SAS,CALYS150,SN_1234,A00";
                     break;
-                case "MEAS1:CURR? 25MA":
-                case "MEAS2:CURR? 25MA":
+                case "MEAS1?":
+                case "MEAS2?":
                     var randnum = (random.NextDouble() * 16.9 + 3.5).ToString("N4", CultureInfo.InvariantCulture);
-                    answer = $"{randnum},mA";
+                    answer = $"{randnum},vA";
                     break;
                 default:
                     break;
