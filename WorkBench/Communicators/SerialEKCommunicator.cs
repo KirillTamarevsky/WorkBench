@@ -35,13 +35,13 @@ namespace WorkBench.Communicators
         /// <param name="lineEndToken">символы конца строки</param>
         public SerialEKCommunicator(
             IWBSerialPortWrapper serialport,
-            string lineEndToken )
+            string lineEndToken, int timeout = 3 )
         {
             _serialPort = serialport;
 
             NewLine = lineEndToken;
 
-            Timeout = TimeSpan.FromSeconds(3); // 3 seconds
+            Timeout = TimeSpan.FromSeconds(timeout); // 3 seconds
         }
 
         public bool Close()
@@ -137,7 +137,7 @@ namespace WorkBench.Communicators
                 throw new Exception(errorMessage);
             }
 
-            _serialPort.WriteTimeout = 1000;
+            _serialPort.WriteTimeout = (int)Timeout.TotalMilliseconds;
 
             logger.Debug($"{_serialPort.PortName} WriteTimeout = {_serialPort.WriteTimeout}");
                 
