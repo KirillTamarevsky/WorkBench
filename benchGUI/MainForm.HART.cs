@@ -12,7 +12,6 @@ namespace benchGUI
 {
     public partial class MainForm
     {
-        
         private void btn_ReadHART_Scale_Click(object sender, EventArgs e)
         {
             var selectedHartPortName = cb_HART_SerialPort.SelectedItem;

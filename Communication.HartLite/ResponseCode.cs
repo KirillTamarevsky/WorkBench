@@ -4,23 +4,13 @@ namespace Communication.HartLite
 {
     public class ResponseCode
     {
-        private readonly byte _firstByte;
-        private readonly byte _secondByte;
-
-        public byte FirstByte
-        {
-            get { return _firstByte; }
-        }
-
-        public byte SecondByte
-        {
-            get { return _secondByte; }
-        }
+        public byte FirstByte { get; }
+        public byte SecondByte { get; }
 
         private ResponseCode(byte firstByte, byte secondByte)
         {
-            _firstByte = firstByte;
-            _secondByte = secondByte;
+            FirstByte = firstByte;
+            SecondByte = secondByte;
         }
 
         public static ResponseCode ToResponseCode(byte[] responseCodeBytes)

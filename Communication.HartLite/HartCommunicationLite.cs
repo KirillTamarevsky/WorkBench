@@ -17,8 +17,9 @@ namespace Communication.HartLite
         private IAddress _currentAddress;
         private int _numberOfRetries;
 
-        private readonly Queue _commandQueue = new Queue();
-        private readonly BackgroundWorker _worker;
+        private Queue _commandQueue { get; } = new Queue();
+        private  BackgroundWorker _worker { get; }
+
 
         private const double ADDITIONAL_WAIT_TIME_BEFORE_SEND = 5.0;
         private const double ADDITIONAL_WAIT_TIME_AFTER_SEND = 50.0;
