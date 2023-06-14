@@ -573,10 +573,10 @@ namespace benchGUI
             // 
             btn_ZeroPressure.Enabled = false;
             btn_ZeroPressure.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            btn_ZeroPressure.Location = new System.Drawing.Point(1388, 285);
+            btn_ZeroPressure.Location = new System.Drawing.Point(1165, 256);
             btn_ZeroPressure.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_ZeroPressure.Name = "btn_ZeroPressure";
-            btn_ZeroPressure.Size = new System.Drawing.Size(55, 31);
+            btn_ZeroPressure.Size = new System.Drawing.Size(55, 23);
             btn_ZeroPressure.TabIndex = 38;
             btn_ZeroPressure.Text = ">0<";
             btn_ZeroPressure.UseVisualStyleBackColor = true;
