@@ -52,7 +52,7 @@ namespace WorkBench.TestEquipment.Calys150
                         var respparts = resp.Split(",");
                         if (respparts.Length == 4)
                         {
-                            if (respparts[1].ToUpper() == "CALYS_150")
+                            if (respparts[1].ToUpper().Contains("CALYS150"))
                             {
                                 SerialNumber = respparts[2];
                                 FWVersion = respparts[3];

@@ -87,7 +87,7 @@ namespace WorkBench.TestEquipment.Calys150
                 case "LOC":
                     break;
                 case "*IDN?":
-                    answer = "AOIP˽SAS,CALYS_150,SN_1234,A00";
+                    answer = "AOIP˽SAS,CALYS150,SN_1234,A00";
                     break;
                 case "MEAS1:CURR? 25MA":
                 case "MEAS2:CURR? 25MA":
