@@ -109,7 +109,10 @@ namespace benchGUI
         internal void onFormClosing(Object sender, FormClosingEventArgs e)
         {
             StopCurrentCyclicReading();
-            CurrentMeasuringInstrument?.Close();
+            if (CurrentMeasuringInstrument != null && CurrentMeasuringInstrument.IsOpen)
+            {
+                CurrentMeasuringInstrument.Close();
+            }
 
             StopPressureCyclicRead();
             PressureInstrument?.Close();
