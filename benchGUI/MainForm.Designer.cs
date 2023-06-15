@@ -77,6 +77,12 @@ namespace benchGUI
             btn_ReadHART_Scale = new System.Windows.Forms.Button();
             btn_HART_ZEROTRIM = new System.Windows.Forms.Button();
             gb_HART = new System.Windows.Forms.GroupBox();
+            btn_HART_trim20mA = new System.Windows.Forms.Button();
+            btn_HART_trim4mA = new System.Windows.Forms.Button();
+            btn_HART_set_0mA = new System.Windows.Forms.Button();
+            btn_HART_set_20mA = new System.Windows.Forms.Button();
+            btn_HART_set_4mA = new System.Windows.Forms.Button();
+            btn_HART_open = new System.Windows.Forms.Button();
             btn_pressureMicroStepDown = new System.Windows.Forms.Button();
             btn_pressureMicrostepUP = new System.Windows.Forms.Button();
             tb_pressureMicroStep = new System.Windows.Forms.TextBox();
@@ -516,10 +522,10 @@ namespace benchGUI
             // 
             // btnStartAutoCal
             // 
-            btnStartAutoCal.Location = new System.Drawing.Point(469, 309);
+            btnStartAutoCal.Location = new System.Drawing.Point(533, 277);
             btnStartAutoCal.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnStartAutoCal.Name = "btnStartAutoCal";
-            btnStartAutoCal.Size = new System.Drawing.Size(135, 27);
+            btnStartAutoCal.Size = new System.Drawing.Size(69, 27);
             btnStartAutoCal.TabIndex = 31;
             btnStartAutoCal.Text = "Старт";
             btnStartAutoCal.UseVisualStyleBackColor = true;
@@ -593,21 +599,23 @@ namespace benchGUI
             // 
             // btn_ReadHART_Scale
             // 
-            btn_ReadHART_Scale.Location = new System.Drawing.Point(112, 15);
+            btn_ReadHART_Scale.Enabled = false;
+            btn_ReadHART_Scale.Location = new System.Drawing.Point(190, 16);
             btn_ReadHART_Scale.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_ReadHART_Scale.Name = "btn_ReadHART_Scale";
-            btn_ReadHART_Scale.Size = new System.Drawing.Size(105, 27);
+            btn_ReadHART_Scale.Size = new System.Drawing.Size(57, 23);
             btn_ReadHART_Scale.TabIndex = 40;
-            btn_ReadHART_Scale.Text = "считать шкалу";
+            btn_ReadHART_Scale.Text = "шкала?";
             btn_ReadHART_Scale.UseVisualStyleBackColor = true;
             btn_ReadHART_Scale.Click += btn_ReadHART_Scale_Click;
             // 
             // btn_HART_ZEROTRIM
             // 
-            btn_HART_ZEROTRIM.Location = new System.Drawing.Point(226, 15);
+            btn_HART_ZEROTRIM.Enabled = false;
+            btn_HART_ZEROTRIM.Location = new System.Drawing.Point(255, 16);
             btn_HART_ZEROTRIM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_HART_ZEROTRIM.Name = "btn_HART_ZEROTRIM";
-            btn_HART_ZEROTRIM.Size = new System.Drawing.Size(40, 27);
+            btn_HART_ZEROTRIM.Size = new System.Drawing.Size(40, 23);
             btn_HART_ZEROTRIM.TabIndex = 41;
             btn_HART_ZEROTRIM.Text = ">0<";
             btn_HART_ZEROTRIM.UseVisualStyleBackColor = true;
@@ -615,6 +623,12 @@ namespace benchGUI
             // 
             // gb_HART
             // 
+            gb_HART.Controls.Add(btn_HART_trim20mA);
+            gb_HART.Controls.Add(btn_HART_trim4mA);
+            gb_HART.Controls.Add(btn_HART_set_0mA);
+            gb_HART.Controls.Add(btn_HART_set_20mA);
+            gb_HART.Controls.Add(btn_HART_set_4mA);
+            gb_HART.Controls.Add(btn_HART_open);
             gb_HART.Controls.Add(btn_HART_ZEROTRIM);
             gb_HART.Controls.Add(btn_ReadHART_Scale);
             gb_HART.Controls.Add(cb_HART_SerialPort);
@@ -622,10 +636,75 @@ namespace benchGUI
             gb_HART.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             gb_HART.Name = "gb_HART";
             gb_HART.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            gb_HART.Size = new System.Drawing.Size(447, 50);
+            gb_HART.Size = new System.Drawing.Size(586, 50);
             gb_HART.TabIndex = 42;
             gb_HART.TabStop = false;
             gb_HART.Text = "HART";
+            // 
+            // btn_HART_trim20mA
+            // 
+            btn_HART_trim20mA.Enabled = false;
+            btn_HART_trim20mA.Location = new System.Drawing.Point(528, 16);
+            btn_HART_trim20mA.Name = "btn_HART_trim20mA";
+            btn_HART_trim20mA.Size = new System.Drawing.Size(51, 23);
+            btn_HART_trim20mA.TabIndex = 47;
+            btn_HART_trim20mA.Text = "trim20";
+            btn_HART_trim20mA.UseVisualStyleBackColor = true;
+            btn_HART_trim20mA.Click += btn_HART_trim20mA_Click;
+            // 
+            // btn_HART_trim4mA
+            // 
+            btn_HART_trim4mA.Enabled = false;
+            btn_HART_trim4mA.Location = new System.Drawing.Point(474, 16);
+            btn_HART_trim4mA.Name = "btn_HART_trim4mA";
+            btn_HART_trim4mA.Size = new System.Drawing.Size(48, 23);
+            btn_HART_trim4mA.TabIndex = 46;
+            btn_HART_trim4mA.Text = "trim4";
+            btn_HART_trim4mA.UseVisualStyleBackColor = true;
+            btn_HART_trim4mA.Click += btn_HART_trim4mA_Click;
+            // 
+            // btn_HART_set_0mA
+            // 
+            btn_HART_set_0mA.Enabled = false;
+            btn_HART_set_0mA.Location = new System.Drawing.Point(421, 16);
+            btn_HART_set_0mA.Name = "btn_HART_set_0mA";
+            btn_HART_set_0mA.Size = new System.Drawing.Size(43, 23);
+            btn_HART_set_0mA.TabIndex = 45;
+            btn_HART_set_0mA.Text = "0 mA";
+            btn_HART_set_0mA.UseVisualStyleBackColor = true;
+            btn_HART_set_0mA.Click += btn_HART_set_0mA_Click;
+            // 
+            // btn_HART_set_20mA
+            // 
+            btn_HART_set_20mA.Enabled = false;
+            btn_HART_set_20mA.Location = new System.Drawing.Point(365, 16);
+            btn_HART_set_20mA.Name = "btn_HART_set_20mA";
+            btn_HART_set_20mA.Size = new System.Drawing.Size(50, 23);
+            btn_HART_set_20mA.TabIndex = 44;
+            btn_HART_set_20mA.Text = "20 mA";
+            btn_HART_set_20mA.UseVisualStyleBackColor = true;
+            btn_HART_set_20mA.Click += btn_HART_set_20mA_Click;
+            // 
+            // btn_HART_set_4mA
+            // 
+            btn_HART_set_4mA.Enabled = false;
+            btn_HART_set_4mA.Location = new System.Drawing.Point(316, 16);
+            btn_HART_set_4mA.Name = "btn_HART_set_4mA";
+            btn_HART_set_4mA.Size = new System.Drawing.Size(43, 23);
+            btn_HART_set_4mA.TabIndex = 43;
+            btn_HART_set_4mA.Text = "4 mA";
+            btn_HART_set_4mA.UseVisualStyleBackColor = true;
+            btn_HART_set_4mA.Click += btn_HART_set_4mA_Click;
+            // 
+            // btn_HART_open
+            // 
+            btn_HART_open.Location = new System.Drawing.Point(113, 16);
+            btn_HART_open.Name = "btn_HART_open";
+            btn_HART_open.Size = new System.Drawing.Size(68, 23);
+            btn_HART_open.TabIndex = 42;
+            btn_HART_open.Text = "Открыть";
+            btn_HART_open.UseVisualStyleBackColor = true;
+            btn_HART_open.Click += btn_HART_open_Click;
             // 
             // btn_pressureMicroStepDown
             // 
@@ -669,23 +748,23 @@ namespace benchGUI
             // 
             // nUD_CalibrationCyclesCount
             // 
-            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(469, 280);
+            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(423, 280);
             nUD_CalibrationCyclesCount.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             nUD_CalibrationCyclesCount.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nUD_CalibrationCyclesCount.Name = "nUD_CalibrationCyclesCount";
-            nUD_CalibrationCyclesCount.Size = new System.Drawing.Size(135, 23);
+            nUD_CalibrationCyclesCount.Size = new System.Drawing.Size(105, 23);
             nUD_CalibrationCyclesCount.TabIndex = 47;
             nUD_CalibrationCyclesCount.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(479, 264);
+            label4.Location = new System.Drawing.Point(432, 264);
             label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(114, 15);
+            label4.Size = new System.Drawing.Size(88, 15);
             label4.TabIndex = 48;
-            label4.Text = "количество циклов";
+            label4.Text = "кол-во циклов";
             // 
             // plot_result
             // 
@@ -828,6 +907,12 @@ namespace benchGUI
         private System.Windows.Forms.Label label4;
         private ScottPlot.FormsPlot plot_result;
         private ScottPlot.FormsPlot plot_measures;
+        private System.Windows.Forms.Button btn_HART_open;
+        private System.Windows.Forms.Button btn_HART_set_0mA;
+        private System.Windows.Forms.Button btn_HART_set_20mA;
+        private System.Windows.Forms.Button btn_HART_set_4mA;
+        private System.Windows.Forms.Button btn_HART_trim4mA;
+        private System.Windows.Forms.Button btn_HART_trim20mA;
     }
 }
 

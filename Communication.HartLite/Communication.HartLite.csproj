@@ -47,7 +47,7 @@
     <Compile Include="IAddress.cs" />
     <Compile Include="LongAddress.cs" />
     <Compile Include="SendingCommandHandler.cs" />
-    <Compile Include="Command.cs" />
+    <Compile Include="HARTCommand.cs" />
     <Compile Include="ISerialPortWrapper.cs" />
     <Compile Include="OpenResult.cs" />
     <Compile Include="CloseResult.cs" />

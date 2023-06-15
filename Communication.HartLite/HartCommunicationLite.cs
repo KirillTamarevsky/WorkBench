@@ -10,12 +10,11 @@ namespace Communication.HartLite
     public class HartCommunicationLite
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(HartCommunicationLite));
-        private readonly ISerialPortWrapper _port;
-        private readonly HartCommandParser _parser = new HartCommandParser();
-        private AutoResetEvent _waitForResponse;
-        private CommandResult _lastReceivedCommand;
-        private IAddress _currentAddress;
-        private int _numberOfRetries;
+        private HartCommandParser _parser { get; } = new HartCommandParser();
+        private AutoResetEvent _waitForResponse { get; set; }
+        private CommandResult _lastReceivedCommand { get; set; }
+        private IAddress _currentAddress { get; set; }
+        private int _numberOfRetries { get; set; }
 
         private Queue _commandQueue { get; } = new Queue();
         private  BackgroundWorker _worker { get; }
@@ -74,7 +73,7 @@ namespace Communication.HartLite
             Timeout = TimeSpan.FromSeconds(4);
             AutomaticZeroCommand = true;
 
-            _port = new SerialPortWrapper(comPort, 1200, Parity.Odd, 8, StopBits.One);
+            Port = new SerialPortWrapper(comPort, 1200, Parity.Odd, 8, StopBits.One);
             _worker = new BackgroundWorker();
         }
 
@@ -82,10 +81,7 @@ namespace Communication.HartLite
         /// Gets the port.
         /// </summary>
         /// <value>The port.</value>
-        public ISerialPortWrapper Port
-        {
-            get { return _port; }
-        }
+        public ISerialPortWrapper Port { get; }
 
         public OpenResult Open()
         {
@@ -96,33 +92,33 @@ namespace Communication.HartLite
                 _worker.DoWork += SendCommandAsync;
                 _worker.RunWorkerCompleted += SendCommandAsyncComplete;
 
-                _port.DataReceived += DataReceived;
+                Port.DataReceived += DataReceived;
 
-                _port.RtsEnable = true;
-                _port.DtrEnable = false;
+                Port.RtsEnable = true;
+                Port.DtrEnable = false;
 
-                _port.Open();
+                Port.Open();
 
-                _port.RtsEnable = false;
-                _port.DtrEnable = true;
-
+                Port.RtsEnable = false;
+                Port.DtrEnable = true;
+                    
                 return OpenResult.Opened;
             }
             catch (ArgumentException exception)
             {
-                _port.DataReceived -= DataReceived;
+                Port.DataReceived -= DataReceived;
                 Log.Warn("Cannot open port.", exception);
                 return OpenResult.ComPortNotExisting;
             }
             catch (UnauthorizedAccessException exception)
             {
-                _port.DataReceived -= DataReceived;
+                Port.DataReceived -= DataReceived;
                 Log.Warn("Cannot open port.", exception);
                 return OpenResult.ComPortIsOpenAlreadyOpen;
             }
             catch (Exception exception)
             {
-                _port.DataReceived -= DataReceived;
+                Port.DataReceived -= DataReceived;
                 Log.Warn("Cannot open port.", exception);
                 return OpenResult.UnknownComPortError;
             }
@@ -133,12 +129,12 @@ namespace Communication.HartLite
             try
             {
                 _parser.CommandComplete -= CommandComplete;
-                _port.DataReceived -= DataReceived;
+                Port.DataReceived -= DataReceived;
 
                 _worker.DoWork -= SendCommandAsync;
                 _worker.RunWorkerCompleted -= SendCommandAsyncComplete;
                 
-                _port.Close();
+                Port.Close();
                 _commandQueue.Clear();
 
                 return CloseResult.Closed;
@@ -161,7 +157,7 @@ namespace Communication.HartLite
                 SendZeroCommand();
 
             _numberOfRetries = MaxNumberOfRetries;
-            _commandQueue.Enqueue(new Command(PreambleLength, _currentAddress, command, new byte[0], data));
+            _commandQueue.Enqueue(new HARTCommand(PreambleLength, _currentAddress, command, new byte[0], data));
 
             if (command == 0)
                 return SendZeroCommand();
@@ -172,7 +168,7 @@ namespace Communication.HartLite
         public CommandResult SendZeroCommand()
         {
             _numberOfRetries = MaxNumberOfRetries;
-            _commandQueue.Enqueue(Command.Zero(PreambleLength));
+            _commandQueue.Enqueue(HARTCommand.Zero(PreambleLength));
             return ExecuteCommand();
         }
 
@@ -189,12 +185,12 @@ namespace Communication.HartLite
             if (command == 0)
                 SendZeroCommandAsync();
             else
-                ExecuteCommandAsync(new Command(PreambleLength, _currentAddress, command, new byte[0], data), MaxNumberOfRetries);
+                ExecuteCommandAsync(new HARTCommand(PreambleLength, _currentAddress, command, new byte[0], data), MaxNumberOfRetries);
         }
 
         public void SendZeroCommandAsync()
         {
-            ExecuteCommandAsync(Command.Zero(PreambleLength), MaxNumberOfRetries);
+            ExecuteCommandAsync(HARTCommand.Zero(PreambleLength), MaxNumberOfRetries);
         }
 
         public void SwitchAddressTo(IAddress address)
@@ -202,7 +198,7 @@ namespace Communication.HartLite
             _currentAddress = address;
         }
 
-        private void ExecuteCommandAsync(Command command, int maxNumberOfRetries)
+        private void ExecuteCommandAsync(HARTCommand command, int maxNumberOfRetries)
         {
             _commandQueue.Enqueue(command);
 
@@ -216,7 +212,7 @@ namespace Communication.HartLite
         private void SendCommandAsync(object sender, DoWorkEventArgs e)
         {
             if(_commandQueue.Count > 0)
-                SendCommandSynchronous((Command)_commandQueue.Dequeue());
+                SendCommandSynchronous((HARTCommand)_commandQueue.Dequeue());
         }
 
         private void SendCommandAsyncComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -229,7 +225,7 @@ namespace Communication.HartLite
         {
             lock (_commandQueue)
             {
-                return SendCommandSynchronous((Command) _commandQueue.Dequeue());
+                return SendCommandSynchronous((HARTCommand) _commandQueue.Dequeue());
             }
         }
 
@@ -259,7 +255,7 @@ namespace Communication.HartLite
             return true;
         }
 
-        private CommandResult SendCommandSynchronous(Command requestCommand)
+        private CommandResult SendCommandSynchronous(HARTCommand requestCommand)
         {
             Receive += CommandReceived;
             try
@@ -294,7 +290,7 @@ namespace Communication.HartLite
             }
         }
 
-        private void SendCommand(Command command)
+        private void SendCommand(HARTCommand command)
         {
             _waitForResponse = new AutoResetEvent(false);
             _parser.Reset();
@@ -309,19 +305,19 @@ namespace Communication.HartLite
 
             Thread.Sleep(100);
 
-            _port.DtrEnable = false;
-            _port.RtsEnable = true;
+            Port.DtrEnable = false;
+            Port.RtsEnable = true;
 
             Thread.Sleep(Convert.ToInt32(ADDITIONAL_WAIT_TIME_BEFORE_SEND));
 
             DateTime startTime = DateTime.Now;
 
-            Log.Debug(string.Format("Data sent to {1}: {0}", BitConverter.ToString(bytesToSend), _port.PortName));
-            _port.Write(bytesToSend, 0, bytesToSend.Length);
+            Log.Debug(string.Format("Data sent to {1}: {0}", BitConverter.ToString(bytesToSend), Port.PortName));
+            Port.Write(bytesToSend, 0, bytesToSend.Length);
 
             SleepAfterSend(bytesToSend.Length, startTime);
-            _port.RtsEnable = false;
-            _port.DtrEnable = true;
+            Port.RtsEnable = false;
+            Port.DtrEnable = true;
         }
 
         private void CommandReceived(object sender, CommandResult args)
@@ -332,9 +328,9 @@ namespace Communication.HartLite
 
         private void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] receivedBytes = new byte[_port.BytesToRead];
-            _port.Read(receivedBytes, 0, receivedBytes.Length);
-            Log.Debug(string.Format("Received data from {1}: {0}", BitConverter.ToString(receivedBytes), _port.PortName));
+            byte[] receivedBytes = new byte[Port.BytesToRead];
+            Port.Read(receivedBytes, 0, receivedBytes.Length);
+            Log.Debug(string.Format("Received data from {1}: {0}", BitConverter.ToString(receivedBytes), Port.PortName));
 
             _parser.ParseNextBytes(receivedBytes);
         }
@@ -353,7 +349,7 @@ namespace Communication.HartLite
             return startTime + requiredTransmissionTime - DateTime.Now;
         }
 
-        private void CommandComplete(Command command)
+        private void CommandComplete(HARTCommand command)
         {
             if(command.CommandNumber == 0)
             {

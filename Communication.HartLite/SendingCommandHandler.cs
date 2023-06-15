@@ -4,39 +4,15 @@
 
     public class CommandRequest
     {
-        private readonly Command _command;
+        private HARTCommand _command { get; }
+        public int PreambleLength => _command.PreambleLength;
+        public byte Delimiter => _command.StartDelimiter;
+        public IAddress Address => _command.Address; 
+        public byte CommandNumber => _command.CommandNumber;
+        public byte[] Data => _command.Data; 
+        public byte Checksum => _command.CalculateChecksum(); 
 
-        public int PreambleLength
-        {
-            get { return _command.PreambleLength; }
-        }
-
-        public byte Delimiter
-        {
-            get { return _command.StartDelimiter; }
-        }
-
-        public IAddress Address
-        {
-            get { return _command.Address; }
-        }
-
-        public byte CommandNumber
-        {
-            get { return _command.CommandNumber; }
-        }
-
-        public byte[] Data
-        {
-            get { return _command.Data; }
-        }
-
-        public byte Checksum
-        {
-            get { return _command.CalculateChecksum(); }
-        }
-
-        internal CommandRequest(Command command)
+        internal CommandRequest(HARTCommand command)
         {
             _command = command;
         }

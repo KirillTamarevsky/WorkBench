@@ -2,7 +2,7 @@ using System;
 
 namespace Communication.HartLite
 {
-    internal class Command
+    internal class HARTCommand
     {
         public byte[] ResponseCode { get; set; }
         public int PreambleLength { get; set; }
@@ -11,24 +11,15 @@ namespace Communication.HartLite
         public byte CommandNumber { get; set; }
         public byte[] Data { get; set; }
 
-        private static byte MasterToSlaveStartDelimiter
-        {
-            get
-            {
-                return 0x82; // 2
-            }
-        }
+        private static byte MasterToSlaveStartDelimiter => 0x82; // 2
 
-        public static byte SlaveToMasterStartDelimiter
-        {
-            get { return 6; }
-        }
+        public static byte SlaveToMasterStartDelimiter => 6;
 
-        public Command()
+        public HARTCommand()
         {
         }
 
-        public Command(int preambleLength, IAddress address, byte commandNumber, byte[] responseCode, byte[] data)
+        public HARTCommand(int preambleLength, IAddress address, byte commandNumber, byte[] responseCode, byte[] data)
         {
             PreambleLength = preambleLength;
             Address = address;
@@ -38,24 +29,24 @@ namespace Communication.HartLite
             StartDelimiter = MasterToSlaveStartDelimiter;
         }
 
-        public static Command Zero()
+        public static HARTCommand Zero()
         {
-            return Zero(0, 20);
+            return Zero(20);
         }
 
-        public static Command Zero(int preambleLength)
+        public static HARTCommand Zero(int preambleLength)
         {
             return Zero(0, preambleLength);
         }
 
-        public static Command Zero(byte pollingAddress)
+        public static HARTCommand Zero(byte pollingAddress)
         {
             return Zero(pollingAddress, 20);
         }
 
-        public static Command Zero(byte pollingAddress, int preambleLength)
+        public static HARTCommand Zero(byte pollingAddress, int preambleLength)
         {
-            return new Command(preambleLength, new ShortAddress(pollingAddress), 0, new byte[0], new byte[0])
+            return new HARTCommand(preambleLength, new ShortAddress(pollingAddress), 0, new byte[0], new byte[0])
                             {
                                 StartDelimiter = 2
                             };
