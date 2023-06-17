@@ -3,6 +3,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Threading;
+using Communication.HartLite.Commands;
 using log4net;
 
 namespace Communication.HartLite
@@ -157,18 +158,32 @@ namespace Communication.HartLite
                 SendZeroCommand();
 
             _numberOfRetries = MaxNumberOfRetries;
-            _commandQueue.Enqueue(new HARTCommand(PreambleLength, _currentAddress, command, new byte[0], data));
 
             if (command == 0)
                 return SendZeroCommand();
 
+            _commandQueue.Enqueue(new HARTCommand(PreambleLength, _currentAddress, command, new byte[0], data));
+
+            return ExecuteCommand();
+        }
+
+        public CommandResult Send (HARTCommand hartCommand)
+        {
+            if (AutomaticZeroCommand && hartCommand.CommandNumber != 0 && !(_currentAddress is LongAddress))
+                SendZeroCommand();
+            _numberOfRetries = MaxNumberOfRetries;
+            
+            hartCommand.PreambleLength = PreambleLength;
+            hartCommand.Address = _currentAddress;
+
+            _commandQueue.Enqueue(hartCommand);
             return ExecuteCommand();
         }
 
         public CommandResult SendZeroCommand()
         {
             _numberOfRetries = MaxNumberOfRetries;
-            _commandQueue.Enqueue(HARTCommand.Zero(PreambleLength));
+            _commandQueue.Enqueue(new HART_Zero_Command(PreambleLength));
             return ExecuteCommand();
         }
 
@@ -190,7 +205,7 @@ namespace Communication.HartLite
 
         public void SendZeroCommandAsync()
         {
-            ExecuteCommandAsync(HARTCommand.Zero(PreambleLength), MaxNumberOfRetries);
+            ExecuteCommandAsync(new HART_Zero_Command(PreambleLength), MaxNumberOfRetries);
         }
 
         public void SwitchAddressTo(IAddress address)

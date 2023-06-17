@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Communication.HartLite;
+using Communication.HartLite.Commands;
 using WorkBench;
 using WorkBench.Interfaces;
 
@@ -155,20 +156,20 @@ namespace benchGUI
         private void btn_HART_set_4mA_Click(object sender, EventArgs e)
         {
             SetHart_mA_level(4f);
-            btn_HART_set_4mA.Enabled = true;
-            btn_HART_set_20mA .Enabled = false;
+            btn_HART_trim4mA.Enabled = true;
+            btn_HART_trim20mA .Enabled = false;
         }
         private void btn_HART_set_20mA_Click(object sender, EventArgs e)
         {
             SetHart_mA_level(20f);
-            btn_HART_set_4mA.Enabled = false;
-            btn_HART_set_20mA.Enabled = true;
+            btn_HART_trim4mA.Enabled = false;
+            btn_HART_trim20mA.Enabled = true;
         }
         private void btn_HART_set_0mA_Click(object sender, EventArgs e)
         {
             SetHart_mA_level(0f);
-            btn_HART_set_4mA.Enabled = false;
-            btn_HART_set_20mA.Enabled = false;
+            btn_HART_trim4mA.Enabled = false;
+            btn_HART_trim20mA.Enabled = false;
         }
 
         private void SetHart_mA_level(Single mAlevel)
@@ -177,7 +178,8 @@ namespace benchGUI
             {
                 lock (hart_communicator)
                 {
-                    hart_communicator.Send(40, Single_to_HART_bytearray(mAlevel));
+                    var cmd = new HART_Simulate_Current_Command(mAlevel);
+                    hart_communicator.Send(cmd);
                 }
             });
         }
@@ -186,12 +188,13 @@ namespace benchGUI
         {
             if (currentStabilityCalc.TrendStatus == WorkBench.Enums.TrendStatus.Stable)
             {
-                var currReading = currentStabilityCalc.MeanValue;
+                var currReading = (float)currentStabilityCalc.MeanValue;
                 Task.Run(() =>
                 {
                     lock (hart_communicator)
                     {
-                        hart_communicator.Send(45, Single_to_HART_bytearray((float)currReading));
+                        var cmd = new HART_Trim_4mA_Command(currReading);
+                        hart_communicator.Send(cmd);
                     }
                 });
             }
@@ -202,22 +205,18 @@ namespace benchGUI
         {
             if (currentStabilityCalc.TrendStatus == WorkBench.Enums.TrendStatus.Stable)
             {
-                var currReading = currentStabilityCalc.MeanValue;
+                var currReading = (float)currentStabilityCalc.MeanValue;
                 Task.Run(() =>
                 {
                     lock (hart_communicator)
                     {
-                        hart_communicator.Send(46, Single_to_HART_bytearray((float)currReading));
+                        var cmd = new HART_Trim_20mA_Command(currReading);
+                        hart_communicator.Send(cmd);
                     }
                 });
             }
         }
 
-        private byte[] Single_to_HART_bytearray(Single number)
-        {
-            var bytes = BitConverter.GetBytes(number);
-            var data = new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] };
-            return data;
-        }
+
     }
 }

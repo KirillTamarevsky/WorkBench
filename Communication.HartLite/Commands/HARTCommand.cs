@@ -2,7 +2,7 @@ using System;
 
 namespace Communication.HartLite
 {
-    internal class HARTCommand
+    public class HARTCommand : IHARTCommand
     {
         public byte[] ResponseCode { get; set; }
         public int PreambleLength { get; set; }
@@ -29,35 +29,14 @@ namespace Communication.HartLite
             StartDelimiter = MasterToSlaveStartDelimiter;
         }
 
-        public static HARTCommand Zero()
-        {
-            return Zero(20);
-        }
 
-        public static HARTCommand Zero(int preambleLength)
-        {
-            return Zero(0, preambleLength);
-        }
-
-        public static HARTCommand Zero(byte pollingAddress)
-        {
-            return Zero(pollingAddress, 20);
-        }
-
-        public static HARTCommand Zero(byte pollingAddress, int preambleLength)
-        {
-            return new HARTCommand(preambleLength, new ShortAddress(pollingAddress), 0, new byte[0], new byte[0])
-                            {
-                                StartDelimiter = 2
-                            };
-        }
 
         public bool IsChecksumCorrect(byte checksum)
         {
             return CalculateChecksum() == checksum;
         }
 
-        public Byte[] ToByteArray()
+        public virtual Byte[] ToByteArray()
         {
             byte[] commandAsByteArray = BuildByteArray();
 

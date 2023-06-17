@@ -44,10 +44,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\HART_Zero_Command.cs" />
     <Compile Include="IAddress.cs" />
+    <Compile Include="Commands\IHARTCommand.cs" />
     <Compile Include="LongAddress.cs" />
     <Compile Include="SendingCommandHandler.cs" />
-    <Compile Include="HARTCommand.cs" />
+    <Compile Include="Commands\HARTCommand.cs" />
     <Compile Include="ISerialPortWrapper.cs" />
     <Compile Include="OpenResult.cs" />
     <Compile Include="CloseResult.cs" />
@@ -63,6 +65,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
