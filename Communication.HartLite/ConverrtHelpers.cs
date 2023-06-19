@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite
 {
-    internal static class ConverrtHelpers
+    public static class ConverrtHelpers
     {
         public static byte[] Single_to_HART_bytearray(this Single number)
         {

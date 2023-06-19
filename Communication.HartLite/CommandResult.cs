@@ -2,7 +2,7 @@
 {
     public class CommandResult
     {
-        private readonly HARTCommand _command;
+        private readonly HARTDatagram _command;
 
         public byte CommandNumber => _command.CommandNumber; 
         public byte[] Data => _command.Data; 
@@ -11,7 +11,7 @@
         public IAddress Address => _command.Address; 
         public int PreambleLength => _command.PreambleLength; 
         public byte Checksum => _command.CalculateChecksum(); 
-        internal CommandResult(HARTCommand command)
+        internal CommandResult(HARTDatagram command)
         {
             _command = command;
         }

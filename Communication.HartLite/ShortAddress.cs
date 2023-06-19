@@ -5,6 +5,7 @@ namespace Communication.HartLite
     public class ShortAddress : IAddress
     {
         private byte _pollingAddress;
+        public byte PollingAddress => _pollingAddress;
 
         public ShortAddress(byte pollingAddress)
         {

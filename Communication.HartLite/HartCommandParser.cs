@@ -19,10 +19,10 @@ namespace Communication.HartLite
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(HartCommandParser));
         private ReceiveState _currentReceiveState = ReceiveState.NotInCommand;
-        private HARTCommand _currentCommand { get; set; }
+        private HARTDatagram _currentCommand { get; set; }
         private int _currentIndex;
 
-        public event Action<HARTCommand> CommandComplete;
+        public event Action<HARTDatagram> CommandComplete;
 
         public void ParseNextBytes(Byte[] data)
         {
@@ -153,10 +153,10 @@ namespace Communication.HartLite
 
         private void ParseStartDelimiter(byte data)
         {
-            if (data == HARTCommand.SlaveToMasterStartDelimiter)
-                _currentCommand.Address = ShortAddress.Empty;
-            else
+            if ((data & 0x80) == 0x80)
                 _currentCommand.Address = LongAddress.Empty;
+            else
+                _currentCommand.Address = ShortAddress.Empty;
             
             _currentCommand.StartDelimiter = data;
             if (_currentCommand.StartDelimiter == 0x86 || _currentCommand.StartDelimiter == 0x06)
@@ -175,7 +175,7 @@ namespace Communication.HartLite
             _currentIndex++;
             if (data != 255)
             {
-                _currentCommand = new HARTCommand();
+                _currentCommand = new HARTDatagram();
                 _currentReceiveState = ReceiveState.StartDelimiter;
                 _currentCommand.PreambleLength = _currentIndex;
                 _currentIndex = 0;
@@ -190,7 +190,7 @@ namespace Communication.HartLite
 
         public void Reset()
         {
-            _currentCommand = new HARTCommand();
+            _currentCommand = new HARTDatagram();
             _currentIndex = 0;
             _currentReceiveState = ReceiveState.NotInCommand;
         }

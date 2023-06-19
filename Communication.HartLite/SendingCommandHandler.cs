@@ -4,7 +4,7 @@
 
     public class CommandRequest
     {
-        private HARTCommand _command { get; }
+        private HARTDatagram _command { get; }
         public int PreambleLength => _command.PreambleLength;
         public byte Delimiter => _command.StartDelimiter;
         public IAddress Address => _command.Address; 
@@ -12,7 +12,7 @@
         public byte[] Data => _command.Data; 
         public byte Checksum => _command.CalculateChecksum(); 
 
-        internal CommandRequest(HARTCommand command)
+        internal CommandRequest(HARTDatagram command)
         {
             _command = command;
         }

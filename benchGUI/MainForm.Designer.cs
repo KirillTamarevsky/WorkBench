@@ -90,6 +90,9 @@ namespace benchGUI
             label4 = new System.Windows.Forms.Label();
             plot_result = new ScottPlot.FormsPlot();
             plot_measures = new ScottPlot.FormsPlot();
+            tb_HART_PV = new System.Windows.Forms.TextBox();
+            tb_HART_PV_MA = new System.Windows.Forms.TextBox();
+            tb_HART_TAG = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
@@ -487,16 +490,16 @@ namespace benchGUI
             tbScaleMin.Location = new System.Drawing.Point(15, 281);
             tbScaleMin.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tbScaleMin.Name = "tbScaleMin";
-            tbScaleMin.Size = new System.Drawing.Size(107, 23);
+            tbScaleMin.Size = new System.Drawing.Size(69, 23);
             tbScaleMin.TabIndex = 29;
             tbScaleMin.TextChanged += tbScaleMin_TextChanged;
             // 
             // tbScaleMax
             // 
-            tbScaleMax.Location = new System.Drawing.Point(130, 280);
+            tbScaleMax.Location = new System.Drawing.Point(92, 281);
             tbScaleMax.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tbScaleMax.Name = "tbScaleMax";
-            tbScaleMax.Size = new System.Drawing.Size(98, 23);
+            tbScaleMax.Size = new System.Drawing.Size(77, 23);
             tbScaleMax.TabIndex = 30;
             tbScaleMax.TextChanged += tbScaleMax_TextChanged;
             // 
@@ -513,7 +516,7 @@ namespace benchGUI
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(132, 262);
+            label2.Location = new System.Drawing.Point(94, 264);
             label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(76, 15);
@@ -534,17 +537,17 @@ namespace benchGUI
             // cbPressureScaleUOM
             // 
             cbPressureScaleUOM.FormattingEnabled = true;
-            cbPressureScaleUOM.Location = new System.Drawing.Point(236, 280);
+            cbPressureScaleUOM.Location = new System.Drawing.Point(177, 280);
             cbPressureScaleUOM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cbPressureScaleUOM.Name = "cbPressureScaleUOM";
-            cbPressureScaleUOM.Size = new System.Drawing.Size(119, 23);
+            cbPressureScaleUOM.Size = new System.Drawing.Size(89, 23);
             cbPressureScaleUOM.TabIndex = 35;
             cbPressureScaleUOM.SelectedIndexChanged += cbScaleUOM_SelectedIndexChanged;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(236, 261);
+            label3.Location = new System.Drawing.Point(178, 261);
             label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(49, 15);
@@ -782,12 +785,39 @@ namespace benchGUI
             plot_measures.Size = new System.Drawing.Size(368, 133);
             plot_measures.TabIndex = 50;
             // 
+            // tb_HART_PV
+            // 
+            tb_HART_PV.Enabled = false;
+            tb_HART_PV.Location = new System.Drawing.Point(273, 279);
+            tb_HART_PV.Name = "tb_HART_PV";
+            tb_HART_PV.Size = new System.Drawing.Size(64, 23);
+            tb_HART_PV.TabIndex = 51;
+            // 
+            // tb_HART_PV_MA
+            // 
+            tb_HART_PV_MA.Enabled = false;
+            tb_HART_PV_MA.Location = new System.Drawing.Point(343, 279);
+            tb_HART_PV_MA.Name = "tb_HART_PV_MA";
+            tb_HART_PV_MA.Size = new System.Drawing.Size(66, 23);
+            tb_HART_PV_MA.TabIndex = 52;
+            // 
+            // tb_HART_TAG
+            // 
+            tb_HART_TAG.Enabled = false;
+            tb_HART_TAG.Location = new System.Drawing.Point(273, 255);
+            tb_HART_TAG.Name = "tb_HART_TAG";
+            tb_HART_TAG.Size = new System.Drawing.Size(136, 23);
+            tb_HART_TAG.TabIndex = 53;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             ClientSize = new System.Drawing.Size(1236, 781);
+            Controls.Add(tb_HART_TAG);
+            Controls.Add(tb_HART_PV_MA);
+            Controls.Add(tb_HART_PV);
             Controls.Add(plot_measures);
             Controls.Add(plot_result);
             Controls.Add(label4);
@@ -913,6 +943,9 @@ namespace benchGUI
         private System.Windows.Forms.Button btn_HART_set_4mA;
         private System.Windows.Forms.Button btn_HART_trim4mA;
         private System.Windows.Forms.Button btn_HART_trim20mA;
+        private System.Windows.Forms.TextBox tb_HART_PV;
+        private System.Windows.Forms.TextBox tb_HART_PV_MA;
+        private System.Windows.Forms.TextBox tb_HART_TAG;
     }
 }
 

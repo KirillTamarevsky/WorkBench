@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.SqlTypes;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,7 +16,9 @@ namespace benchGUI
 {
     public partial class MainForm
     {
+        IAddress HartAddr { get; set; } = new ShortAddress(0);
         private HartCommunicationLite hart_communicator { get; set; }
+        BackgroundWorker HartBackgroundWorker { get; set; }
         private void btn_HART_open_Click(object sender, EventArgs e)
         {
             btn_HART_open.Enabled = false;
@@ -31,7 +36,7 @@ namespace benchGUI
         private void HARTCommunicator_Open()
         {
             var selectedHartPortName = cb_HART_SerialPort.Text?.ToString();
-            if ( !string.IsNullOrEmpty( selectedHartPortName ))
+            if (!string.IsNullOrEmpty(selectedHartPortName))
             {
 
                 hart_communicator = new HartCommunicationLite(selectedHartPortName);
@@ -43,8 +48,13 @@ namespace benchGUI
                         btn_HART_ZEROTRIM.Enabled = true;
                         btn_ReadHART_Scale.Enabled = true;
                         btn_HART_set_4mA.Enabled = true;
-                        btn_HART_trim20mA.Enabled = true;
+                        btn_HART_set_20mA.Enabled = true;
                         btn_HART_set_0mA.Enabled = true;
+
+                        HartBackgroundWorker = new BackgroundWorker();
+                        HartBackgroundWorker.DoWork += HartBackgroundWorker_DoWork;
+                        HartBackgroundWorker.RunWorkerCompleted += HartBackgroundWorker_RunWorkerCompleted;
+                        HartBackgroundWorker.RunWorkerAsync();
                         break;
                     case OpenResult.ComPortIsOpenAlreadyOpen:
                     case OpenResult.ComPortNotExisting:
@@ -57,16 +67,53 @@ namespace benchGUI
             }
 
         }
+
+        private void HartBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            HartBackgroundWorker.RunWorkerAsync();
+        }
+
+        private void HartBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (HartAddr is ShortAddress)
+            {
+                lock (hart_communicator)
+                {
+                    HART_SEND_ZERO_COMMAND();
+                    if (HartAddr is LongAddress)
+                    {
+                        HART_READ_SCALE();
+                        HART_READ_TAG();
+                    }
+                }
+            }
+            if (HartAddr is LongAddress)
+            {
+                lock (hart_communicator)
+                {
+                    HART_READ_PV_and_MA();
+                }
+            }
+        }
+
         private void HARTCommunicator_Close()
         {
             var closeRes = hart_communicator.Close();
+            HartAddr = new ShortAddress(0);
             hart_communicator = null;
             btn_HART_open.Text = "Открыть";
             btn_HART_ZEROTRIM.Enabled = false;
             btn_ReadHART_Scale.Enabled = false;
-            btn_HART_set_4mA.Enabled = false;
-            btn_HART_trim20mA.Enabled = false;
             btn_HART_set_0mA.Enabled = false;
+            btn_HART_set_4mA.Enabled = false;
+            btn_HART_set_20mA.Enabled = false;
+            btn_HART_trim4mA.Enabled = false;
+            btn_HART_trim20mA.Enabled = false;
+            if (HartBackgroundWorker != null)
+            {
+                HartBackgroundWorker.DoWork -= HartBackgroundWorker_DoWork;
+                HartBackgroundWorker.RunWorkerCompleted -= HartBackgroundWorker_RunWorkerCompleted;
+            }
         }
 
 
@@ -74,64 +121,18 @@ namespace benchGUI
         {
             btn_ReadHART_Scale.Enabled = false;
             btn_HART_ZEROTRIM.Enabled = false;
-            
+
             Task.Run(() =>
             {
                 lock (hart_communicator)
                 {
-                    var zeroCommandRes = hart_communicator.SendZeroCommand();
-                    if (zeroCommandRes != null)
-                    {
-                        var commres = hart_communicator.Send(15);
-                        var scaleMax = BitConverter.ToSingle(new byte[] { commres.Data[6], commres.Data[5], commres.Data[4], commres.Data[3] }, 0);
-                        var scaleMin = BitConverter.ToSingle(new byte[] { commres.Data[10], commres.Data[9], commres.Data[8], commres.Data[7] }, 0);
-                        var step = (scaleMax - scaleMin) / 4;
-                        InvokeControlAction(tbScaleMax, () => tbScaleMax.Text = scaleMax.ToString("N4"));
-                        InvokeControlAction(tbScaleMin, () => tbScaleMin.Text = scaleMin.ToString("N4"));
-                        InvokeControlAction(tb_cpcStep, () => tb_cpcStep.Text = step.ToString("N4"));
-                        InvokeControlAction(tb_PressureSetPoint, () => tb_PressureSetPoint.Text = scaleMin.ToString("N4"));
-                        switch (commres.Data[2])
-                        {
-                            case 7: //7 bars
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "bar").FirstOrDefault());
-                                break;
-                            case 8: //8 millibars
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mbar").FirstOrDefault());
-                                break;
-                            case 11: //11 pascals
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "Pa").FirstOrDefault());
-                                break;
-                            case 12: //12 kilopascals
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "kPa").FirstOrDefault());
-                                break;
-                            case 237: //237 megapascals
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "MPa").FirstOrDefault());
-                                break;
-
-                            case 32: //32 Degrees Celsius
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°C").FirstOrDefault());
-                                break;
-                            case 33: //33 Degrees Fahrenheit
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°F").FirstOrDefault());
-                                break;
-                            case 34: //34 Degrees Rankine
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°R").FirstOrDefault());
-                                break;
-                            case 35: //35 Kelvin
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°K").FirstOrDefault());
-                                break;
-                            case 239: //239 millimeters of water at 4 degrees C
-                            case 4: //4 millimeters of water at 68 degrees F
-                                setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mmH2O@4°C").FirstOrDefault());
-                                break;
-                            default:
-                                setComboboxSelectedItemIndex(cbPressureScaleUOM, -1);
-                                break;
-                        }
-                    }
+                    HART_READ_SCALE();
                 }
-                InvokeControlAction(btn_ReadHART_Scale, () => btn_ReadHART_Scale.Enabled = true);
-                InvokeControlAction(btn_HART_ZEROTRIM, () => btn_HART_ZEROTRIM.Enabled = true);
+                InvokeControlAction(this, () =>
+                {
+                    btn_ReadHART_Scale.Enabled = true;
+                    btn_HART_ZEROTRIM.Enabled = true;
+                });
             });
         }
 
@@ -139,84 +140,221 @@ namespace benchGUI
         {
             btn_ReadHART_Scale.Enabled = false;
             btn_HART_ZEROTRIM.Enabled = false;
-            Task.Run(() => 
+            SendHARTCommand(new HARTCommand(43, new byte[0])).ContinueWith((t) =>
             {
-                lock (hart_communicator)
+                InvokeControlAction(this, () =>
                 {
-                    var zeroCommandRes = hart_communicator .SendZeroCommand();
-                    if (zeroCommandRes != null) hart_communicator.Send(43);
-                }
-
-                InvokeControlAction(btn_ReadHART_Scale, () => btn_ReadHART_Scale.Enabled = true);
-                InvokeControlAction(btn_HART_ZEROTRIM, () => btn_HART_ZEROTRIM.Enabled = true);
+                    btn_ReadHART_Scale.Enabled = true;
+                    btn_HART_ZEROTRIM.Enabled = true;
+                });
             });
 
         }
 
         private void btn_HART_set_4mA_Click(object sender, EventArgs e)
         {
-            SetHart_mA_level(4f);
-            btn_HART_trim4mA.Enabled = true;
-            btn_HART_trim20mA .Enabled = false;
+            SetHart_mA_level(4f).ContinueWith((t) =>
+            {
+                InvokeControlAction(this, () =>
+                {
+                    btn_HART_trim4mA.Enabled = true;
+                    btn_HART_trim20mA.Enabled = false;
+                });
+            });
         }
         private void btn_HART_set_20mA_Click(object sender, EventArgs e)
         {
-            SetHart_mA_level(20f);
-            btn_HART_trim4mA.Enabled = false;
-            btn_HART_trim20mA.Enabled = true;
+            SetHart_mA_level(20f).ContinueWith((t) =>
+            {
+                InvokeControlAction(this, () =>
+                {
+                    btn_HART_trim4mA.Enabled = false;
+                    btn_HART_trim20mA.Enabled = true;
+                });
+            });
         }
         private void btn_HART_set_0mA_Click(object sender, EventArgs e)
         {
-            SetHart_mA_level(0f);
-            btn_HART_trim4mA.Enabled = false;
-            btn_HART_trim20mA.Enabled = false;
+            SetHart_mA_level(0f).ContinueWith((t) =>
+            {
+                InvokeControlAction(this, () =>
+                {
+                    btn_HART_trim4mA.Enabled = false;
+                    btn_HART_trim20mA.Enabled = false;
+                });
+            }
+                );
         }
 
-        private void SetHart_mA_level(Single mAlevel)
+        private Task SetHart_mA_level(Single mAlevel)
         {
-            Task.Run(() =>
-            {
-                lock (hart_communicator)
-                {
-                    var cmd = new HART_Simulate_Current_Command(mAlevel);
-                    hart_communicator.Send(cmd);
-                }
-            });
+            var cmd = new HART_Simulate_Current_Command(mAlevel);
+            return SendHARTCommand(cmd);
         }
 
         private void btn_HART_trim4mA_Click(object sender, EventArgs e)
         {
-            if (currentStabilityCalc.TrendStatus == WorkBench.Enums.TrendStatus.Stable)
-            {
-                var currReading = (float)currentStabilityCalc.MeanValue;
-                Task.Run(() =>
-                {
-                    lock (hart_communicator)
-                    {
-                        var cmd = new HART_Trim_4mA_Command(currReading);
-                        hart_communicator.Send(cmd);
-                    }
-                });
-            }
-
+            var currReading = (float)currentStabilityCalc.MeanValue;
+            var cmd = new HART_Trim_4mA_Command(currReading);
+            SendHARTCommand(cmd);
         }
 
         private void btn_HART_trim20mA_Click(object sender, EventArgs e)
         {
-            if (currentStabilityCalc.TrendStatus == WorkBench.Enums.TrendStatus.Stable)
+            var currReading = (float)currentStabilityCalc.MeanValue;
+            var cmd = new HART_Trim_20mA_Command(currReading);
+            SendHARTCommand(cmd);
+        }
+
+        private Task SendHARTCommand(HARTCommand cmd)
+        {
+            return Task.Run(() =>
             {
-                var currReading = (float)currentStabilityCalc.MeanValue;
-                Task.Run(() =>
+                lock (hart_communicator)
                 {
-                    lock (hart_communicator)
+                    HART_SEND_ZERO_COMMAND();
+                    if (HartAddr is LongAddress)
                     {
-                        var cmd = new HART_Trim_20mA_Command(currReading);
-                        hart_communicator.Send(cmd);
+                        var commres = hart_communicator.Send(20, HartAddr, cmd);
+                        
+                        if (commres == null)  HART_DISCONNECT();
                     }
+                }
+            });
+        }
+
+        private void HART_SEND_ZERO_COMMAND()
+        {
+            if (HartAddr is ShortAddress && ((ShortAddress)HartAddr).PollingAddress == 0)
+            {
+
+                var zeroCommandRes = hart_communicator.SendZeroCommand();
+                if (zeroCommandRes != null)
+                {
+                    var addr = new LongAddress(zeroCommandRes.Data[1], zeroCommandRes.Data[2], new byte[] { zeroCommandRes.Data[9], zeroCommandRes.Data[10], zeroCommandRes.Data[11] });
+                    HartAddr = addr;
+                }
+            }
+
+        }
+        private void HART_READ_PV_and_MA()
+        {
+            var commres = hart_communicator.Send(20, HartAddr, new HARTCommand(3, new byte[0]));
+            if (commres != null && commres.Data.Length >= 9)
+            {
+                var pv = BitConverter.ToSingle(new byte[] { commres.Data[8], commres.Data[7], commres.Data[6], commres.Data[5] }, 0);
+                var mA = BitConverter.ToSingle(new byte[] { commres.Data[3], commres.Data[2], commres.Data[1], commres.Data[0] }, 0);
+                InvokeControlAction(this, () =>
+                {
+                    tb_HART_PV.Text = pv.ToString("N4");
+                    tb_HART_PV_MA.Text = mA.ToString("N4");
                 });
+            }
+            else
+            {
+                HART_DISCONNECT();
             }
         }
 
+        private void HART_READ_TAG()
+        {
+            var commres = hart_communicator.Send(20, HartAddr, new HARTCommand(13, new byte[0]));
+            if (commres != null && commres.Data.Length == 21)
+            {
+                var s1 = HART_unpack_3bytes_to_string(new byte[] { commres.Data[0], commres.Data[1], commres.Data[2] });
+                var s2 = HART_unpack_3bytes_to_string(new byte[] { commres.Data[3], commres.Data[4], commres.Data[5] });
+                var tag = $"{s1}{s2}";
+                InvokeControlAction(this, () => { tb_HART_TAG.Text = tag; });
+            }
+            else
+            {
+                HART_DISCONNECT();
+            }
+        }
+        private void HART_DISCONNECT()
+        {
+            HartAddr = new ShortAddress(0);
+            InvokeControlAction(this, () =>
+            {
+                tb_HART_PV.Text = string.Empty;
+                tb_HART_PV_MA.Text = string.Empty;
+                tb_HART_TAG.Text = "нет связи.";
+            });
+        }
+        private string HART_unpack_3bytes_to_string(byte[] bytes)
+        {
+            // 11111122 22223333 33444444
+            if (bytes.Length != 3) throw new ArgumentException();
+            var c1 = (bytes[0] & 0b11111100 ) >> 2;
+            var c2 = (bytes[0] & 0b00000011) << 4 | (bytes[1] & 0b11110000) >> 4;
+            var c3 = (bytes[1] & 0b00001111) << 2 | (bytes[2] & 0b11000000) >> 6;
+            var c4 = (bytes[2] & 0b00111111);
 
+            if ((c1 & 0b00100000) == 0) c1 = c1 | 0b01000000;
+            if ((c2 & 0b00100000) == 0) c2 = c2 | 0b01000000;
+            if ((c3 & 0b00100000) == 0) c3 = c3 | 0b01000000;
+            if ((c4 & 0b00100000) == 0) c4 = c4 | 0b01000000;
+
+            
+            var result = System.Text.Encoding.ASCII.GetString(new byte[] { (byte)c1, (byte)c2, (byte)c3, (byte)c4 });
+            return result;
+        }
+
+        private void HART_READ_SCALE()
+        {
+            HART_SEND_ZERO_COMMAND();
+            if (HartAddr is LongAddress)
+            {
+                var commres = hart_communicator.Send(20, HartAddr, new HARTCommand(15, new byte[0]));
+                var scaleMax = BitConverter.ToSingle(new byte[] { commres.Data[6], commres.Data[5], commres.Data[4], commres.Data[3] }, 0);
+                var scaleMin = BitConverter.ToSingle(new byte[] { commres.Data[10], commres.Data[9], commres.Data[8], commres.Data[7] }, 0);
+                var step = (scaleMax - scaleMin) / 4;
+                InvokeControlAction(this, () =>
+                {
+                    tbScaleMax.Text = scaleMax.ToString("N4");
+                    tbScaleMin.Text = scaleMin.ToString("N4");
+                    tb_cpcStep.Text = step.ToString("N4");
+                    tb_PressureSetPoint.Text = scaleMin.ToString("N4");
+                });
+                switch (commres.Data[2])
+                {
+                    case 7: //7 bars
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "bar").FirstOrDefault());
+                        break;
+                    case 8: //8 millibars
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mbar").FirstOrDefault());
+                        break;
+                    case 11: //11 pascals
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "Pa").FirstOrDefault());
+                        break;
+                    case 12: //12 kilopascals
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "kPa").FirstOrDefault());
+                        break;
+                    case 237: //237 megapascals
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "MPa").FirstOrDefault());
+                        break;
+
+                    case 32: //32 Degrees Celsius
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°C").FirstOrDefault());
+                        break;
+                    case 33: //33 Degrees Fahrenheit
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°F").FirstOrDefault());
+                        break;
+                    case 34: //34 Degrees Rankine
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°R").FirstOrDefault());
+                        break;
+                    case 35: //35 Kelvin
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°K").FirstOrDefault());
+                        break;
+                    case 239: //239 millimeters of water at 4 degrees C
+                    case 4: //4 millimeters of water at 68 degrees F
+                        setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mmH2O@4°C").FirstOrDefault());
+                        break;
+                    default:
+                        setComboboxSelectedItemIndex(cbPressureScaleUOM, -1);
+                        break;
+                }
+            }
+        }
     }
 }

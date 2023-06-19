@@ -14,7 +14,7 @@ namespace Communication.HartLite
         private HartCommandParser _parser { get; } = new HartCommandParser();
         private AutoResetEvent _waitForResponse { get; set; }
         private CommandResult _lastReceivedCommand { get; set; }
-        private IAddress _currentAddress { get; set; }
+        //private IAddress _currentAddress { get; set; }
         private int _numberOfRetries { get; set; }
 
         private Queue _commandQueue { get; } = new Queue();
@@ -37,7 +37,7 @@ namespace Communication.HartLite
         /// Gets or sets the length of the preamble.
         /// </summary>
         /// <value>The length of the preamble.</value>
-        public int PreambleLength { get; set; }
+        //public int PreambleLength { get; set; }
         /// <summary>
         /// Gets or sets the max number of retries.
         /// </summary>
@@ -50,10 +50,10 @@ namespace Communication.HartLite
         public TimeSpan Timeout { get; set; }
         public bool AutomaticZeroCommand { get; set; }
 
-        public IAddress Address
-        {
-            get { return _currentAddress; }
-        }
+        //public IAddress Address
+        //{
+        //    get { return _currentAddress; }
+        //}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HartCommunicationLite"/> class.
@@ -70,8 +70,8 @@ namespace Communication.HartLite
         public HartCommunicationLite(string comPort, int maxNumberOfRetries)
         {
             MaxNumberOfRetries = maxNumberOfRetries;
-            PreambleLength = 10;
-            Timeout = TimeSpan.FromSeconds(4);
+            //PreambleLength = 10;
+            Timeout = TimeSpan.FromSeconds(2);
             AutomaticZeroCommand = true;
 
             Port = new SerialPortWrapper(comPort, 1200, Parity.Odd, 8, StopBits.One);
@@ -97,7 +97,7 @@ namespace Communication.HartLite
 
                 Port.RtsEnable = true;
                 Port.DtrEnable = false;
-
+                
                 Port.Open();
 
                 Port.RtsEnable = false;
@@ -154,36 +154,26 @@ namespace Communication.HartLite
 
         public CommandResult Send(byte command, byte[] data)
         {
-            if (AutomaticZeroCommand && command != 0 && !(_currentAddress is LongAddress))
-                SendZeroCommand();
+            var hartCommand = new HARTCommand(command, data);
 
-            _numberOfRetries = MaxNumberOfRetries;
-
-            if (command == 0)
-                return SendZeroCommand();
-
-            _commandQueue.Enqueue(new HARTCommand(PreambleLength, _currentAddress, command, new byte[0], data));
-
-            return ExecuteCommand();
+            return Send(20, new ShortAddress(0), hartCommand);
         }
 
-        public CommandResult Send (HARTCommand hartCommand)
+        public CommandResult Send (int preambleLength, IAddress address, HARTCommand hartCommand)
         {
-            if (AutomaticZeroCommand && hartCommand.CommandNumber != 0 && !(_currentAddress is LongAddress))
-                SendZeroCommand();
             _numberOfRetries = MaxNumberOfRetries;
-            
-            hartCommand.PreambleLength = PreambleLength;
-            hartCommand.Address = _currentAddress;
 
-            _commandQueue.Enqueue(hartCommand);
+            var hartDatagram = new HARTDatagram(preambleLength, address, hartCommand.Number, new byte[0], hartCommand.Data);
+            
+            _commandQueue.Enqueue(hartDatagram);
+            
             return ExecuteCommand();
         }
 
         public CommandResult SendZeroCommand()
         {
             _numberOfRetries = MaxNumberOfRetries;
-            _commandQueue.Enqueue(new HART_Zero_Command(PreambleLength));
+            _commandQueue.Enqueue(new HARTDatagram(20, new ShortAddress(0), 0, new byte[0], new byte[0]));
             return ExecuteCommand();
         }
 
@@ -194,28 +184,17 @@ namespace Communication.HartLite
 
         public void SendAsync(byte command, byte[] data)
         {
-            if (AutomaticZeroCommand && command != 0 && !(_currentAddress is LongAddress))
-                SendZeroCommandAsync();
-
-            if (command == 0)
-                SendZeroCommandAsync();
-            else
-                ExecuteCommandAsync(new HARTCommand(PreambleLength, _currentAddress, command, new byte[0], data), MaxNumberOfRetries);
+            ExecuteCommandAsync(new HARTDatagram(20, new ShortAddress(0), command, new byte[0], data), MaxNumberOfRetries);
         }
 
-        public void SendZeroCommandAsync()
-        {
-            ExecuteCommandAsync(new HART_Zero_Command(PreambleLength), MaxNumberOfRetries);
-        }
+        //public void SwitchAddressTo(IAddress address)
+        //{
+        //    _currentAddress = address;
+        //}
 
-        public void SwitchAddressTo(IAddress address)
+        private void ExecuteCommandAsync(HARTDatagram hartDatagram, int maxNumberOfRetries)
         {
-            _currentAddress = address;
-        }
-
-        private void ExecuteCommandAsync(HARTCommand command, int maxNumberOfRetries)
-        {
-            _commandQueue.Enqueue(command);
+            _commandQueue.Enqueue(hartDatagram);
 
             if(!_worker.IsBusy)
             {
@@ -227,7 +206,7 @@ namespace Communication.HartLite
         private void SendCommandAsync(object sender, DoWorkEventArgs e)
         {
             if(_commandQueue.Count > 0)
-                SendCommandSynchronous((HARTCommand)_commandQueue.Dequeue());
+                SendCommandSynchronous((HARTDatagram)_commandQueue.Dequeue());
         }
 
         private void SendCommandAsyncComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -240,7 +219,7 @@ namespace Communication.HartLite
         {
             lock (_commandQueue)
             {
-                return SendCommandSynchronous((HARTCommand) _commandQueue.Dequeue());
+                return SendCommandSynchronous((HARTDatagram) _commandQueue.Dequeue());
             }
         }
 
@@ -270,7 +249,7 @@ namespace Communication.HartLite
             return true;
         }
 
-        private CommandResult SendCommandSynchronous(HARTCommand requestCommand)
+        private CommandResult SendCommandSynchronous(HARTDatagram requestCommand)
         {
             Receive += CommandReceived;
             try
@@ -305,13 +284,10 @@ namespace Communication.HartLite
             }
         }
 
-        private void SendCommand(HARTCommand command)
+        private void SendCommand(HARTDatagram command)
         {
             _waitForResponse = new AutoResetEvent(false);
             _parser.Reset();
-
-            if(command.Address == null)
-                command.Address = _currentAddress;
 
             byte[] bytesToSend = command.ToByteArray();
 
@@ -364,13 +340,13 @@ namespace Communication.HartLite
             return startTime + requiredTransmissionTime - DateTime.Now;
         }
 
-        private void CommandComplete(HARTCommand command)
+        private void CommandComplete(HARTDatagram command)
         {
             if(command.CommandNumber == 0)
             {
                 //PreambleLength = command.PreambleLength;
 
-                _currentAddress = new LongAddress(command.Data[1], command.Data[2], new [] { command.Data[9], command.Data[10], command.Data[11] });
+                //_currentAddress = new LongAddress(command.Data[1], command.Data[2], new [] { command.Data[9], command.Data[10], command.Data[11] });
             }
 
             Receive?.Invoke(this, new CommandResult(command));
