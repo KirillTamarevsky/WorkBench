@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Communication.HartLite;
 using Communication.HartLite.Commands;
 using WorkBench;
@@ -75,9 +76,9 @@ namespace benchGUI
 
         private void HartBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            if (HartAddr is ShortAddress)
+            lock (hart_communicator)
             {
-                lock (hart_communicator)
+                if (HartAddr is ShortAddress)
                 {
                     HART_SEND_ZERO_COMMAND();
                     if (HartAddr is LongAddress)
@@ -86,10 +87,7 @@ namespace benchGUI
                         HART_READ_TAG();
                     }
                 }
-            }
-            if (HartAddr is LongAddress)
-            {
-                lock (hart_communicator)
+                if (HartAddr is LongAddress)
                 {
                     HART_READ_PV_and_MA();
                 }
@@ -140,7 +138,14 @@ namespace benchGUI
         {
             btn_ReadHART_Scale.Enabled = false;
             btn_HART_ZEROTRIM.Enabled = false;
-            SendHARTCommand(new HARTCommand(43, new byte[0])).ContinueWith((t) =>
+            Task.Run(() =>
+            {
+                lock (hart_communicator)
+                {
+                    var cmd = new HARTCommand(43, new byte[0]);
+                    SendHARTCommand(cmd);
+                }
+            }).ContinueWith((t) =>
             {
                 InvokeControlAction(this, () =>
                 {
@@ -189,38 +194,52 @@ namespace benchGUI
         private Task SetHart_mA_level(Single mAlevel)
         {
             var cmd = new HART_Simulate_Current_Command(mAlevel);
-            return SendHARTCommand(cmd);
+            return Task.Run(() =>
+            {
+                lock (hart_communicator)
+                {
+                    SendHARTCommand(cmd);
+                }
+            });
         }
 
         private void btn_HART_trim4mA_Click(object sender, EventArgs e)
         {
             var currReading = (float)currentStabilityCalc.MeanValue;
             var cmd = new HART_Trim_4mA_Command(currReading);
-            SendHARTCommand(cmd);
+            Task.Run(() =>
+            {
+                lock(hart_communicator)
+                {
+                    SendHARTCommand(cmd);
+                }
+            });
         }
 
         private void btn_HART_trim20mA_Click(object sender, EventArgs e)
         {
             var currReading = (float)currentStabilityCalc.MeanValue;
             var cmd = new HART_Trim_20mA_Command(currReading);
-            SendHARTCommand(cmd);
-        }
-
-        private Task SendHARTCommand(HARTCommand cmd)
-        {
-            return Task.Run(() =>
+            Task.Run(() =>
             {
                 lock (hart_communicator)
                 {
-                    HART_SEND_ZERO_COMMAND();
-                    if (HartAddr is LongAddress)
-                    {
-                        var commres = hart_communicator.Send(20, HartAddr, cmd);
-                        
-                        if (commres == null)  HART_DISCONNECT();
-                    }
+                    SendHARTCommand(cmd);
                 }
             });
+        }
+
+        private CommandResult SendHARTCommand(HARTCommand cmd)
+        {
+            CommandResult commres = null;
+            HART_SEND_ZERO_COMMAND();
+            if (HartAddr is LongAddress)
+            {
+                commres = hart_communicator.Send(20, HartAddr, cmd);
+
+                if (commres == null) HART_DISCONNECT();
+            }
+            return commres;
         }
 
         private void HART_SEND_ZERO_COMMAND()
@@ -239,7 +258,8 @@ namespace benchGUI
         }
         private void HART_READ_PV_and_MA()
         {
-            var commres = hart_communicator.Send(20, HartAddr, new HARTCommand(3, new byte[0]));
+            var cmd = new HARTCommand(3, new byte[0]);
+            var commres = SendHARTCommand(cmd);
             if (commres != null && commres.Data.Length >= 9)
             {
                 var pv = BitConverter.ToSingle(new byte[] { commres.Data[8], commres.Data[7], commres.Data[6], commres.Data[5] }, 0);
@@ -258,7 +278,8 @@ namespace benchGUI
 
         private void HART_READ_TAG()
         {
-            var commres = hart_communicator.Send(20, HartAddr, new HARTCommand(13, new byte[0]));
+            var cmd = new HARTCommand(13, new byte[0]);
+            var commres = SendHARTCommand(cmd);
             if (commres != null && commres.Data.Length == 21)
             {
                 var s1 = HART_unpack_3bytes_to_string(new byte[] { commres.Data[0], commres.Data[1], commres.Data[2] });
