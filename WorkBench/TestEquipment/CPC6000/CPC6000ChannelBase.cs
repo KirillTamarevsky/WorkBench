@@ -30,6 +30,7 @@ namespace WorkBench.TestEquipment.CPC6000
             parentCPC6000 = _parent;
             parentCPC6000.SetActiveChannel(ChannelNumber);
             SetPUnit(new kPa());
+            Communicator.SendLine("Outform 1");
             List<CPC6000ChannelSpan> availableSpans = new List<CPC6000ChannelSpan>();
             foreach (var pressureType in new List<PressureType>() { PressureType.Absolute, PressureType.Gauge })
             {

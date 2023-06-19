@@ -185,9 +185,13 @@ namespace WorkBench.TestEquipment.CPC6000
                     SetPUnit(uom);
                     unit = GetPUnit();
                 }
-                Communicator.SendLine("Outform 1");
                 var reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",", ".");
-                var pressureValue = double.Parse(reply, NumberStyles.Float, CultureInfo.InvariantCulture);
+                var pressureValue = double.NaN;
+                if (!double.TryParse(reply, NumberStyles.Float, CultureInfo.InvariantCulture, out pressureValue))
+                {
+                    reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",", ".");
+                    double.TryParse(reply, NumberStyles.Float, CultureInfo.InvariantCulture, out pressureValue);
+                }
                 return new OneMeasure(pressureValue, unit);
             }
         }
