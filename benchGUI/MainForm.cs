@@ -258,12 +258,28 @@ namespace benchGUI
                                                                     currentChartDiscrepancy = 0.1;
                                                                     plot_result.Plot.Clear();
                                                                     plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
-                                                                    plot_result.Refresh();
                                                                 }
                     );
 
                     do
                     {
+                        // add new scatter to plot
+                        InvokeControlAction(this, () => { 
+                            chart_result_Xs = new double[dataGridView1.Rows.Count];
+                            for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
+                            {
+                                chart_result_Xs[i - 1] = i;
+                            }
+                            chart_result_Ys = new double[dataGridView1.Rows.Count];
+                            for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
+                            {
+                                chart_result_Ys[i - 1] = 0;
+                            }
+                            resultScatter = plot_result.Plot.AddScatter(chart_result_Xs, chart_result_Ys);
+                            plot_result.Plot.AxisAutoX();
+                            plot_result.Refresh();
+                        });
+
                         foreach (DataGridViewRow item in dataGridView1.Rows)
                         {
                             item.Cells[cpcPressure.Name].Value = "";
@@ -283,19 +299,6 @@ namespace benchGUI
 
                         foreach (DataGridViewRow item in dataGridView1.Rows)
                         {
-                            // add new scatter to plot
-                            chart_result_Xs = new double[dataGridView1.Rows.Count];
-                            for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
-                            {
-                                chart_result_Xs[i - 1] = i;
-                            }
-                            chart_result_Ys = new double[dataGridView1.Rows.Count];
-                            for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
-                            {
-                                chart_result_Ys[i - 1] = 0;
-                            }
-                            resultScatter = plot_result.Plot.AddScatter(chart_result_Xs, chart_result_Ys);
-                            plot_result.Refresh();
 
                             if (!cancellationToken.IsCancellationRequested)
                             {
