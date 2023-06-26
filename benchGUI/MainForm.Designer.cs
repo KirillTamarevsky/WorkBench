@@ -93,6 +93,9 @@ namespace benchGUI
             tb_HART_PV = new System.Windows.Forms.TextBox();
             tb_HART_PV_MA = new System.Windows.Forms.TextBox();
             tb_HART_TAG = new System.Windows.Forms.TextBox();
+            tb_HART_SV = new System.Windows.Forms.TextBox();
+            tb_HART_TV = new System.Windows.Forms.TextBox();
+            tb_HART_QV = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
@@ -443,7 +446,7 @@ namespace benchGUI
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
             dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new System.Drawing.Size(599, 275);
+            dataGridView1.Size = new System.Drawing.Size(514, 275);
             dataGridView1.TabIndex = 32;
             // 
             // percent
@@ -506,7 +509,7 @@ namespace benchGUI
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(14, 262);
+            label1.Location = new System.Drawing.Point(15, 261);
             label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(72, 15);
@@ -516,7 +519,7 @@ namespace benchGUI
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(94, 264);
+            label2.Location = new System.Drawing.Point(92, 261);
             label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(76, 15);
@@ -525,7 +528,7 @@ namespace benchGUI
             // 
             // btnStartAutoCal
             // 
-            btnStartAutoCal.Location = new System.Drawing.Point(533, 277);
+            btnStartAutoCal.Location = new System.Drawing.Point(537, 610);
             btnStartAutoCal.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnStartAutoCal.Name = "btnStartAutoCal";
             btnStartAutoCal.Size = new System.Drawing.Size(69, 27);
@@ -547,7 +550,7 @@ namespace benchGUI
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(178, 261);
+            label3.Location = new System.Drawing.Point(177, 261);
             label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(49, 15);
@@ -751,23 +754,23 @@ namespace benchGUI
             // 
             // nUD_CalibrationCyclesCount
             // 
-            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(423, 280);
+            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(537, 581);
             nUD_CalibrationCyclesCount.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             nUD_CalibrationCyclesCount.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nUD_CalibrationCyclesCount.Name = "nUD_CalibrationCyclesCount";
-            nUD_CalibrationCyclesCount.Size = new System.Drawing.Size(105, 23);
+            nUD_CalibrationCyclesCount.Size = new System.Drawing.Size(69, 23);
             nUD_CalibrationCyclesCount.TabIndex = 47;
             nUD_CalibrationCyclesCount.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // label4
             // 
-            label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(432, 264);
+            label4.Location = new System.Drawing.Point(537, 543);
             label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(88, 15);
+            label4.Size = new System.Drawing.Size(56, 30);
             label4.TabIndex = 48;
             label4.Text = "кол-во циклов";
+            label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // plot_result
             // 
@@ -796,9 +799,9 @@ namespace benchGUI
             // tb_HART_PV_MA
             // 
             tb_HART_PV_MA.Enabled = false;
-            tb_HART_PV_MA.Location = new System.Drawing.Point(343, 279);
+            tb_HART_PV_MA.Location = new System.Drawing.Point(343, 255);
             tb_HART_PV_MA.Name = "tb_HART_PV_MA";
-            tb_HART_PV_MA.Size = new System.Drawing.Size(66, 23);
+            tb_HART_PV_MA.Size = new System.Drawing.Size(64, 23);
             tb_HART_PV_MA.TabIndex = 52;
             // 
             // tb_HART_TAG
@@ -806,8 +809,32 @@ namespace benchGUI
             tb_HART_TAG.Enabled = false;
             tb_HART_TAG.Location = new System.Drawing.Point(273, 255);
             tb_HART_TAG.Name = "tb_HART_TAG";
-            tb_HART_TAG.Size = new System.Drawing.Size(136, 23);
+            tb_HART_TAG.Size = new System.Drawing.Size(64, 23);
             tb_HART_TAG.TabIndex = 53;
+            // 
+            // tb_HART_SV
+            // 
+            tb_HART_SV.Enabled = false;
+            tb_HART_SV.Location = new System.Drawing.Point(343, 279);
+            tb_HART_SV.Name = "tb_HART_SV";
+            tb_HART_SV.Size = new System.Drawing.Size(64, 23);
+            tb_HART_SV.TabIndex = 54;
+            // 
+            // tb_HART_TV
+            // 
+            tb_HART_TV.Enabled = false;
+            tb_HART_TV.Location = new System.Drawing.Point(412, 279);
+            tb_HART_TV.Name = "tb_HART_TV";
+            tb_HART_TV.Size = new System.Drawing.Size(64, 23);
+            tb_HART_TV.TabIndex = 55;
+            // 
+            // tb_HART_QV
+            // 
+            tb_HART_QV.Enabled = false;
+            tb_HART_QV.Location = new System.Drawing.Point(482, 279);
+            tb_HART_QV.Name = "tb_HART_QV";
+            tb_HART_QV.Size = new System.Drawing.Size(64, 23);
+            tb_HART_QV.TabIndex = 56;
             // 
             // MainForm
             // 
@@ -815,6 +842,9 @@ namespace benchGUI
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             ClientSize = new System.Drawing.Size(1236, 781);
+            Controls.Add(tb_HART_QV);
+            Controls.Add(tb_HART_TV);
+            Controls.Add(tb_HART_SV);
             Controls.Add(tb_HART_TAG);
             Controls.Add(tb_HART_PV_MA);
             Controls.Add(tb_HART_PV);
@@ -946,6 +976,9 @@ namespace benchGUI
         private System.Windows.Forms.TextBox tb_HART_PV;
         private System.Windows.Forms.TextBox tb_HART_PV_MA;
         private System.Windows.Forms.TextBox tb_HART_TAG;
+        private System.Windows.Forms.TextBox tb_HART_SV;
+        private System.Windows.Forms.TextBox tb_HART_TV;
+        private System.Windows.Forms.TextBox tb_HART_QV;
     }
 }
 

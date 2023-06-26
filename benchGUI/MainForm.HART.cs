@@ -260,15 +260,47 @@ namespace benchGUI
         {
             var cmd = new HARTCommand(3, new byte[0]);
             var commres = SendHARTCommand(cmd);
-            if (commres != null && commres.Data.Length >= 9)
+            // PRIMRY variable
+            if (commres != null)
             {
-                var pv = BitConverter.ToSingle(new byte[] { commres.Data[8], commres.Data[7], commres.Data[6], commres.Data[5] }, 0);
-                var mA = BitConverter.ToSingle(new byte[] { commres.Data[3], commres.Data[2], commres.Data[1], commres.Data[0] }, 0);
-                InvokeControlAction(this, () =>
+
+                if (commres.Data.Length >= 9)
                 {
-                    tb_HART_PV.Text = pv.ToString("N4");
-                    tb_HART_PV_MA.Text = mA.ToString("N4");
-                });
+                    var pv = BitConverter.ToSingle(new byte[] { commres.Data[8], commres.Data[7], commres.Data[6], commres.Data[5] }, 0);
+                    var mA = BitConverter.ToSingle(new byte[] { commres.Data[3], commres.Data[2], commres.Data[1], commres.Data[0] }, 0);
+                    InvokeControlAction(this, () =>
+                    {
+                        tb_HART_PV.Text = pv.ToString("N4");
+                        tb_HART_PV_MA.Text = mA.ToString("N4");
+                    });
+                }
+                // SECONDARY variable
+                if (commres != null && commres.Data.Length >= 14)
+                {
+                    var sv = BitConverter.ToSingle(new byte[] { commres.Data[13], commres.Data[12], commres.Data[11], commres.Data[10] }, 0);
+                    InvokeControlAction(this, () =>
+                    {
+                        tb_HART_SV.Text = sv.ToString("N4");
+                    });
+                }
+                // TERTIARY variable
+                if (commres != null && commres.Data.Length >= 19)
+                {
+                    var tv = BitConverter.ToSingle(new byte[] { commres.Data[18], commres.Data[17], commres.Data[16], commres.Data[15] }, 0);
+                    InvokeControlAction(this, () =>
+                    {
+                        tb_HART_TV.Text = tv.ToString("N4");
+                    });
+                }
+                // QUATERNARY variable
+                if (commres != null && commres.Data.Length == 24)
+                {
+                    var qv = BitConverter.ToSingle(new byte[] { commres.Data[23], commres.Data[22], commres.Data[21], commres.Data[20] }, 0);
+                    InvokeControlAction(this, () =>
+                    {
+                        tb_HART_QV.Text = qv.ToString("N4");
+                    });
+                }
             }
             else
             {

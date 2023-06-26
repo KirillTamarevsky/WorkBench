@@ -264,7 +264,8 @@ namespace benchGUI
                     do
                     {
                         // add new scatter to plot
-                        InvokeControlAction(this, () => { 
+                        InvokeControlAction(this, () =>
+                        {
                             chart_result_Xs = new double[dataGridView1.Rows.Count];
                             for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
                             {

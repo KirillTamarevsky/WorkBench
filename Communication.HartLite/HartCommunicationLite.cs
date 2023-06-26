@@ -10,7 +10,8 @@ namespace Communication.HartLite
 {
     public class HartCommunicationLite
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(HartCommunicationLite));
+        //private static readonly ILog Log = LogManager.GetLogger(typeof(HartCommunicationLite));
+        private static readonly ILog Log = LogManager.GetLogger("HART");
         private HartCommandParser _parser { get; } = new HartCommandParser();
         private AutoResetEvent _waitForResponse { get; set; }
         private CommandResult _lastReceivedCommand { get; set; }
@@ -94,6 +95,7 @@ namespace Communication.HartLite
                 _worker.RunWorkerCompleted += SendCommandAsyncComplete;
 
                 Port.DataReceived += DataReceived;
+                Port.PinChanged += Port_PinChanged;
 
                 Port.RtsEnable = true;
                 Port.DtrEnable = false;
@@ -125,12 +127,18 @@ namespace Communication.HartLite
             }
         }
 
+        private void Port_PinChanged(object sender, SerialPinChangedEventArgs e)
+        {
+            Log.Info($"{e.EventType} [{((SerialPort)sender).CDHolding}]");
+        }
+
         public CloseResult Close()
         {
             try
             {
                 _parser.CommandComplete -= CommandComplete;
                 Port.DataReceived -= DataReceived;
+                Port.PinChanged -= Port_PinChanged;
 
                 _worker.DoWork -= SendCommandAsync;
                 _worker.RunWorkerCompleted -= SendCommandAsyncComplete;
@@ -286,6 +294,7 @@ namespace Communication.HartLite
 
         private void SendCommand(HARTDatagram command)
         {
+
             _waitForResponse = new AutoResetEvent(false);
             _parser.Reset();
 
@@ -297,7 +306,9 @@ namespace Communication.HartLite
             Thread.Sleep(100);
 
             Port.DtrEnable = false;
+            Log.Info($"Before RTS ensable: CD = [{Port.CDHolding}]");
             Port.RtsEnable = true;
+            Log.Info($"RTS [{Port.RtsEnable}]");
 
             Thread.Sleep(Convert.ToInt32(ADDITIONAL_WAIT_TIME_BEFORE_SEND));
 
@@ -309,6 +320,8 @@ namespace Communication.HartLite
             SleepAfterSend(bytesToSend.Length, startTime);
             Port.RtsEnable = false;
             Port.DtrEnable = true;
+            Log.Info($"RTS [{Port.RtsEnable}]");
+
         }
 
         private void CommandReceived(object sender, CommandResult args)
