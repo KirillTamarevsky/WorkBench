@@ -89,7 +89,7 @@ namespace benchGUI
                 }
                 if (HartAddr is LongAddress)
                 {
-                    HART_READ_PV_and_MA();
+                    HART_READ_PV_mA_SV_TV_QV();
                 }
             }
         }
@@ -256,7 +256,7 @@ namespace benchGUI
             }
 
         }
-        private void HART_READ_PV_and_MA()
+        private void HART_READ_PV_mA_SV_TV_QV()
         {
             var cmd = new HARTCommand(3, new byte[0]);
             var commres = SendHARTCommand(cmd);
@@ -343,10 +343,10 @@ namespace benchGUI
             var c3 = (bytes[1] & 0b00001111) << 2 | (bytes[2] & 0b11000000) >> 6;
             var c4 = (bytes[2] & 0b00111111);
 
-            if ((c1 & 0b00100000) == 0) c1 = c1 | 0b01000000;
-            if ((c2 & 0b00100000) == 0) c2 = c2 | 0b01000000;
-            if ((c3 & 0b00100000) == 0) c3 = c3 | 0b01000000;
-            if ((c4 & 0b00100000) == 0) c4 = c4 | 0b01000000;
+            c1 |= ((c1 & 0b00100000) ^ 0b00100000) << 1;
+            c2 |= ((c2 & 0b00100000) ^ 0b00100000) << 1;
+            c3 |= ((c3 & 0b00100000) ^ 0b00100000) << 1;
+            c4 |= ((c4 & 0b00100000) ^ 0b00100000) << 1;
 
             
             var result = System.Text.Encoding.ASCII.GetString(new byte[] { (byte)c1, (byte)c2, (byte)c3, (byte)c4 });
