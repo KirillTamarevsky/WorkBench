@@ -21,7 +21,7 @@ namespace WorkBench
         static public EK GetFakeEK (string portName)
         {
             var fakeEKserialPort = new FakeEKSerialPort(portName, 115200, Parity.Odd, 8, StopBits.One);
-            var communicator = new SerialEKCommunicator(fakeEKserialPort, "\r\n");
+            var communicator = new SerialPortTextCommunicator(fakeEKserialPort, "\r\n");
 
             var ek = new EK(communicator);
 
@@ -35,7 +35,7 @@ namespace WorkBench
             if (IsSerialPortPresentInSystem(serialPortName))
             {
                 var serialPort = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
-                var communicator = new SerialEKCommunicator(serialPort, "\r\n");
+                var communicator = new SerialPortTextCommunicator(serialPort, "\r\n");
 
                 ek = new EK(communicator);
 
@@ -71,7 +71,7 @@ namespace WorkBench
         static public ElmetroPascal GetFakeEPascal(string portName)
         {
             var fakeEPascalSerialPort = new FakeEPascalSerialPort(portName, 115200, Parity.Odd, 8, StopBits.One);
-            var communicator = new SerialEKCommunicator(fakeEPascalSerialPort, "\r\n");
+            var communicator = new SerialPortTextCommunicator(fakeEPascalSerialPort, "\r\n");
 
             var ek = new ElmetroPascal(communicator);
 
@@ -85,7 +85,7 @@ namespace WorkBench
             {
                 var serialPort = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
 
-                var communicator = new SerialEKCommunicator(serialPort, "\r\n");
+                var communicator = new SerialPortTextCommunicator(serialPort, "\r\n");
 
                 ep = new ElmetroPascal(communicator);
 
@@ -100,7 +100,7 @@ namespace WorkBench
         static public IInstrument GetCPC6000_on_Fake_SerialPort()
         {
             var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
-            var communicator = new SerialCPC6000Communicator(fakeSerialPortWrapper, "\n");
+            var communicator = new SerialPortTextCommunicator (fakeSerialPortWrapper, "\n");
 
             var cpc = new CPC6000(communicator);
 
@@ -113,7 +113,7 @@ namespace WorkBench
             if (IsSerialPortPresentInSystem(serialPortName))
             {
                 var serialPortWrapper = new WBSerialPortWrapper(serialPortName, baudrate, parity, dataBits, stopBits);
-                var communicator = new SerialCPC6000Communicator(serialPortWrapper, "\n");
+                var communicator = new SerialPortTextCommunicator(serialPortWrapper, "\n");
 
                 cpc = new CPC6000(communicator);
 

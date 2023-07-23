@@ -10,10 +10,12 @@ using log4net;
 
 namespace WorkBench.Communicators
 {
-    public class SerialEKCommunicator : ITextCommunicator, IDisposable
+    public class SerialPortTextCommunicator : ITextCommunicator, IDisposable
     {
         readonly ILog logger = LogManager.GetLogger("Communication");
+
         readonly IWBSerialPortWrapper _serialPort;
+        
         readonly List<byte> _receivedBytes = new();
 
         private string NewLine { get; set; }
@@ -33,9 +35,10 @@ namespace WorkBench.Communicators
         /// <param name="dataBits"></param>
         /// <param name="stopBits"></param>
         /// <param name="lineEndToken">символы конца строки</param>
-        public SerialEKCommunicator(
+        public SerialPortTextCommunicator(
             IWBSerialPortWrapper serialport,
-            string lineEndToken, int timeout = 3 )
+            string lineEndToken, 
+            int timeout = 3 )
         {
             _serialPort = serialport;
 
@@ -93,7 +96,7 @@ namespace WorkBench.Communicators
                 do
                 {
                     byte nextByte = (byte)_serialPort.ReadByte();
-                    //logger.Debug($"InfiniteReceiveByteFromSerialPort readed from {_serialPort.PortName} | byte = {nextByte} | char = {Encoding.ASCII.GetString(new byte[] { nextByte }).Replace("\r", "\\r").Replace("\n", "\\n")}");
+                    logger.Debug($"InfiniteReceiveByteFromSerialPort readed from {_serialPort.PortName} | byte = {nextByte} | char = {Encoding.ASCII.GetString(new byte[] { nextByte }).Replace("\r", "\\r").Replace("\n", "\\n")}");
                     _receivedBytes.Add(nextByte);
 
                 } while (!ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray()).EndsWith(NewLine));

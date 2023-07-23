@@ -29,11 +29,11 @@ namespace WorkBench.TestEquipment.Calys150
         public Calys150(string SerialPortName) : this(GetSerialPortCommunicatorWithDefaultSettings(SerialPortName)){}
         public static ITextCommunicator GetSerialPortCommunicatorWithDefaultSettings(string serialPortName)
         {
-            return new SerialEKCommunicator(new WBSerialPortWrapper(serialPortName, 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n", timeout: 5);
+            return new SerialPortTextCommunicator(new WBSerialPortWrapper(serialPortName, 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n", timeout: 5);
         }
         public static ITextCommunicator GetSimulationCalys150SerialPortCommunicatorWithDefaultSettings(string serialPortName)
         {
-            return new SerialEKCommunicator(new FakeCalys150SerialPort($"DEMO[{serialPortName}]", 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n");
+            return new SerialPortTextCommunicator(new FakeCalys150SerialPort($"DEMO[{serialPortName}]", 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n");
         }
 #endregion
         public IInstrumentChannel[] Channels { get; }
