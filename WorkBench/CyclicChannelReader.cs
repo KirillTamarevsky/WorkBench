@@ -33,7 +33,8 @@ namespace WorkBench
             {
                 while (Active)
                 {
-                    OneMeasureReaded?.Invoke(this, InstrumentChannelSpanReader.Read(UOM));
+                    var oneMeasure = InstrumentChannelSpanReader.Read(UOM);
+                    OneMeasureReaded?.Invoke(this, oneMeasure);
                 }
             });
 
