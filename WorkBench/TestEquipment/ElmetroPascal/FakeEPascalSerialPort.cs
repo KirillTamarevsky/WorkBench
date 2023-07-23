@@ -8,9 +8,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 using WorkBench.Interfaces;
 
-namespace WorkBench.Communicators
+namespace WorkBench.TestEquipment.ElmetroPascal
 {
 
     public class FakeEPascalSerialPort : IWBSerialPortWrapper, IDisposable
@@ -90,7 +91,7 @@ namespace WorkBench.Communicators
                     answer = "OK";
                     break;
                 case "PRES?":
-                    answer = ((new System.Random()).NextDouble() * .2 + setpoint) .ToString("N4");
+                    answer = (new Random().NextDouble() * .2 + setpoint).ToString("N4");
                     break;
                 case "READ_M1?":
                     answer = "2: [   0.0 3500.0][   0.0 1600.0]";
@@ -108,7 +109,7 @@ namespace WorkBench.Communicators
                     answer = "OK";
                     break;
                 case "ON_KEY_VENT":
-                    answer = venton? "VENT_OFF" : "VENT_ON";
+                    answer = venton ? "VENT_OFF" : "VENT_ON";
                     venton = !venton;
                     break;
                 case "ON_KEY_START":
@@ -119,7 +120,7 @@ namespace WorkBench.Communicators
                     break;
             }
             if (str.Contains("TARGET"))
-            { 
+            {
                 answer = "OK";
                 var parts = str.Split(' ');
                 if (parts.Length > 1)
@@ -131,7 +132,7 @@ namespace WorkBench.Communicators
             if (str.Contains("RANGE")) { answer = "OK"; regulationActive = false; venton = false; }
             logger.Info(
                 string.Format(
-                    "Readline = {0} | {1}", 
+                    "Readline = {0} | {1}",
                     answer.Replace("\r", "\\r").Replace("\n", "\\n"),
                     BitConverter.ToString(Encoding.ASCII.GetBytes(answer))));
             answer += _serialPortLineEndToken;
@@ -142,7 +143,7 @@ namespace WorkBench.Communicators
             RaiseDataReceived();
         }
 
-        public void DiscardOutBuffer(){}
+        public void DiscardOutBuffer() { }
 
         public void DiscardInBuffer()
         {

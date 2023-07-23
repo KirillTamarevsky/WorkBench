@@ -8,9 +8,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 using WorkBench.Interfaces;
 
-namespace WorkBench.Communicators
+namespace WorkBench.TestEquipment.CPC6000
 {
     public class FakeCPC6000SerialPort : IWBSerialPortWrapper, IDisposable
     {
@@ -34,7 +35,7 @@ namespace WorkBench.Communicators
         bool isopened;
         string answer = string.Empty;
 
-        Queue<byte> answerBytesQueue = new Queue<byte> ();
+        Queue<byte> answerBytesQueue = new Queue<byte>();
 
         public event SerialDataReceivedEventHandler DataReceived;
         void RaiseDataReceived()
@@ -44,7 +45,7 @@ namespace WorkBench.Communicators
                 null,
                 new[] { typeof(SerialData) },
                 null);
-                        
+
             SerialDataReceivedEventArgs eventArgs =
                 (SerialDataReceivedEventArgs)constructor.Invoke(new object[] { SerialData.Chars });
 
@@ -76,8 +77,8 @@ namespace WorkBench.Communicators
 
         public int BytesToRead => answerBytesQueue.Count;
 
-        public int WriteTimeout { get ; set; }
-        public int BaudRate { get ; set ; }
+        public int WriteTimeout { get; set; }
+        public int BaudRate { get; set; }
 
         public Stream BaseStream => throw new NotImplementedException();
         internal int _timeout;
@@ -136,14 +137,19 @@ namespace WorkBench.Communicators
                     break;
                 case "Units?":
                     answer = $" {_currentUOM}";
+                    if (new Random().NextDouble() > 0.9)
+                    {
+                        answer = string.Empty;
+                    }
+
                     break;
                 case "A?":
                     //Thread.Sleep(5);
-                    answer = $" {(new System.Random().NextDouble() / 10 + 5).ToString("N4")}";
+                    answer = $" {(new Random().NextDouble() / 10 + 5).ToString("N4")}";
                     break;
                 case "B?":
                     //Thread.Sleep(500);
-                    answer = $" {(new System.Random().NextDouble() * 35 + 35).ToString("N4")}";
+                    answer = $" {(new Random().NextDouble() * 35 + 35).ToString("N4")}";
                     break;
                 case "Setpt?":
                     answer = _setpt;

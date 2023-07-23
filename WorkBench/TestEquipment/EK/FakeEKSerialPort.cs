@@ -7,9 +7,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 using WorkBench.Interfaces;
 
-namespace WorkBench.Communicators
+namespace WorkBench.TestEquipment.EK
 {
 
     public class FakeEKSerialPort : IWBSerialPortWrapper, IDisposable
@@ -25,10 +26,10 @@ namespace WorkBench.Communicators
         string _serialPortLineEndToken;
 
         Queue<byte> answerBytesQueue = new Queue<byte>();
-        public FakeEKSerialPort(string serialPortName, 
-                                int baudrate, 
-                                Parity parity, 
-                                int dataBits, 
+        public FakeEKSerialPort(string serialPortName,
+                                int baudrate,
+                                Parity parity,
+                                int dataBits,
                                 StopBits stopBits)
         {
             _serialPortName = serialPortName;
@@ -83,12 +84,12 @@ namespace WorkBench.Communicators
                     answer = "L";
                     break;
                 case "TCURR?":
-                    answer = ((new System.Random()).NextDouble() * 16.9 + 3.5) .ToString("N4");
+                    answer = (new Random().NextDouble() * 16.9 + 3.5).ToString("N4");
                     break;
                 case "CURR?":
                     //prevValue += (new System.Random()).NextDouble() * 0.0016;
                     //answer = prevValue.ToString("N4");
-                    answer = ((new System.Random()).NextDouble() * 0.009 + 13.5) .ToString("N4");
+                    answer = (new Random().NextDouble() * 0.009 + 13.5).ToString("N4");
                     break;
                 case "CHAN 1":
                     answer = "1";
@@ -101,7 +102,7 @@ namespace WorkBench.Communicators
             }
             logger.Info(
                 string.Format(
-                    "Readline = {0} | {1}", 
+                    "Readline = {0} | {1}",
                     answer.Replace("\r", "\\r").Replace("\n", "\\n"),
                     BitConverter.ToString(Encoding.ASCII.GetBytes(answer))));
 
@@ -113,7 +114,7 @@ namespace WorkBench.Communicators
             RaiseDataReceived();
         }
 
-        public void DiscardOutBuffer(){}
+        public void DiscardOutBuffer() { }
         public void DiscardInBuffer()
         {
             answerBytesQueue.Clear();
