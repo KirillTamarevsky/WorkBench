@@ -87,7 +87,7 @@ namespace WorkBench.TestEquipment.EK
 
                 if (communicatorOpened)
                 {
-                    string answer = Communicator.QueryCommand("REMOTE");
+                    var answerStatus = Communicator.QueryCommand("REMOTE", out string answer);
 
                     ekanswered = answer == "R";
 
@@ -113,7 +113,7 @@ namespace WorkBench.TestEquipment.EK
             {
                 lock (Communicator)
                 {
-                    Communicator.QueryCommand("LOCAL");
+                    Communicator.QueryCommand("LOCAL", out string reoply);
                     _in_REMOTE_mode = false;
                     SetActiveChannel(EKchanNum.None);
                 }

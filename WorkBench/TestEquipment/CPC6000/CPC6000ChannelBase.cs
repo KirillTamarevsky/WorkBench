@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.XPath;
+using WorkBench.Communicators;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
@@ -17,7 +18,7 @@ namespace WorkBench.TestEquipment.CPC6000
     {
         internal CPC6000 parentCPC6000 { get; }
         internal ITextCommunicator Communicator { get => parentCPC6000.Communicator; }
-        private string Query(string cmd) => parentCPC6000.Query(cmd);
+        private TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
         private CPC6000ChannelSpan ActiveSpan { get; set; }
         internal IUOM ActiveUOM { get; private set; }
@@ -37,9 +38,12 @@ namespace WorkBench.TestEquipment.CPC6000
                 var command = pressureType switch { PressureType.Gauge => "Ptype G", PressureType.Absolute => "Ptype A" };
                 var expectedResponse = pressureType switch { PressureType.Gauge => "GAUGE", PressureType.Absolute => "ABSOLUTE" };
                 Communicator.SendLine(command);
-                if (Query("Ptype?").Trim().ToUpper() == expectedResponse)
+                var answerStatus = Query("Ptype?", out string answer);
+                if (answer.Trim().ToUpper() == expectedResponse)
                 {
-                    var existingTurnDowns = Query("List?").Trim();
+
+                    Query("List?", out string existingTurnDowns);
+                    existingTurnDowns = existingTurnDowns.Trim();
                     var modules = existingTurnDowns.Split(";");
                     foreach (var module in modules)
                     {
@@ -116,7 +120,8 @@ namespace WorkBench.TestEquipment.CPC6000
         internal IUOM GetPUnit()
         {
             IUOM readedUOM;
-            var unit = Query("Units?").ToUpper();
+            var replyStatus = Query("Units?", out string unit);
+            unit = unit.ToUpper();
             Func<string, double> doubleParser = (s) => double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
             switch (unit)
             {
@@ -158,7 +163,8 @@ namespace WorkBench.TestEquipment.CPC6000
                 case "CMH2O 20C": readedUOM = new customPressureUOM("cmH2O @20C", doubleParser("9.789017E+01")); break;
                 case "MH2O 20C": readedUOM = new customPressureUOM("mH2O @20C", doubleParser("9.789017E+03")); break;
                 default:
-                    throw new Exception($"unknown pressure units [{unit}]");
+                    readedUOM = null; break;
+                    //throw new Exception($"unknown pressure units [{unit}]");
             }
             ActiveUOM = readedUOM;
             return readedUOM;

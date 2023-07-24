@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WorkBench.Communicators;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 using WorkBench.UOMS;
@@ -17,7 +18,7 @@ namespace WorkBench.TestEquipment.Calys150
         ITextCommunicator Communicator => parentChannel.Communicator;
         void Activate() => parentChannel.ActivateSpan(this);
         int ChanNum { get => parentChannel.NUM; }
-        private string Query(string command) => parentChannel.Query(command);
+        private TextCommunicatorQueryCommandStatus Query(string command, out string answer) => parentChannel.Query(command, out answer);
         public abstract Scale Scale { get; }
         public abstract string queryingRangeString { get; }
         public string SetupStringCommand => $"CURR:RANGE {queryingRangeString}; SUPPLY ON; HART ON";
@@ -33,7 +34,7 @@ namespace WorkBench.TestEquipment.Calys150
                 Activate();
                 if (uom.UOMType != Enums.UOMType.Current) throw new ArgumentException("only current measurement supported on this span");
                 var measuredValue = double.NaN;
-                var reply = Query($"MEAS{ChanNum}?");
+                var replyStaus = Query($"MEAS{ChanNum}?", out string reply);
                 if (reply.Length > 0)
                 {
                     var replyParts = reply.Split(",");

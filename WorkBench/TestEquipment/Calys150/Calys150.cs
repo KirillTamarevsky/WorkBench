@@ -17,9 +17,9 @@ namespace WorkBench.TestEquipment.Calys150
         public string SerialNumber { get; private set; }
         public string FWVersion{ get; private set; }
         internal ITextCommunicator Communicator { get; }
-        internal bool SendLine(string command) => Communicator.SendLine(command);
-        internal string ReadLine(TimeSpan readLineTimeout) => Communicator.ReadLine(readLineTimeout);
-        internal string Query(string command) => Communicator.QueryCommand(command);
+        internal TextCommunicatorSendLineStatus SendLine(string command) => Communicator.SendLine(command);
+        internal TextCommunicatorReadLineStatus ReadLine(TimeSpan readLineTimeout, out string result) => Communicator.ReadLine(readLineTimeout, out result);
+        internal TextCommunicatorQueryCommandStatus Query(string command, out string result) => Communicator.QueryCommand(command, out result);
 #region Constructors
         public Calys150(ITextCommunicator textCommunicator) 
         {
@@ -47,7 +47,7 @@ namespace WorkBench.TestEquipment.Calys150
                 if (Communicator.Open())
                 {
                     Communicator.SendLine("REM");
-                    var resp = Communicator.QueryCommand("*IDN?");
+                    var respStatus = Communicator.QueryCommand("*IDN?", out string resp);
                     if (resp.Length > 0)
                     {
                         var respparts = resp.Split(",");

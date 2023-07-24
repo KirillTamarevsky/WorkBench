@@ -39,7 +39,6 @@ namespace WorkBench.TestEquipment.EK.channelSpans
                 {
                     readingnow = true;
 
-
                     ek.SetActiveChannel(this.parentChannel.EKchanNum);
                     //--------------Read_0_20_Current_with_ext_pwr-------------------
                     //CURR?
@@ -51,7 +50,7 @@ namespace WorkBench.TestEquipment.EK.channelSpans
                     //Ответ: 2.0501
                     //
                     //TODO добавить проверку ответа на ERROR
-                    var ekReply = parentChannel.ParentEK.Communicator.QueryCommand("CURR?");
+                    var ekReplyStatus = parentChannel.ParentEK.Communicator.QueryCommand("CURR?", out string ekReply);
                     double.TryParse(ekReply.Replace(".", ","), out double result);
                     
                     LastValue = new OneMeasure(result, new mA(), DateTime.Now);

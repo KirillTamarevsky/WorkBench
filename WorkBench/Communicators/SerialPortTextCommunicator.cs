@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WorkBench.Interfaces;
 using log4net;
+using Microsoft.Extensions.Primitives;
 
 namespace WorkBench.Communicators
 {
@@ -78,15 +78,17 @@ namespace WorkBench.Communicators
             return serialPortOpened;
         }
 
-        public string ReadLine(TimeSpan readLineTimeout)
+        public TextCommunicatorReadLineStatus ReadLine(TimeSpan readLineTimeout, out string result)
         {
+            result = string.Empty;
+
             logger.Debug($"{_serialPort.PortName} Start ReadLine(), Readtimeout = {readLineTimeout}");
 
             if (!_serialPort.IsOpen)
             {
                 var errorMessage = $"SerialPort {_serialPort.PortName} not opened while try to ReadLine";
                 logger.Error(errorMessage);
-                throw new Exception(errorMessage);
+                return TextCommunicatorReadLineStatus.CommunicationChannelClosed;
             }
             
             _serialPort.ReadTimeout = (int)Timeout.TotalMilliseconds;
@@ -110,11 +112,12 @@ namespace WorkBench.Communicators
                     _serialPort.BytesToRead
                     ));
                 logger.Warn($"{ex.Message}");
-                return string.Empty;
+                return TextCommunicatorReadLineStatus.TimedOut;
             }
             catch (Exception ex)
             {
                 logger.Debug($"ReceiveByteFromSerialPort {_serialPort.PortName} | Exception = {ex}");
+                return TextCommunicatorReadLineStatus.CommunicationError;
             }
 
             string answer = ASCIIEncoding.ASCII.GetString(_receivedBytes.ToArray());
@@ -125,11 +128,13 @@ namespace WorkBench.Communicators
                 BitConverter.ToString(Encoding.ASCII.GetBytes(answer))
                 ));
 
-            return answer.TrimEnd(NewLine.ToCharArray());
+            result = answer.TrimEnd(NewLine.ToCharArray());
+
+            return TextCommunicatorReadLineStatus.Success;
 
         }
 
-        public bool SendLine(string cmd)
+        public TextCommunicatorSendLineStatus SendLine(string cmd)
         {
             logger.Debug($"Start SendLine( {_serialPort.PortName} )");
 
@@ -137,7 +142,7 @@ namespace WorkBench.Communicators
             {
                 var errorMessage = $"SerialPort {_serialPort.PortName} not opened while try to SendLine";
                 logger.Error(errorMessage);
-                throw new Exception(errorMessage);
+                return TextCommunicatorSendLineStatus.CommunicationChannelClosed;
             }
 
             _serialPort.WriteTimeout = (int)Timeout.TotalMilliseconds;
@@ -161,23 +166,57 @@ namespace WorkBench.Communicators
 
                 SleepAfterSend(dataToSend.Length, startTime);
 
-                return true;
+                return TextCommunicatorSendLineStatus.Success;
             }
             catch (TimeoutException)
             {
                 logger.Debug($"SendLine({_serialPort.PortName}) TimeOut");
-                return false;
+                return TextCommunicatorSendLineStatus.TimedOut;
+            }
+            catch (Exception)
+            {
+                return TextCommunicatorSendLineStatus.CommunicationError;
             }
         }
 
-        public string QueryCommand(string cmd)
+        public TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result)
         {
+            result = string.Empty;
+
             _receivedBytes.Clear();
 
             _serialPort.DiscardOutBuffer();
             _serialPort.DiscardInBuffer(); // очищаем буфер приема
-            
-            return SendLine(cmd) ? ReadLine(Timeout) : "";
+            switch (SendLine(cmd))
+            {
+                case TextCommunicatorSendLineStatus.Success:
+                    var readlineStatus = ReadLine(Timeout, out result);
+                    switch (readlineStatus)
+                    {
+                        case TextCommunicatorReadLineStatus.Success:
+                            return TextCommunicatorQueryCommandStatus.Success;
+                        
+                        case TextCommunicatorReadLineStatus.TimedOut:
+                            return TextCommunicatorQueryCommandStatus.ReadLineTimedOut;
+                        
+                        case TextCommunicatorReadLineStatus.CommunicationError:
+                            return TextCommunicatorQueryCommandStatus.CommunicationError;
+
+                        case TextCommunicatorReadLineStatus.CommunicationChannelClosed:
+                            return TextCommunicatorQueryCommandStatus.CommunicationChannelClosed;
+                    }
+                    break;
+                
+                case TextCommunicatorSendLineStatus.TimedOut:
+                    return TextCommunicatorQueryCommandStatus.SendTimedOut;
+                
+                case TextCommunicatorSendLineStatus.CommunicationError:
+                    return TextCommunicatorQueryCommandStatus.CommunicationError;
+
+                case TextCommunicatorSendLineStatus.CommunicationChannelClosed:
+                    return TextCommunicatorQueryCommandStatus.CommunicationChannelClosed;
+            }
+            return TextCommunicatorQueryCommandStatus.CommunicationError;
         }
         private void SleepAfterSend(int dataLength, DateTime startTime)
         {

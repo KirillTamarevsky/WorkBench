@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WorkBench.Interfaces;
+using WorkBench.Communicators;
 using WorkBench.Interfaces.InstrumentChannel;
 
 namespace WorkBench.TestEquipment.Calys150
 {
     internal class Calys150ReaderChannel : IInstrumentChannel
     {
-        internal string Query(string command) => parentCalys150.Query(command);
+        internal TextCommunicatorQueryCommandStatus Query(string command, out string res) => parentCalys150.Query(command, out res);
         internal Calys150 parentCalys150 { get; }
         internal ITextCommunicator Communicator => parentCalys150.Communicator;
         Calys150_Current_ReaderSpan_base ActiveSpan { get; set; }

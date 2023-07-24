@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
 
@@ -57,13 +58,13 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                     {
                         if (SwitchToREMOTEMode())
                         {
-                            Communicator.QueryCommand("RANGE 1,1");
+                            Communicator.QueryCommand("RANGE 1,1", out string reply);
                             Thread.Sleep(2000);
-                            var reply = Communicator.QueryCommand("ON_KEY_VENT");
+                            Communicator.QueryCommand("ON_KEY_VENT", out reply);
                             Thread.Sleep(100);
                             if (reply == "VENT_OFF")
                             {
-                                Communicator.QueryCommand("ON_KEY_VENT");
+                                Communicator.QueryCommand("ON_KEY_VENT", out reply);
                                 Thread.Sleep(100);
                             }
                             #region Setup Channels

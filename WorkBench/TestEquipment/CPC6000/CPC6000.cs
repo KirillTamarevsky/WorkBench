@@ -69,7 +69,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
                 if (!communicatorOpened) return false;
 
-                string answer = Query("ID?");
+                var answerStatus = Query("ID?", out string answer);
 
                 string[] answerParts;
 
@@ -156,7 +156,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public string LastErrDesc { get; private set; }
         private void GetLastError()
         {
-            string answer = Communicator.QueryCommand("Errorno?");
+            var answerStatus = Communicator.QueryCommand("Errorno?", out string answer);
             string[] errorparts = answer.Split(new char[] { '-' });
             if (errorparts.Length == 2)
             {
@@ -189,11 +189,11 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        public string Query(string cmd)
+        public TextCommunicatorQueryCommandStatus Query(string cmd, out string answer)
         {
             ResetError();
 
-            string answer = Communicator.QueryCommand(cmd);
+            var answerStatus = Communicator.QueryCommand(cmd, out answer);
 
             if (answer.StartsWith("E"))
             {
@@ -204,7 +204,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
             answer = answer.Trim();
 
-            return answer;
+            return answerStatus;
         }
 
         //####################################################

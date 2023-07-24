@@ -67,11 +67,14 @@ namespace WorkBench.TestEquipment.ElmetroPascal
         internal Collection<ElmetroPascalScale> UsableSpans()
         {
             var Communicator = parentEPascal.Communicator;
-            Communicator.QueryCommand("SEEK_MODUL");
+            Communicator.QueryCommand("SEEK_MODUL", out string ekReply);
             Thread.Sleep(2000);
 
-            var internalModuleRanges = ParseModuleScales(Communicator.QueryCommand("READ_M1?"), 1);
-            var externalModuleRanges = ParseModuleScales(Communicator.QueryCommand("READ_M2?"), 2);
+            var epReplyStatus = Communicator.QueryCommand("READ_M1?", out string epReply);
+            var internalModuleRanges = ParseModuleScales(epReply, 1);
+
+            epReplyStatus = Communicator.QueryCommand("READ_M2?", out epReply);
+            var externalModuleRanges = ParseModuleScales(epReply, 2);
 
             if (!externalModuleRanges.Any()) return internalModuleRanges;
 
@@ -131,7 +134,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 var scale = epspan.Scale as ElmetroPascalScale;
                 if (scale != null)
                 {
-                    var reply = parentEPascal.Communicator.QueryCommand($"RANGE {scale.Module},{scale.RangeNum}");
+                    var replyStatus= parentEPascal.Communicator.QueryCommand($"RANGE {scale.Module},{scale.RangeNum}", out string reply);
                     if (reply.Contains("OK"))
                     {
                         Thread.Sleep(2000);
@@ -153,7 +156,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 switch (_pressureOperationMode)
                 {
                     case PressureControllerOperationMode.UNKNOWN:
-                        res = parentEPascal.Communicator.QueryCommand("ON_KEY_START");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_START", out res);
                         Thread.Sleep(500);
                         if (res.Contains("STOP_REGULATION"))
                         {
@@ -167,12 +170,12 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                     case PressureControllerOperationMode.STANDBY:
                     case PressureControllerOperationMode.MEASURE:
                     case PressureControllerOperationMode.VENT:
-                        res = parentEPascal.Communicator.QueryCommand("ON_KEY_START");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_START", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.CONTROL;
                         break;
                     case PressureControllerOperationMode.CONTROL:
-                        res = parentEPascal.Communicator.QueryCommand("ON_KEY_START");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_START", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.MEASURE;
                         break;
@@ -190,7 +193,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 switch (_pressureOperationMode)
                 {
                     case PressureControllerOperationMode.UNKNOWN:
-                        res = parentEPascal.Communicator.QueryCommand("ON_KEY_VENT");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         if (res == "VENT_ON")
                         {
@@ -203,18 +206,18 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                         break;
                     case PressureControllerOperationMode.STANDBY:
                     case PressureControllerOperationMode.MEASURE:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.VENT;
                         break;
                     case PressureControllerOperationMode.CONTROL:
                         ControlToggle();
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.VENT;
                         break;
                     case PressureControllerOperationMode.VENT:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT");
+                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.MEASURE;
                         break;
@@ -229,7 +232,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
             string reply = string.Empty;
             lock (parentEPascal.Communicator)
             {
-                reply = parentEPascal.Communicator.QueryCommand(string.Format("CLEAR_P"));
+                var replyStatus = parentEPascal.Communicator.QueryCommand(string.Format("CLEAR_P"), out reply);
             }
             if (reply.Contains("OK"))
             {

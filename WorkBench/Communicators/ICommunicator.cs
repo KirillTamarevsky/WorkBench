@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WorkBench.Interfaces
+namespace WorkBench.Communicators
 {
     public interface ICommunicator
     {
