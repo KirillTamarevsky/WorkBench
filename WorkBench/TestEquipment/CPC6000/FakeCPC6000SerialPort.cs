@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.IO;
 using System.IO.Ports;
@@ -16,6 +17,8 @@ namespace WorkBench.TestEquipment.CPC6000
     public class FakeCPC6000SerialPort : IWBSerialPortWrapper, IDisposable
     {
         log4net.ILog logger = log4net.LogManager.GetLogger("CPC6000Communication");
+
+        Random random = new Random();
 
         string _serialPortName;
         Parity _parity;
@@ -137,7 +140,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "Units?":
                     answer = $" {_currentUOM}";
-                    if (new Random().NextDouble() > 0.9)
+                    if (random.NextDouble() > 0.9)
                     {
                         answer = string.Empty;
                     }
@@ -240,6 +243,10 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public int ReadByte()
         {
+            if (random.NextDouble() > 0.98)
+            {
+                throw new TimeoutException();
+            }
             return answerBytesQueue.Dequeue();
         }
 
