@@ -20,7 +20,7 @@ namespace WorkBench.TestEquipment.CPC6000
         private ITextCommunicator Communicator => parentChannel.Communicator;
         internal CPC6000PressureModule module { get; }
         private bool IsOpen => parentChannel.parentCPC6000.IsOpen;
-        private TextCommunicatorQueryCommandStatus Query(string cmd, out string res) => parentChannel.parentCPC6000.Query(cmd, out res);
+        private TextCommunicatorQueryCommandStatus Query(string cmd, out string res) => parentChannel.Query(cmd, out res);
 
         private IUOM GetPUnit()
         {
