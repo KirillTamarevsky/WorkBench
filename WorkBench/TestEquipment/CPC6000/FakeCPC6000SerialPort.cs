@@ -27,9 +27,9 @@ namespace WorkBench.TestEquipment.CPC6000
 
         string _serialPortLineEndToken;
 
-        string _currentUOM = "Pascal";
+        string _currentUOM = " Pascal";
 
-        string _setpt = "0.1234";
+        string _setpt = " 0.1234";
 
         string _currentChannel = "A";
 
@@ -74,6 +74,7 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             isopened = false;
         }
+        
         public bool IsOpen => isopened;
 
         public string PortName => _serialPortName;
@@ -81,12 +82,12 @@ namespace WorkBench.TestEquipment.CPC6000
         public int BytesToRead => answerBytesQueue.Count;
 
         public int WriteTimeout { get; set; }
+        
         public int BaudRate { get; set; }
 
         public Stream BaseStream => throw new NotImplementedException();
-        internal int _timeout;
-        public int ReadTimeout { get => _timeout; set => _timeout = value; }
-
+        
+        public int ReadTimeout { get; set; }
 
         public void Dispose()
         {
@@ -148,11 +149,11 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "A?":
                     //Thread.Sleep(5);
-                    answer = $" {(new Random().NextDouble() / 10 + 5).ToString("N4")}";
+                    answer = $" {random.NextDouble() / 10 + 5:N4}";
                     break;
                 case "B?":
                     //Thread.Sleep(500);
-                    answer = $" {(new Random().NextDouble() * 35 + 35).ToString("N4")}";
+                    answer = $" {random.NextDouble() * 35 + 35:N4}";
                     break;
                 case "Setpt?":
                     answer = _setpt;
@@ -169,17 +170,17 @@ namespace WorkBench.TestEquipment.CPC6000
                             PressureType = PressureType.Gauge;
                             break;
                         default:
-                            throw new Exception($"bad pressure type{cmdparts[1]}");
+                            throw new Exception($"unknown pressure type{cmdparts[1]}");
                     }
                     break;
                 case "Ptype?":
                     switch (PressureType)
                     {
                         case PressureType.Absolute:
-                            answer = "ABSOLUTE";
+                            answer = " ABSOLUTE";
                             break;
                         case PressureType.Gauge:
-                            answer = "GAUGE";
+                            answer = " GAUGE";
                             break;
                         default:
                             break;
@@ -190,10 +191,10 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
 
                 case "Units":
-                    _currentUOM = cmdparts[1];
+                    _currentUOM = cmdparts[1].Trim();
                     break;
                 case "Setpt":
-                    _setpt = cmdparts[1];
+                    _setpt = cmdparts[1].Trim();
                     break;
                 case "Chan":
                     _currentChannel = cmdparts[1].Trim();
@@ -220,8 +221,18 @@ namespace WorkBench.TestEquipment.CPC6000
                             break;
                     }
                     break;
+                case "Errorno?":
+                    answer = " 1, No error";
+                    break;
                 default:
                     break;
+            }
+            if (random.Next(100) > 40)
+            {
+                answer = string.Empty;
+                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                answer = new string(Enumerable.Repeat(chars, 20)
+                    .Select(s => s[random.Next(s.Length)]).ToArray());
             }
             answer += _serialPortLineEndToken;
             foreach (byte item in answer.ToCharArray())
@@ -243,10 +254,10 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public int ReadByte()
         {
-            if (random.NextDouble() > 0.98)
-            {
-                throw new TimeoutException();
-            }
+            //if (random.NextDouble() > 0.98)
+            //{
+            //    throw new TimeoutException();
+            //}
             return answerBytesQueue.Dequeue();
         }
 

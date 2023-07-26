@@ -10,7 +10,7 @@ namespace WorkBench.Communicators
     {
         TextCommunicatorSendLineStatus SendLine(string cmd);
         TextCommunicatorReadLineStatus ReadLine(TimeSpan readLineTimeout, out string result);
-        TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result);
+        TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result, Func<string, bool> validationRule);
 
     }
 }

@@ -58,13 +58,13 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                     {
                         if (SwitchToREMOTEMode())
                         {
-                            Communicator.QueryCommand("RANGE 1,1", out string reply);
+                            Query("RANGE 1,1", out string reply);
                             Thread.Sleep(2000);
-                            Communicator.QueryCommand("ON_KEY_VENT", out reply);
+                            Query("ON_KEY_VENT", out reply);
                             Thread.Sleep(100);
                             if (reply == "VENT_OFF")
                             {
-                                Communicator.QueryCommand("ON_KEY_VENT", out reply);
+                                Query("ON_KEY_VENT", out reply);
                                 Thread.Sleep(100);
                             }
                             #region Setup Channels
@@ -83,6 +83,11 @@ namespace WorkBench.TestEquipment.ElmetroPascal
             }
 
             return false;
+        }
+
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer)
+        {
+            return Communicator.QueryCommand(cmd, out answer, null);
         }
         public override string ToString()
         {

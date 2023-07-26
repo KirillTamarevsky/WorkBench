@@ -96,7 +96,7 @@ namespace WorkBench.Communicators
                 return TextCommunicatorReadLineStatus.CommunicationChannelClosed;
             }
 
-            _serialPort.ReadTimeout = (int)Timeout.TotalMilliseconds;
+            _serialPort.ReadTimeout = (int)readLineTimeout.TotalMilliseconds;
 
             try
             {
@@ -184,7 +184,7 @@ namespace WorkBench.Communicators
             }
         }
 
-        public TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result)
+        public TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result, Func<string, bool> validationRule)
         {
             result = string.Empty;
 
@@ -206,7 +206,14 @@ namespace WorkBench.Communicators
                         switch (readlineStatus)
                         {
                             case TextCommunicatorReadLineStatus.Success:
-                                status = TextCommunicatorQueryCommandStatus.Success;
+                                if (validationRule == null || validationRule(result))
+                                {
+                                    status = TextCommunicatorQueryCommandStatus.Success;
+                                }
+                                else
+                                {
+                                    status = TextCommunicatorQueryCommandStatus.CommunicationError;
+                                }
                                 break;
 
                             case TextCommunicatorReadLineStatus.TimedOut:

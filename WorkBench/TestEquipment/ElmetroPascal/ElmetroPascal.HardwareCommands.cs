@@ -20,7 +20,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
 
         internal bool SwitchToREMOTEMode()
         {
-            var replyStatus = Communicator.QueryCommand("R", out string reply);
+            var replyStatus = Query("R", out string reply);
             if (replyStatus == Communicators.TextCommunicatorQueryCommandStatus.Success && reply.Contains("REMOTE"))
             {
                 _in_REMOTE_mode = true;
@@ -30,7 +30,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
 
         internal bool SwitchToLOCALMode()
         {
-            var replyStatus = Communicator.QueryCommand("LOCAL", out string reply);
+            var replyStatus = Query("LOCAL", out string reply);
             if (replyStatus == Communicators.TextCommunicatorQueryCommandStatus.Success && reply.Contains("OK"))
             {
                 _in_REMOTE_mode = false;

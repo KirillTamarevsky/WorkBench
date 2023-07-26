@@ -156,7 +156,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public string LastErrDesc { get; private set; }
         private void GetLastError()
         {
-            var answerStatus = Communicator.QueryCommand("Errorno?", out string answer);
+            var answerStatus = Query("Errorno?", out string answer);
             string[] errorparts = answer.Split(new char[] { '-' });
             if (errorparts.Length == 2)
             {
@@ -191,9 +191,29 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public TextCommunicatorQueryCommandStatus Query(string cmd, out string answer)
         {
-            ResetError();
+            return Query(cmd, out answer, null);
+        }
 
-            var answerStatus = Communicator.QueryCommand(cmd, out answer);
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule)
+        {
+            ResetError();
+            Func<string, bool> formatValidationRule = (s) => (s.ToUpper().StartsWith(" ") | s.ToUpper().StartsWith("E"));
+            Func<string, bool> finalValidationRule;
+            if (validationRule != null)
+            {
+                finalValidationRule = (s) =>
+                {
+                    bool b1 = formatValidationRule(s);
+                    bool b2 = validationRule(s);
+                    return b1 & b2;
+                };
+            }
+            else
+            {
+                finalValidationRule = formatValidationRule;
+            }
+
+            var answerStatus = Communicator.QueryCommand(cmd, out answer, finalValidationRule);
 
             if (answer.StartsWith("E"))
             {

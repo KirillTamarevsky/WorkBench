@@ -10,6 +10,7 @@ using WorkBench.TestEquipment.EK.channelSpans;
 using WorkBench.UOMS;
 //using WorkBench.AbstractClasses.Instrument;
 using WorkBench.Interfaces.InstrumentChannel;
+using WorkBench.Communicators;
 
 namespace WorkBench.TestEquipment.EK
 {
@@ -45,5 +46,6 @@ namespace WorkBench.TestEquipment.EK
             return Name;
         }
 
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => ParentEK.Query(cmd, out answer);
     }
 }

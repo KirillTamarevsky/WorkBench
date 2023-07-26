@@ -25,7 +25,7 @@ namespace WorkBench.TestEquipment.EK
             {
                 //TODO check if elmetro kelvin actually selected desired channel
                 activeChannel = channelNumber;
-                Communicator.QueryCommand($"CHAN {(int)channelNumber}", out string reply);
+                Query($"CHAN {(int)channelNumber}", out string reply);
                 return reply;
             }
             return ((int)channelNumber).ToString();

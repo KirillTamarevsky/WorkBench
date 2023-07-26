@@ -21,6 +21,7 @@ namespace WorkBench.TestEquipment.CPC6000
         internal CPC6000PressureModule module { get; }
         private bool IsOpen => parentChannel.parentCPC6000.IsOpen;
         private TextCommunicatorQueryCommandStatus Query(string cmd, out string res) => parentChannel.Query(cmd, out res);
+        private TextCommunicatorQueryCommandStatus Query(string cmd, out string res, Func<string, bool> validationRule) => parentChannel.Query(cmd, out res, validationRule);
 
         private IUOM GetPUnit()
         {
@@ -56,11 +57,13 @@ namespace WorkBench.TestEquipment.CPC6000
             PressureType = pressureType;
             parentChannel.SetActiveTurndown(this);
             var unit = GetPUnit();
-            
-            var answerStatus = Query("RangeMin?", out string answer);
+
+            Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",","."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
+
+            var answerStatus = Query("RangeMin?", out string answer, floatValidationRule);
             RangeMin = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
             
-            answerStatus = Query("RangeMax?", out answer);
+            answerStatus = Query("RangeMax?", out answer, floatValidationRule);
             RangeMax = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
 
         }

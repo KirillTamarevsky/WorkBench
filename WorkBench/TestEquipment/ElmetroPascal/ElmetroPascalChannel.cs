@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
@@ -28,7 +29,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
         public string Name => "канал давления";
         public IInstrumentChannelSpan[] AvailableSpans { get; private set; }
         #endregion
-
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentEPascal.Query(cmd, out answer);
         public ElmetroPascalChannel(ElmetroPascal elmetroPascal)
         {
             if (elmetroPascal == null) throw new ArgumentNullException($"Элметро-Паскаль = NULL");
@@ -67,13 +68,13 @@ namespace WorkBench.TestEquipment.ElmetroPascal
         internal Collection<ElmetroPascalScale> UsableSpans()
         {
             var Communicator = parentEPascal.Communicator;
-            Communicator.QueryCommand("SEEK_MODUL", out string ekReply);
+            Query("SEEK_MODUL", out string ekReply);
             Thread.Sleep(2000);
 
-            var epReplyStatus = Communicator.QueryCommand("READ_M1?", out string epReply);
+            var epReplyStatus = Query("READ_M1?", out string epReply);
             var internalModuleRanges = ParseModuleScales(epReply, 1);
 
-            epReplyStatus = Communicator.QueryCommand("READ_M2?", out epReply);
+            epReplyStatus = Query("READ_M2?", out epReply);
             var externalModuleRanges = ParseModuleScales(epReply, 2);
 
             if (!externalModuleRanges.Any()) return internalModuleRanges;
@@ -134,7 +135,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 var scale = epspan.Scale as ElmetroPascalScale;
                 if (scale != null)
                 {
-                    var replyStatus= parentEPascal.Communicator.QueryCommand($"RANGE {scale.Module},{scale.RangeNum}", out string reply);
+                    var replyStatus= Query($"RANGE {scale.Module},{scale.RangeNum}", out string reply);
                     if (reply.Contains("OK"))
                     {
                         Thread.Sleep(2000);
@@ -156,7 +157,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 switch (_pressureOperationMode)
                 {
                     case PressureControllerOperationMode.UNKNOWN:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_START", out res);
+                        Query("ON_KEY_START", out res);
                         Thread.Sleep(500);
                         if (res.Contains("STOP_REGULATION"))
                         {
@@ -170,12 +171,12 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                     case PressureControllerOperationMode.STANDBY:
                     case PressureControllerOperationMode.MEASURE:
                     case PressureControllerOperationMode.VENT:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_START", out res);
+                        Query("ON_KEY_START", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.CONTROL;
                         break;
                     case PressureControllerOperationMode.CONTROL:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_START", out res);
+                        Query("ON_KEY_START", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.MEASURE;
                         break;
@@ -193,7 +194,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 switch (_pressureOperationMode)
                 {
                     case PressureControllerOperationMode.UNKNOWN:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
+                        Query("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         if (res == "VENT_ON")
                         {
@@ -206,18 +207,18 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                         break;
                     case PressureControllerOperationMode.STANDBY:
                     case PressureControllerOperationMode.MEASURE:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
+                        Query("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.VENT;
                         break;
                     case PressureControllerOperationMode.CONTROL:
                         ControlToggle();
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
+                        Query("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.VENT;
                         break;
                     case PressureControllerOperationMode.VENT:
-                        parentEPascal.Communicator.QueryCommand("ON_KEY_VENT", out res);
+                        Query("ON_KEY_VENT", out res);
                         Thread.Sleep(500);
                         _pressureOperationMode = PressureControllerOperationMode.MEASURE;
                         break;
@@ -232,7 +233,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
             string reply = string.Empty;
             lock (parentEPascal.Communicator)
             {
-                var replyStatus = parentEPascal.Communicator.QueryCommand(string.Format("CLEAR_P"), out reply);
+                var replyStatus = Query(string.Format("CLEAR_P"), out reply);
             }
             if (reply.Contains("OK"))
             {

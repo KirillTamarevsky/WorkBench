@@ -19,6 +19,7 @@ namespace WorkBench.TestEquipment.CPC6000
         internal CPC6000 parentCPC6000 { get; }
         internal ITextCommunicator Communicator { get => parentCPC6000.Communicator; }
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentCPC6000.Query(cmd, out answer, validationRule);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
         private CPC6000ChannelSpan ActiveSpan { get; set; }
         internal IUOM ActiveUOM { get; private set; }
@@ -41,8 +42,11 @@ namespace WorkBench.TestEquipment.CPC6000
                 var answerStatus = Query("Ptype?", out string answer);
                 if (answer.Trim().ToUpper() == expectedResponse)
                 {
-
-                    var replyStatus = Query("List?", out string existingTurnDowns);
+                    Func<string, bool> validationRule = (s) =>
+                    {
+                        return s.ToUpper().Contains("PRI");
+                    };
+                    var replyStatus = Query("List?", out string existingTurnDowns, validationRule);
                     existingTurnDowns = existingTurnDowns.Trim();
                     var modules = existingTurnDowns.Split(";");
                     foreach (var module in modules)
@@ -67,10 +71,12 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
             }
             AvailableSpans = availableSpans.ToArray();
-
+            
             thisChannelRangeMin = availableSpans.OrderBy(sp => sp.RangeMin.Value).First().RangeMin;
             thisChannelRangeMax = availableSpans.OrderByDescending(sp => sp.RangeMax.Value).First().RangeMax;
+
         }
+
 
         public string Name
         {

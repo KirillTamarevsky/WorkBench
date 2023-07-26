@@ -19,7 +19,7 @@ namespace WorkBench.TestEquipment.Calys150
         internal ITextCommunicator Communicator { get; }
         internal TextCommunicatorSendLineStatus SendLine(string command) => Communicator.SendLine(command);
         internal TextCommunicatorReadLineStatus ReadLine(TimeSpan readLineTimeout, out string result) => Communicator.ReadLine(readLineTimeout, out result);
-        internal TextCommunicatorQueryCommandStatus Query(string command, out string result) => Communicator.QueryCommand(command, out result);
+        internal TextCommunicatorQueryCommandStatus Query(string command, out string result) => Communicator.QueryCommand(command, out result, null);
 #region Constructors
         public Calys150(ITextCommunicator textCommunicator) 
         {
@@ -47,7 +47,7 @@ namespace WorkBench.TestEquipment.Calys150
                 if (Communicator.Open())
                 {
                     Communicator.SendLine("REM");
-                    var respStatus = Communicator.QueryCommand("*IDN?", out string resp);
+                    var respStatus = Query("*IDN?", out string resp);
                     if (resp.Length > 0)
                     {
                         var respparts = resp.Split(",");

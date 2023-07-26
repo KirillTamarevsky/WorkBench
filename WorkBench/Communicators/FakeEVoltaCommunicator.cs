@@ -77,7 +77,7 @@ namespace WorkBench.Communicators
             return TextCommunicatorSendLineStatus.Success;
         }
 
-        public TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result)
+        public TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result, Func<string, bool> validationRule)
         {
             SendLine(cmd);
             ReadLine(TimeSpan.FromSeconds(3), out result);
