@@ -6,6 +6,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using System.Text;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 //using WorkBench.AbstractClasses.InstrumentChannel;
 //using WorkBench.AbstractClasses.InstrumentChannel.InstrumentChannelSpan;
 using WorkBench.Interfaces;
@@ -28,6 +29,7 @@ namespace WorkBench.TestEquipment.EK.channelSpans
             Scale = new Scale(0, 20, new mA());
             LastValue = new OneMeasure(0, new mA());
         }
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentChannel.Query(cmd, out answer);
         private bool readingnow;
         public OneMeasure Read(IUOM uom)
         {
@@ -38,7 +40,6 @@ namespace WorkBench.TestEquipment.EK.channelSpans
                 if (!skipActualReading)
                 {
                     readingnow = true;
-
 
                     ek.SetActiveChannel(this.parentChannel.EKchanNum);
                     //--------------Read_0_20_Current_with_ext_pwr-------------------
@@ -51,7 +52,7 @@ namespace WorkBench.TestEquipment.EK.channelSpans
                     //Ответ: 2.0501
                     //
                     //TODO добавить проверку ответа на ERROR
-                    var ekReply = parentChannel.ParentEK.Communicator.QueryCommand("CURR?");
+                    var ekReplyStatus = Query("CURR?", out string ekReply);
                     double.TryParse(ekReply.Replace(".", ","), out double result);
                     
                     LastValue = new OneMeasure(result, new mA(), DateTime.Now);

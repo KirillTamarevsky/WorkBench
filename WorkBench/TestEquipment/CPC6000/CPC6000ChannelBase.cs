@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.XPath;
+using WorkBench.Communicators;
 using WorkBench.Enums;
 using WorkBench.Interfaces;
 using WorkBench.Interfaces.InstrumentChannel;
@@ -17,7 +18,8 @@ namespace WorkBench.TestEquipment.CPC6000
     {
         internal CPC6000 parentCPC6000 { get; }
         internal ITextCommunicator Communicator { get => parentCPC6000.Communicator; }
-        private string Query(string cmd) => parentCPC6000.Query(cmd);
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentCPC6000.Query(cmd, out answer, validationRule);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
         private CPC6000ChannelSpan ActiveSpan { get; set; }
         internal IUOM ActiveUOM { get; private set; }
@@ -37,9 +39,15 @@ namespace WorkBench.TestEquipment.CPC6000
                 var command = pressureType switch { PressureType.Gauge => "Ptype G", PressureType.Absolute => "Ptype A" };
                 var expectedResponse = pressureType switch { PressureType.Gauge => "GAUGE", PressureType.Absolute => "ABSOLUTE" };
                 Communicator.SendLine(command);
-                if (Query("Ptype?").Trim().ToUpper() == expectedResponse)
+                var answerStatus = Query("Ptype?", out string answer);
+                if (answer.Trim().ToUpper() == expectedResponse)
                 {
-                    var existingTurnDowns = Query("List?").Trim();
+                    Func<string, bool> validationRule = (s) =>
+                    {
+                        return s.ToUpper().Contains("PRI");
+                    };
+                    var replyStatus = Query("List?", out string existingTurnDowns, validationRule);
+                    existingTurnDowns = existingTurnDowns.Trim();
                     var modules = existingTurnDowns.Split(";");
                     foreach (var module in modules)
                     {
@@ -63,10 +71,12 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
             }
             AvailableSpans = availableSpans.ToArray();
-
+            
             thisChannelRangeMin = availableSpans.OrderBy(sp => sp.RangeMin.Value).First().RangeMin;
             thisChannelRangeMax = availableSpans.OrderByDescending(sp => sp.RangeMax.Value).First().RangeMax;
+
         }
+
 
         public string Name
         {
@@ -115,52 +125,54 @@ namespace WorkBench.TestEquipment.CPC6000
         }
         internal IUOM GetPUnit()
         {
-            IUOM readedUOM;
-            var unit = Query("Units?").ToUpper();
-            Func<string, double> doubleParser = (s) => double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
-            switch (unit)
+            IUOM readedUOM = null;
+            var replyStatus = Query("Units?", out string unit);
+            if (replyStatus == TextCommunicatorQueryCommandStatus.Success)
             {
-                case "PSI": readedUOM = new customPressureUOM("psi", doubleParser("6.894757E+03")); break;
-                case "INHG 0C": readedUOM = new customPressureUOM("inHg @0C", doubleParser("3.386390E+03")); break;
-                case "INHG 60F": readedUOM = new customPressureUOM("inHg @60F", doubleParser("3.376850E+03")); break;
-                case "INH2O 4C": readedUOM = new customPressureUOM("inH2O @4C", doubleParser("2.490820E+02")); break;
-                case "INH2O 20C": readedUOM = new customPressureUOM("inH2O @20C", doubleParser("2.486410E+02")); break;
-                case "INH2O 60F": readedUOM = new customPressureUOM("inH2O @60F", doubleParser("2.488400E+02")); break;
-                case "FTH2O 4C": readedUOM = new customPressureUOM("ftH2O @4C", doubleParser("2.988980E+03")); break;
-                case "FTH2O 20C": readedUOM = new customPressureUOM("ftH2O @20C", doubleParser("2.983692E+03")); break;
-                case "FTH2O 60F": readedUOM = new customPressureUOM("ftH2O @60F", doubleParser("2.986080E+03")); break;
-                case "MTORR": readedUOM = new customPressureUOM("mTorr", doubleParser("1.333220E-01")); break;
-                case "INSW": readedUOM = new customPressureUOM("inSW @0C 3.5% salinity", doubleParser("2.560885E+02")); break;
-                case "FTSW": readedUOM = new customPressureUOM("ftSW @0C 3.5% salinity", doubleParser("3.073062E+03")); break;
-                case "ATM": readedUOM = new customPressureUOM("atm", doubleParser("1.013250E+05")); break;
-                case "BAR": readedUOM = new customPressureUOM("bar", doubleParser("1.00000E+05")); break;
-                case "MBAR": readedUOM = new customPressureUOM("mbar", doubleParser("1.00000E+02")); break;
-                case "MMH2O 4C": readedUOM = new customPressureUOM("mmH2O @4C", doubleParser("9.806378E+00")); break;
-                case "CMH2O 4C": readedUOM = new customPressureUOM("cmH2O @4C", doubleParser("9.806378E+01")); break;
-                case "MH2O 4C": readedUOM = new customPressureUOM("mH2O @4C", doubleParser("9.806378E+03")); break;
-                case "MMHG 0C": readedUOM = new customPressureUOM("mmHg @0C", doubleParser("1.333220E+02")); break;
-                case "CMHG 0C": readedUOM = new customPressureUOM("cmHg @0C", doubleParser("1.333220E+03")); break;
-                case "TORR": readedUOM = new customPressureUOM("Torr", doubleParser("1.333220E+02")); break;
-                case "KPA": readedUOM = new customPressureUOM("kPa", doubleParser("1.00000E+03")); break;
-                case "PASCAL": readedUOM = new customPressureUOM("Pa", doubleParser("1.00000E+00")); break;
-                case "DY/CM2": readedUOM = new customPressureUOM("dyn/sq cm", doubleParser("1.00000E-01")); break;
-                case "GM/CM2": readedUOM = new customPressureUOM("g/sq cm", doubleParser("9.806647E+01")); break;
-                case "KG/CM2": readedUOM = new customPressureUOM("kg/sq cm", doubleParser("9.806647E+04")); break;
-                case "MSW": readedUOM = new customPressureUOM("mSW @0C 3.5% salinity", doubleParser("1.008222E+04")); break;
-                case "OSI": readedUOM = new customPressureUOM("oz/si", doubleParser("4.309223E+02")); break;
-                case "PSF": readedUOM = new customPressureUOM("psf", doubleParser("4.788025E+01")); break;
-                case "TSF": readedUOM = new customPressureUOM("tons/sq ft", doubleParser("9.576052E+04")); break;
-                case "UHG 0C": readedUOM = new customPressureUOM("micronHg @0C", doubleParser("1.333220E-01")); break;
-                case "TSI": readedUOM = new customPressureUOM("tons/sq in", doubleParser("1.378951E+07")); break;
-                case "HPA": readedUOM = new customPressureUOM("hPa", doubleParser("1.00000E+02")); break;
-                case "MPA": readedUOM = new customPressureUOM("MPa", doubleParser("1.00000E+06")); break;
-                case "MMH2O 20C": readedUOM = new customPressureUOM("mmH2O @20C", doubleParser("9.789017E+00")); break;
-                case "CMH2O 20C": readedUOM = new customPressureUOM("cmH2O @20C", doubleParser("9.789017E+01")); break;
-                case "MH2O 20C": readedUOM = new customPressureUOM("mH2O @20C", doubleParser("9.789017E+03")); break;
-                default:
-                    throw new Exception($"unknown pressure units [{unit}]");
+                unit = unit.ToUpper();
+                Func<string, double> doubleParser = (s) => double.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+                switch (unit)
+                {
+                    case "PSI": readedUOM = new customPressureUOM("psi", doubleParser("6.894757E+03")); break;
+                    case "INHG 0C": readedUOM = new customPressureUOM("inHg @0C", doubleParser("3.386390E+03")); break;
+                    case "INHG 60F": readedUOM = new customPressureUOM("inHg @60F", doubleParser("3.376850E+03")); break;
+                    case "INH2O 4C": readedUOM = new customPressureUOM("inH2O @4C", doubleParser("2.490820E+02")); break;
+                    case "INH2O 20C": readedUOM = new customPressureUOM("inH2O @20C", doubleParser("2.486410E+02")); break;
+                    case "INH2O 60F": readedUOM = new customPressureUOM("inH2O @60F", doubleParser("2.488400E+02")); break;
+                    case "FTH2O 4C": readedUOM = new customPressureUOM("ftH2O @4C", doubleParser("2.988980E+03")); break;
+                    case "FTH2O 20C": readedUOM = new customPressureUOM("ftH2O @20C", doubleParser("2.983692E+03")); break;
+                    case "FTH2O 60F": readedUOM = new customPressureUOM("ftH2O @60F", doubleParser("2.986080E+03")); break;
+                    case "MTORR": readedUOM = new customPressureUOM("mTorr", doubleParser("1.333220E-01")); break;
+                    case "INSW": readedUOM = new customPressureUOM("inSW @0C 3.5% salinity", doubleParser("2.560885E+02")); break;
+                    case "FTSW": readedUOM = new customPressureUOM("ftSW @0C 3.5% salinity", doubleParser("3.073062E+03")); break;
+                    case "ATM": readedUOM = new customPressureUOM("atm", doubleParser("1.013250E+05")); break;
+                    case "BAR": readedUOM = new customPressureUOM("bar", doubleParser("1.00000E+05")); break;
+                    case "MBAR": readedUOM = new customPressureUOM("mbar", doubleParser("1.00000E+02")); break;
+                    case "MMH2O 4C": readedUOM = new customPressureUOM("mmH2O @4C", doubleParser("9.806378E+00")); break;
+                    case "CMH2O 4C": readedUOM = new customPressureUOM("cmH2O @4C", doubleParser("9.806378E+01")); break;
+                    case "MH2O 4C": readedUOM = new customPressureUOM("mH2O @4C", doubleParser("9.806378E+03")); break;
+                    case "MMHG 0C": readedUOM = new customPressureUOM("mmHg @0C", doubleParser("1.333220E+02")); break;
+                    case "CMHG 0C": readedUOM = new customPressureUOM("cmHg @0C", doubleParser("1.333220E+03")); break;
+                    case "TORR": readedUOM = new customPressureUOM("Torr", doubleParser("1.333220E+02")); break;
+                    case "KPA": readedUOM = new customPressureUOM("kPa", doubleParser("1.00000E+03")); break;
+                    case "PASCAL": readedUOM = new customPressureUOM("Pa", doubleParser("1.00000E+00")); break;
+                    case "DY/CM2": readedUOM = new customPressureUOM("dyn/sq cm", doubleParser("1.00000E-01")); break;
+                    case "GM/CM2": readedUOM = new customPressureUOM("g/sq cm", doubleParser("9.806647E+01")); break;
+                    case "KG/CM2": readedUOM = new customPressureUOM("kg/sq cm", doubleParser("9.806647E+04")); break;
+                    case "MSW": readedUOM = new customPressureUOM("mSW @0C 3.5% salinity", doubleParser("1.008222E+04")); break;
+                    case "OSI": readedUOM = new customPressureUOM("oz/si", doubleParser("4.309223E+02")); break;
+                    case "PSF": readedUOM = new customPressureUOM("psf", doubleParser("4.788025E+01")); break;
+                    case "TSF": readedUOM = new customPressureUOM("tons/sq ft", doubleParser("9.576052E+04")); break;
+                    case "UHG 0C": readedUOM = new customPressureUOM("micronHg @0C", doubleParser("1.333220E-01")); break;
+                    case "TSI": readedUOM = new customPressureUOM("tons/sq in", doubleParser("1.378951E+07")); break;
+                    case "HPA": readedUOM = new customPressureUOM("hPa", doubleParser("1.00000E+02")); break;
+                    case "MPA": readedUOM = new customPressureUOM("MPa", doubleParser("1.00000E+06")); break;
+                    case "MMH2O 20C": readedUOM = new customPressureUOM("mmH2O @20C", doubleParser("9.789017E+00")); break;
+                    case "CMH2O 20C": readedUOM = new customPressureUOM("cmH2O @20C", doubleParser("9.789017E+01")); break;
+                    case "MH2O 20C": readedUOM = new customPressureUOM("mH2O @20C", doubleParser("9.789017E+03")); break;
+                }
+                ActiveUOM = readedUOM;
             }
-            ActiveUOM = readedUOM;
             return readedUOM;
         }
         internal void SetPUnit(IUOM targetUOM)

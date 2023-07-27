@@ -17,9 +17,9 @@ namespace WorkBench.TestEquipment.Calys150
         public string SerialNumber { get; private set; }
         public string FWVersion{ get; private set; }
         internal ITextCommunicator Communicator { get; }
-        internal bool SendLine(string command) => Communicator.SendLine(command);
-        internal string ReadLine(TimeSpan readLineTimeout) => Communicator.ReadLine(readLineTimeout);
-        internal string Query(string command) => Communicator.QueryCommand(command);
+        internal TextCommunicatorSendLineStatus SendLine(string command) => Communicator.SendLine(command);
+        internal TextCommunicatorReadLineStatus ReadLine(TimeSpan readLineTimeout, out string result) => Communicator.ReadLine(readLineTimeout, out result);
+        internal TextCommunicatorQueryCommandStatus Query(string command, out string result) => Communicator.QueryCommand(command, out result, null);
 #region Constructors
         public Calys150(ITextCommunicator textCommunicator) 
         {
@@ -29,11 +29,11 @@ namespace WorkBench.TestEquipment.Calys150
         public Calys150(string SerialPortName) : this(GetSerialPortCommunicatorWithDefaultSettings(SerialPortName)){}
         public static ITextCommunicator GetSerialPortCommunicatorWithDefaultSettings(string serialPortName)
         {
-            return new SerialEKCommunicator(new WBSerialPortWrapper(serialPortName, 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n", timeout: 5);
+            return new SerialPortTextCommunicator(new WBSerialPortWrapper(serialPortName, 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n", timeout: 5);
         }
         public static ITextCommunicator GetSimulationCalys150SerialPortCommunicatorWithDefaultSettings(string serialPortName)
         {
-            return new SerialEKCommunicator(new FakeCalys150SerialPort($"DEMO[{serialPortName}]", 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n");
+            return new SerialPortTextCommunicator(new FakeCalys150SerialPort($"DEMO[{serialPortName}]", 115200, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One), "\r\n");
         }
 #endregion
         public IInstrumentChannel[] Channels { get; }
@@ -47,7 +47,7 @@ namespace WorkBench.TestEquipment.Calys150
                 if (Communicator.Open())
                 {
                     Communicator.SendLine("REM");
-                    var resp = Communicator.QueryCommand("*IDN?");
+                    var respStatus = Query("*IDN?", out string resp);
                     if (resp.Length > 0)
                     {
                         var respparts = resp.Split(",");

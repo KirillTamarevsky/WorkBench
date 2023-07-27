@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.IO;
 using System.IO.Ports;
@@ -8,13 +9,16 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkBench.Communicators;
 using WorkBench.Interfaces;
 
-namespace WorkBench.Communicators
+namespace WorkBench.TestEquipment.CPC6000
 {
     public class FakeCPC6000SerialPort : IWBSerialPortWrapper, IDisposable
     {
         log4net.ILog logger = log4net.LogManager.GetLogger("CPC6000Communication");
+
+        Random random = new Random();
 
         string _serialPortName;
         Parity _parity;
@@ -23,9 +27,9 @@ namespace WorkBench.Communicators
 
         string _serialPortLineEndToken;
 
-        string _currentUOM = "Pascal";
+        string _currentUOM = " Pascal";
 
-        string _setpt = "0.1234";
+        string _setpt = " 0.1234";
 
         string _currentChannel = "A";
 
@@ -34,7 +38,7 @@ namespace WorkBench.Communicators
         bool isopened;
         string answer = string.Empty;
 
-        Queue<byte> answerBytesQueue = new Queue<byte> ();
+        Queue<byte> answerBytesQueue = new Queue<byte>();
 
         public event SerialDataReceivedEventHandler DataReceived;
         void RaiseDataReceived()
@@ -44,7 +48,7 @@ namespace WorkBench.Communicators
                 null,
                 new[] { typeof(SerialData) },
                 null);
-                        
+
             SerialDataReceivedEventArgs eventArgs =
                 (SerialDataReceivedEventArgs)constructor.Invoke(new object[] { SerialData.Chars });
 
@@ -70,19 +74,20 @@ namespace WorkBench.Communicators
         {
             isopened = false;
         }
+        
         public bool IsOpen => isopened;
 
         public string PortName => _serialPortName;
 
         public int BytesToRead => answerBytesQueue.Count;
 
-        public int WriteTimeout { get ; set; }
-        public int BaudRate { get ; set ; }
+        public int WriteTimeout { get; set; }
+        
+        public int BaudRate { get; set; }
 
         public Stream BaseStream => throw new NotImplementedException();
-        internal int _timeout;
-        public int ReadTimeout { get => _timeout; set => _timeout = value; }
-
+        
+        public int ReadTimeout { get; set; }
 
         public void Dispose()
         {
@@ -136,14 +141,19 @@ namespace WorkBench.Communicators
                     break;
                 case "Units?":
                     answer = $" {_currentUOM}";
+                    if (random.NextDouble() > 0.9)
+                    {
+                        answer = string.Empty;
+                    }
+
                     break;
                 case "A?":
                     //Thread.Sleep(5);
-                    answer = $" {(new System.Random().NextDouble() / 10 + 5).ToString("N4")}";
+                    answer = $" {random.NextDouble() / 10 + 5:N4}";
                     break;
                 case "B?":
                     //Thread.Sleep(500);
-                    answer = $" {(new System.Random().NextDouble() * 35 + 35).ToString("N4")}";
+                    answer = $" {random.NextDouble() * 35 + 35:N4}";
                     break;
                 case "Setpt?":
                     answer = _setpt;
@@ -160,17 +170,17 @@ namespace WorkBench.Communicators
                             PressureType = PressureType.Gauge;
                             break;
                         default:
-                            throw new Exception($"bad pressure type{cmdparts[1]}");
+                            throw new Exception($"unknown pressure type{cmdparts[1]}");
                     }
                     break;
                 case "Ptype?":
                     switch (PressureType)
                     {
                         case PressureType.Absolute:
-                            answer = "ABSOLUTE";
+                            answer = " ABSOLUTE";
                             break;
                         case PressureType.Gauge:
-                            answer = "GAUGE";
+                            answer = " GAUGE";
                             break;
                         default:
                             break;
@@ -181,10 +191,10 @@ namespace WorkBench.Communicators
                     break;
 
                 case "Units":
-                    _currentUOM = cmdparts[1];
+                    _currentUOM = cmdparts[1].Trim();
                     break;
                 case "Setpt":
-                    _setpt = cmdparts[1];
+                    _setpt = cmdparts[1].Trim();
                     break;
                 case "Chan":
                     _currentChannel = cmdparts[1].Trim();
@@ -211,8 +221,18 @@ namespace WorkBench.Communicators
                             break;
                     }
                     break;
+                case "Errorno?":
+                    answer = " 1, No error";
+                    break;
                 default:
                     break;
+            }
+            if (random.Next(100) > 40)
+            {
+                answer = string.Empty;
+                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                answer = new string(Enumerable.Repeat(chars, 20)
+                    .Select(s => s[random.Next(s.Length)]).ToArray());
             }
             answer += _serialPortLineEndToken;
             foreach (byte item in answer.ToCharArray())
@@ -234,6 +254,10 @@ namespace WorkBench.Communicators
 
         public int ReadByte()
         {
+            //if (random.NextDouble() > 0.98)
+            //{
+            //    throw new TimeoutException();
+            //}
             return answerBytesQueue.Dequeue();
         }
 

@@ -69,7 +69,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
                 if (!communicatorOpened) return false;
 
-                string answer = Query("ID?");
+                var answerStatus = Query("ID?", out string answer);
 
                 string[] answerParts;
 
@@ -156,7 +156,7 @@ namespace WorkBench.TestEquipment.CPC6000
         public string LastErrDesc { get; private set; }
         private void GetLastError()
         {
-            string answer = Communicator.QueryCommand("Errorno?");
+            var answerStatus = Query("Errorno?", out string answer);
             string[] errorparts = answer.Split(new char[] { '-' });
             if (errorparts.Length == 2)
             {
@@ -189,11 +189,31 @@ namespace WorkBench.TestEquipment.CPC6000
             }
         }
 
-        public string Query(string cmd)
+        public TextCommunicatorQueryCommandStatus Query(string cmd, out string answer)
+        {
+            return Query(cmd, out answer, null);
+        }
+
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule)
         {
             ResetError();
+            Func<string, bool> formatValidationRule = (s) => (s.ToUpper().StartsWith(" ") | s.ToUpper().StartsWith("E"));
+            Func<string, bool> finalValidationRule;
+            if (validationRule != null)
+            {
+                finalValidationRule = (s) =>
+                {
+                    bool b1 = formatValidationRule(s);
+                    bool b2 = validationRule(s);
+                    return b1 & b2;
+                };
+            }
+            else
+            {
+                finalValidationRule = formatValidationRule;
+            }
 
-            string answer = Communicator.QueryCommand(cmd);
+            var answerStatus = Communicator.QueryCommand(cmd, out answer, finalValidationRule);
 
             if (answer.StartsWith("E"))
             {
@@ -204,7 +224,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
             answer = answer.Trim();
 
-            return answer;
+            return answerStatus;
         }
 
         //####################################################

@@ -9,6 +9,7 @@ using WorkBench.Enums;
 using WorkBench.UOMS;
 using System.Globalization;
 using System.Threading;
+using WorkBench.Communicators;
 
 namespace WorkBench.TestEquipment.ElmetroPascal
 {
@@ -19,6 +20,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
         private readonly ElmetroPascalScale thisScale;
         private OneMeasure LastValue;
         private OneMeasure _setPoint;
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentChannel.Query(cmd, out answer);
         public ElmetroPascalChannelSpan(ElmetroPascalChannel epChannel, ElmetroPascalScale epScale)
         {
             parentChannel = epChannel;
@@ -51,7 +53,7 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                 {
                     if (correctedSetPoint.TryConvertTo(new kPa(), out OneMeasure setPointInKPA))
                     {
-                        var epreply = parentChannel.parentEPascal.Communicator.QueryCommand($"TARGET {setPointInKPA.Value.ToString(CultureInfo.InvariantCulture)}");
+                        var epreplyStatus = Query($"TARGET {setPointInKPA.Value.ToString(CultureInfo.InvariantCulture)}", out string epreply);
                         if (epreply.Contains("OK"))
                         {
                             _setPoint = correctedSetPoint;
@@ -86,8 +88,10 @@ namespace WorkBench.TestEquipment.ElmetroPascal
                     
                     LastValue = null;
                     OneMeasure res = null;
+
+                    var epreplyStatus = Query("PRES?", out string epreply);
                     
-                    var epreply = parentChannel.parentEPascal.Communicator.QueryCommand("PRES?").Trim().Replace(',', '.');
+                    epreply = epreply.Trim().Replace(',', '.');
                     
                     if (float.TryParse(epreply, NumberStyles.Float, new System.Globalization.NumberFormatInfo(), out float pressureValue))
                         res = new OneMeasure(pressureValue, new kPa());

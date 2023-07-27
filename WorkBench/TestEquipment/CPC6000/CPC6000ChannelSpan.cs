@@ -10,6 +10,7 @@ using WorkBench.UOMS;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Globalization;
 using log4net.Util;
+using WorkBench.Communicators;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
@@ -19,9 +20,19 @@ namespace WorkBench.TestEquipment.CPC6000
         private ITextCommunicator Communicator => parentChannel.Communicator;
         internal CPC6000PressureModule module { get; }
         private bool IsOpen => parentChannel.parentCPC6000.IsOpen;
-        private string Query(string cmd) => parentChannel.parentCPC6000.Query(cmd);
+        private TextCommunicatorQueryCommandStatus Query(string cmd, out string res) => parentChannel.Query(cmd, out res);
+        private TextCommunicatorQueryCommandStatus Query(string cmd, out string res, Func<string, bool> validationRule) => parentChannel.Query(cmd, out res, validationRule);
 
-        private IUOM GetPUnit() => parentChannel.GetPUnit();
+        private IUOM GetPUnit()
+        {
+            IUOM uom = null;
+            while (uom == null)
+            {
+                uom = parentChannel.GetPUnit();
+            }
+            return uom;
+
+        }
         private void SetPUnit(IUOM targetUOM) => parentChannel.SetPUnit(targetUOM);
         internal int turndown { get; }
         public PressureType PressureType { get; }
@@ -46,8 +57,14 @@ namespace WorkBench.TestEquipment.CPC6000
             PressureType = pressureType;
             parentChannel.SetActiveTurndown(this);
             var unit = GetPUnit();
-            RangeMin = new OneMeasure(double.Parse(Query("RangeMin?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
-            RangeMax = new OneMeasure(double.Parse(Query("RangeMax?").Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+
+            Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",","."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
+
+            var answerStatus = Query("RangeMin?", out string answer, floatValidationRule);
+            RangeMin = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+            
+            answerStatus = Query("RangeMax?", out answer, floatValidationRule);
+            RangeMax = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
 
         }
         public PressureControllerOperationMode PressureOperationMode
@@ -61,7 +78,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     {
 
                         parentChannel.SetActiveTurndown(this);
-                        string answer = Query("Mode?");
+                        var answerStatus = Query("Mode?", out string answer);
                         switch (answer.ToUpper())
                         {
                             case "STANDBY":
@@ -122,7 +139,8 @@ namespace WorkBench.TestEquipment.CPC6000
                     parentChannel.SetActiveTurndown(this);
                     var punit = GetPUnit();
                     double setpoint = double.NaN;
-                    string answer = Query("Setpt?").Replace(',', '.');
+                    var answerStatus = Query("Setpt?", out string answer);
+                    answer = answer.Replace(',', '.');
                     double.TryParse(answer,
                                      NumberStyles.Float,
                                      CultureInfo.InvariantCulture,
@@ -185,11 +203,13 @@ namespace WorkBench.TestEquipment.CPC6000
                     SetPUnit(uom);
                     unit = GetPUnit();
                 }
-                var reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",", ".");
+                var replyStatus = Query(parentChannel.readPressureCommand, out string reply);
+                reply = reply.Trim().Replace(",", ".");
                 var pressureValue = double.NaN;
                 if (!double.TryParse(reply, NumberStyles.Float, CultureInfo.InvariantCulture, out pressureValue))
                 {
-                    reply = Communicator.QueryCommand(parentChannel.readPressureCommand).Trim().Replace(",", ".");
+                    replyStatus = Query(parentChannel.readPressureCommand, out reply);
+                    reply = reply.Trim().Replace(",", ".");
                     double.TryParse(reply, NumberStyles.Float, CultureInfo.InvariantCulture, out pressureValue);
                 }
                 return new OneMeasure(pressureValue, unit);

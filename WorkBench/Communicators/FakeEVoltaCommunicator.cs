@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WorkBench.Interfaces;
 
 namespace WorkBench.Communicators
 {
@@ -34,7 +33,7 @@ namespace WorkBench.Communicators
             return true;
         }
         public bool IsOpen => isopened;
-        public string ReadLine(TimeSpan readLineTimeout)
+        public TextCommunicatorReadLineStatus ReadLine(TimeSpan readLineTimeout, out string result)
         {
             string answer = "";
             Thread.Sleep(5);
@@ -62,11 +61,11 @@ namespace WorkBench.Communicators
                     "Readline = {0} | {1}", 
                     answer.Replace("\r", "\\r").Replace("\n", "\\n"),
                     BitConverter.ToString(Encoding.ASCII.GetBytes(answer))));
-
-            return answer;
+            result = answer;
+            return TextCommunicatorReadLineStatus.Success;
         }
 
-        public bool SendLine(string cmd)
+        public TextCommunicatorSendLineStatus SendLine(string cmd)
         {
             _sendedLine = cmd + "\r";
 
@@ -75,13 +74,15 @@ namespace WorkBench.Communicators
                     "SendLine = {0} | {1}",
                     cmd.Replace("\r", "\\r").Replace("\n", "\\n"),
                     BitConverter.ToString(Encoding.ASCII.GetBytes(cmd))));
-            return true;
+            return TextCommunicatorSendLineStatus.Success;
         }
 
-        public string QueryCommand(string cmd)
+        public TextCommunicatorQueryCommandStatus QueryCommand(string cmd, out string result, Func<string, bool> validationRule)
         {
             SendLine(cmd);
-            return ReadLine(TimeSpan.FromSeconds(3));
+            ReadLine(TimeSpan.FromSeconds(3), out result);
+
+            return TextCommunicatorQueryCommandStatus.Success; 
         }
 
         public override string ToString()

@@ -18,21 +18,20 @@ namespace WorkBench.TestEquipment.ElmetroPascal
         #region Elmetro Pascal hardware interface commands
         //------------------------------------------------------------------------------------------
 
-        internal bool SwitchToREMOTEMode ()
+        internal bool SwitchToREMOTEMode()
         {
-            var res = Communicator.QueryCommand("R");
-            if (!string.IsNullOrEmpty(res) && res.Contains("REMOTE"))
+            var replyStatus = Query("R", out string reply);
+            if (replyStatus == Communicators.TextCommunicatorQueryCommandStatus.Success && reply.Contains("REMOTE"))
             {
                 _in_REMOTE_mode = true;
             }
             return _in_REMOTE_mode == true;
-
         }
 
         internal bool SwitchToLOCALMode()
         {
-            var res = Communicator.QueryCommand("LOCAL");
-            if (!string.IsNullOrEmpty(res) && res.Contains("OK"))
+            var replyStatus = Query("LOCAL", out string reply);
+            if (replyStatus == Communicators.TextCommunicatorQueryCommandStatus.Success && reply.Contains("OK"))
             {
                 _in_REMOTE_mode = false;
                 return true;
