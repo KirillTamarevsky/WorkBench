@@ -20,7 +20,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
         internal ITextCommunicator Communicator { get; }
 
-        private CPC6000Channel ActiveChannel { get; set; } 
+        private CPC6000ChannelNumber ActiveChannelNumber { get; set; } 
 
         public CPC6000(ITextCommunicator communicator)
         {
@@ -28,6 +28,7 @@ namespace WorkBench.TestEquipment.CPC6000
             logger.Info($"CPC created for {communicator}");
             //IsOpen = false;
             Communicator = communicator;
+            ActiveChannelNumber = CPC6000ChannelNumber.Unknown;
         }
 
         public IInstrumentChannel[] Channels { get; private set; }
@@ -57,8 +58,6 @@ namespace WorkBench.TestEquipment.CPC6000
 
                 if (IsOpen) return true;
 
-                bool cpcanswered = false;
-
                 var logger = log4net.LogManager.GetLogger("CPC6000Communication");
 
                 logger.Debug($"CPC6000.Open( {Communicator} ) ");
@@ -69,44 +68,40 @@ namespace WorkBench.TestEquipment.CPC6000
 
                 if (!communicatorOpened) return false;
 
-                var answerStatus = Query("ID?", out string answer);
-
-                string[] answerParts;
-
-                if (!string.IsNullOrEmpty(answer))
-                {
-                    answerParts = answer.Split(new char[] { ',' });
-                    for (int i = 0; i < answerParts.Length; i++)
+                var answerStatus = Query("ID?", out string answer, 
+                    s =>
                     {
-                        answerParts[i] = answerParts[i].Trim();
+                        var answerparts = s.Split(new char[] { ',' });
+                        return answerparts[0].Trim().ToUpper() == "MENSOR" && answerparts[1].Trim().ToUpper() == "600";
                     }
-
-                    if (answerParts[0] == "MENSOR" && answerParts[1] == "600")
-                    {
-                        cpcanswered = true;
-                        SerialNo = answerParts[2];
-                        SwVer = answerParts[3];
-
-                        #region Setup Channels
-
-                        var CPC6000ChannelA = new CPC6000Channel_A(this);
-
-                        var CPC6000ChannelB = new CPC6000Channel_B(this);
-
-                        Channels = new IInstrumentChannel[] { CPC6000ChannelA, CPC6000ChannelB };
-
-                        #endregion
-
-                    }
-                }
-                if (!cpcanswered)
+                    );
+                if (answerStatus != TextCommunicatorQueryCommandStatus.Success)
                 {
                     log4net.LogManager.GetLogger("CPC6000Communication").Debug($"CPC000 didn't answered ");
                     log4net.LogManager.GetLogger("CPC6000Communication").Debug($"communicator close( {Communicator} ) ");
                     Communicator.Close();
+                    return false;
                 }
 
-                return cpcanswered;
+                string[] answerParts;
+
+                answerParts = answer.Split(new char[] { ',' }).Select( ap => ap.Trim()).ToArray();
+
+                SerialNo = answerParts[2];
+                SwVer = answerParts[3];
+
+                #region Setup Channels
+
+                var CPC6000ChannelA = new CPC6000Channel(this, CPC6000ChannelNumber.A);
+
+                var CPC6000ChannelB = new CPC6000Channel(this, CPC6000ChannelNumber.B);
+
+                Channels = new IInstrumentChannel[] { CPC6000ChannelA, CPC6000ChannelB };
+
+                #endregion
+
+
+                return true;
             }
         }
         public bool Close()
@@ -122,29 +117,23 @@ namespace WorkBench.TestEquipment.CPC6000
             return String.Format("{0} {1} ( {2} )", Description, Name, Communicator);
         }
 
-        internal void SetActiveChannel(CPC6000Channel cPC6000Channel)
-        {
-            if (cPC6000Channel == null) throw new Exception("null channel!");
-            if (cPC6000Channel.parentCPC6000 != this) throw new Exception("this channel is not mine");
-            if (ActiveChannel != cPC6000Channel)
-            {
-                SetActiveChannel(cPC6000Channel.ChannelNumber);
-            }
-            ActiveChannel = cPC6000Channel;
-        }
         internal void SetActiveChannel(CPC6000ChannelNumber cPC6000ChannelNumber)
         {
-            switch (cPC6000ChannelNumber) 
+            if (ActiveChannelNumber != cPC6000ChannelNumber)
             {
-                case CPC6000ChannelNumber.A:
-                    Communicator.SendLine("Chan A");
-                    break;
-                case CPC6000ChannelNumber.B:
-                    Communicator.SendLine("Chan B");
-                    break;
-                case CPC6000ChannelNumber.Baro:
-                    break;
-         
+                switch (cPC6000ChannelNumber)
+                {
+                    case CPC6000ChannelNumber.A:
+                        Communicator.SendLine("Chan A");
+                        break;
+                    case CPC6000ChannelNumber.B:
+                        Communicator.SendLine("Chan B");
+                        break;
+                    case CPC6000ChannelNumber.Baro:
+                        break;
+
+                }
+                ActiveChannelNumber = cPC6000ChannelNumber;
             }
         }
 
@@ -204,6 +193,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 finalValidationRule = (s) =>
                 {
                     bool b1 = formatValidationRule(s);
+                    s = s.TrimStart(new char[] { ' ', 'E' });
                     bool b2 = validationRule(s);
                     return b1 & b2;
                 };

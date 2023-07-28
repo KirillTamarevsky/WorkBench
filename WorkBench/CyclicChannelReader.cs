@@ -34,7 +34,10 @@ namespace WorkBench
                 while (Active)
                 {
                     var oneMeasure = InstrumentChannelSpanReader.Read(UOM);
-                    OneMeasureReaded?.Invoke(this, oneMeasure);
+                    if (oneMeasure != null)
+                    {
+                        OneMeasureReaded?.Invoke(this, oneMeasure);
+                    }
                 }
             });
 

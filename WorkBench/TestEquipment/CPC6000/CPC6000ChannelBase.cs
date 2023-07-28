@@ -14,22 +14,26 @@ using WorkBench.UOMS.Pressure;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    public abstract class CPC6000Channel : IInstrumentChannel
+    public class CPC6000Channel : IInstrumentChannel
     {
         internal CPC6000 parentCPC6000 { get; }
         internal ITextCommunicator Communicator { get => parentCPC6000.Communicator; }
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentCPC6000.Query(cmd, out answer, validationRule);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
-        private CPC6000ChannelSpan ActiveSpan { get; set; }
+        private CPC6000PressureModule ActivePressureModule { get; set; }
+        private int ActiveTurnDownNumber { get; set; }
+        private PressureType ActivePressureType { get; set; }
         internal IUOM ActiveUOM { get; private set; }
         private OneMeasure thisChannelRangeMin { get; }
         private OneMeasure thisChannelRangeMax { get; }
 
-        public abstract CPC6000ChannelNumber ChannelNumber { get; }
-        public CPC6000Channel(CPC6000 _parent)
+        public CPC6000ChannelNumber ChannelNumber { get; }
+        public CPC6000Channel(CPC6000 _parent, CPC6000ChannelNumber chanNumber)
         {
             parentCPC6000 = _parent;
+            ChannelNumber = chanNumber;
+
             parentCPC6000.SetActiveChannel(ChannelNumber);
             SetPUnit(new kPa());
             Communicator.SendLine("Outform 1");
@@ -63,8 +67,14 @@ namespace WorkBench.TestEquipment.CPC6000
                         {
                             foreach (var turdown in mod_turndowns.Skip(1))
                             {
-                                var cpc6000channelspan = new CPC6000ChannelSpan(this, modType, int.Parse(turdown), pressureType);
-                                availableSpans.Add(cpc6000channelspan);
+                                var turnDownNumber = int.Parse(turdown.Trim());
+
+                                var cpc6000channelspan = Get_new_CPC6000ChannelSpan(modType, turnDownNumber, pressureType);
+
+                                if (cpc6000channelspan != null)
+                                {
+                                    availableSpans.Add(cpc6000channelspan);
+                                }
                             }
                         }
                     }
@@ -77,6 +87,32 @@ namespace WorkBench.TestEquipment.CPC6000
 
         }
 
+        private CPC6000ChannelSpan Get_new_CPC6000ChannelSpan(CPC6000PressureModule modType, int turnDownNumber, PressureType pressureType)
+        {
+            SetActiveTurndown(modType, turnDownNumber, pressureType);
+            var unit = GetPUnit();
+            if (unit == null)
+            {
+                return null;
+            }
+            Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
+
+            var answerStatus = Query("RangeMin?", out string answer, floatValidationRule);
+            if (answerStatus != TextCommunicatorQueryCommandStatus.Success)
+            {
+                return null;
+            }
+            var RangeMin = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+
+            answerStatus = Query("RangeMax?", out answer, floatValidationRule);
+            if (answerStatus != TextCommunicatorQueryCommandStatus.Success)
+            {
+                return null;
+            }
+            var RangeMax = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+            
+            return new CPC6000ChannelSpan(this, modType, turnDownNumber, pressureType, RangeMin, RangeMax);
+        }
 
         public string Name
         {
@@ -88,28 +124,32 @@ namespace WorkBench.TestEquipment.CPC6000
                 return $"{parentCPC6000.Description} {parentCPC6000.Name} канал {NUM} {rngmin.Value}...{rngmax.Value} {ActiveUOM.Name}";
             }
         }
-        internal abstract string readPressureCommand { get; }
+
 
         public int NUM { get => (int)ChannelNumber ; }
         public override string ToString() => Name;
 
-        internal void SetActiveTurndown(CPC6000ChannelSpan cPC6000ChannelSpan)
+        internal void SetActiveTurndown(CPC6000PressureModule pressureModule, int turnDownNumber, PressureType pressureType)
         {
-            if (cPC6000ChannelSpan == null) throw new Exception();
-            if (cPC6000ChannelSpan.parentChannel != this) throw new Exception("this span is not mine!");
-            parentCPC6000.SetActiveChannel(this);
-            if (!(ActiveSpan == cPC6000ChannelSpan))
+            parentCPC6000.SetActiveChannel(ChannelNumber);
+            if (ActivePressureModule != pressureModule || ActiveTurnDownNumber != turnDownNumber )
             {
-                switch (cPC6000ChannelSpan.module)
+                switch (pressureModule)
                 {
                     case CPC6000PressureModule.Primary:
-                        Communicator.SendLine($"Sensor P,{cPC6000ChannelSpan.turndown}");
+                        Communicator.SendLine($"Sensor P,{turnDownNumber}");
                         break;
                     case CPC6000PressureModule.Secondary:
-                        Communicator.SendLine($"Sensor S,{cPC6000ChannelSpan.turndown}");
+                        Communicator.SendLine($"Sensor S,{turnDownNumber}");
                         break;
                 }
-                switch (cPC6000ChannelSpan.PressureType)
+                ActivePressureModule = pressureModule;
+                ActiveTurnDownNumber = turnDownNumber;
+                ActivePressureType = GetActivePressureType();
+            }
+            if (ActivePressureType != pressureType)
+            {
+                switch (pressureType)
                 {
                     case PressureType.Absolute:
                         Communicator.SendLine("Ptype A");
@@ -120,13 +160,40 @@ namespace WorkBench.TestEquipment.CPC6000
                     default:
                         break;
                 }
-                ActiveSpan = cPC6000ChannelSpan;
+                ActivePressureType = pressureType;
             }
+
+        }
+        internal PressureType GetActivePressureType()
+        {
+            PressureType res = PressureType.Unknown;
+
+            var validationRule = (string s) => s.Trim().ToUpper().Contains("GAUGE") | s.Trim().ToUpper().Contains("ABSOLUTE");
+            var answerStatus = Query("Ptype?", out string answer, validationRule);
+            if (answerStatus == TextCommunicatorQueryCommandStatus.Success)
+            {
+                switch (answer.Trim().ToUpper())
+                {
+                    case "GAUGE":
+                        res = PressureType.Gauge;
+                        break;
+                    case "ABSOLUTE":
+                        res = PressureType.Absolute;
+                        break;
+                }
+            }
+            return res;
         }
         internal IUOM GetPUnit()
         {
             IUOM readedUOM = null;
-            var replyStatus = Query("Units?", out string unit);
+            List<string> possibleUnits = new List<string>()
+            {
+            "PSI", "INHG 0C", "INHG 60F", "INH2O 4C", "INH2O 20C", "INH2O 60F", "FTH2O 4C", "FTH2O 20C", "FTH2O 60F", "MTORR",
+            "INSW", "FTSW", "ATM", "BAR", "MBAR", "MMH2O 4C", "CMH2O 4C", "MH2O 4C", "MMHG 0C", "CMHG 0C","TORR", "KPA", "PASCAL",
+            "DY/CM2", "GM/CM2", "KG/CM2", "MSW", "OSI", "PSF", "TSF", "UHG 0C", "TSI", "HPA", "MPA", "MMH2O 20C", "CMH2O 20C", "MH2O 20C",
+            };
+            var replyStatus = Query("Units?", out string unit, s => possibleUnits.Any( u => s.ToUpper().Contains(u)));
             if (replyStatus == TextCommunicatorQueryCommandStatus.Success)
             {
                 unit = unit.ToUpper();
@@ -189,19 +256,5 @@ namespace WorkBench.TestEquipment.CPC6000
             Communicator.SendLine($"Units {cpc6000UnitCode}");
             ActiveUOM = targetUOM;
         }
-    }
-
-    public class CPC6000Channel_A : CPC6000Channel
-    {
-        public CPC6000Channel_A(CPC6000 parent) : base(parent){}
-        public override CPC6000ChannelNumber ChannelNumber => CPC6000ChannelNumber.A;
-        internal override string readPressureCommand => "A?";
-    }
-    public class CPC6000Channel_B : CPC6000Channel
-    {
-        public CPC6000Channel_B(CPC6000 parent) : base(parent) { }
-        public override CPC6000ChannelNumber ChannelNumber => CPC6000ChannelNumber.B;
-        internal override string readPressureCommand => "B?";
-
     }
 }

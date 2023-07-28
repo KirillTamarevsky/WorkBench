@@ -41,7 +41,7 @@ namespace WorkBench.Communicators
             IWBSerialPortWrapper serialport,
             string lineEndToken,
             int timeout = 3,
-            int communicationRetries = 10)
+            int communicationRetries = 20)
         {
             _serialPort = serialport;
 

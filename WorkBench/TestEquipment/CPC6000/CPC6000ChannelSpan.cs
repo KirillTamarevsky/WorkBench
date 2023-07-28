@@ -49,22 +49,15 @@ namespace WorkBench.TestEquipment.CPC6000
                 throw new Exception();
             }
         }
-        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType)
+        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType, OneMeasure rngMin, OneMeasure rngMax)
         {
             parentChannel = _parentChannel;
             module = _module;
             turndown = _turndown;
             PressureType = pressureType;
-            parentChannel.SetActiveTurndown(this);
-            var unit = GetPUnit();
 
-            Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",","."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
-
-            var answerStatus = Query("RangeMin?", out string answer, floatValidationRule);
-            RangeMin = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
-            
-            answerStatus = Query("RangeMax?", out answer, floatValidationRule);
-            RangeMax = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
+            RangeMin = rngMin;
+            RangeMax = rngMax;
 
         }
         public PressureControllerOperationMode PressureOperationMode
@@ -77,7 +70,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     lock (Communicator)
                     {
 
-                        parentChannel.SetActiveTurndown(this);
+                        parentChannel.SetActiveTurndown(module, turndown, PressureType);
                         var answerStatus = Query("Mode?", out string answer);
                         switch (answer.ToUpper())
                         {
@@ -105,7 +98,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     lock (Communicator)
                     {
 
-                        parentChannel.SetActiveTurndown(this);
+                        parentChannel.SetActiveTurndown(module, turndown, PressureType);
                         switch (value)
                         {
                             case PressureControllerOperationMode.STANDBY:
@@ -136,7 +129,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 lock (Communicator)
                 {
 
-                    parentChannel.SetActiveTurndown(this);
+                    parentChannel.SetActiveTurndown(module, turndown, PressureType);
                     var punit = GetPUnit();
                     double setpoint = double.NaN;
                     var answerStatus = Query("Setpt?", out string answer);
@@ -153,7 +146,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 lock (Communicator)
                 {
 
-                    parentChannel.SetActiveTurndown(this);
+                    parentChannel.SetActiveTurndown(module, turndown, PressureType);
                     SetPUnit(value.UOM);
                     var setpoint_str = value.Value.ToString("E04", CultureInfo.InvariantCulture);
                     Communicator.SendLine($"Setpt {setpoint_str}");
@@ -167,7 +160,7 @@ namespace WorkBench.TestEquipment.CPC6000
             lock (Communicator)
             {
 
-                parentChannel.SetActiveTurndown(this);
+                parentChannel.SetActiveTurndown(module, turndown, PressureType);
 
                 Communicator.SendLine("Autozero");
             }
@@ -190,29 +183,44 @@ namespace WorkBench.TestEquipment.CPC6000
             return $"{parentChannel} - {Scale} {presstype}";
         }
 
+        internal string readPressureCommand => parentChannel.ChannelNumber switch
+        {
+            CPC6000ChannelNumber.A => "A?",
+            CPC6000ChannelNumber.B => "B?",
+            CPC6000ChannelNumber.Baro => "Baro?",
+            _ => throw new NotImplementedException()
+        };
+
         public OneMeasure Read(IUOM uom)
         {
+            Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
+
             lock (Communicator)
             {
 
                 if (uom.UOMType != UOMType.Pressure) throw new Exception($"not possible to read uom type {uom.Name} ");
-                parentChannel.SetActiveTurndown(this);
+                parentChannel.SetActiveTurndown(module, turndown, PressureType);
                 var unit = GetPUnit();
+                if (unit == null)
+                {
+                    return null;
+                }
                 if (unit.Factor != uom.Factor)
                 {
                     SetPUnit(uom);
                     unit = GetPUnit();
+                    if (unit == null)
+                    {
+                        return null;
+                    }
                 }
-                var replyStatus = Query(parentChannel.readPressureCommand, out string reply);
-                reply = reply.Trim().Replace(",", ".");
-                var pressureValue = double.NaN;
-                if (!double.TryParse(reply, NumberStyles.Float, CultureInfo.InvariantCulture, out pressureValue))
+                var replyStatus = Query(readPressureCommand, out string reply, floatValidationRule);
+                if (replyStatus == TextCommunicatorQueryCommandStatus.Success)
                 {
-                    replyStatus = Query(parentChannel.readPressureCommand, out reply);
-                    reply = reply.Trim().Replace(",", ".");
-                    double.TryParse(reply, NumberStyles.Float, CultureInfo.InvariantCulture, out pressureValue);
+                    var pressureValue = double.Parse(reply.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return new OneMeasure(pressureValue, unit);
                 }
-                return new OneMeasure(pressureValue, unit);
+                return null;
             }
         }
 

@@ -227,12 +227,16 @@ namespace WorkBench.TestEquipment.CPC6000
                 default:
                     break;
             }
-            if (random.Next(100) > 40)
+            if (random.Next(100) > 30)
             {
                 answer = string.Empty;
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                answer = new string(Enumerable.Repeat(chars, 20)
+                answer = new string(Enumerable.Repeat(chars, 10)
                     .Select(s => s[random.Next(s.Length)]).ToArray());
+            }
+            if (random.Next(100) > 30)
+            {
+                answer = string.Empty;
             }
             answer += _serialPortLineEndToken;
             foreach (byte item in answer.ToCharArray())
