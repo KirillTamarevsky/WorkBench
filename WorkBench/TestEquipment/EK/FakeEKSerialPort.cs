@@ -17,6 +17,8 @@ namespace WorkBench.TestEquipment.EK
     {
         log4net.ILog logger = log4net.LogManager.GetLogger("Communication");
 
+        Random random { get; }
+
         bool isopened;
 
         string _serialPortName;
@@ -39,6 +41,8 @@ namespace WorkBench.TestEquipment.EK
             _stopBits = stopBits;
 
             _serialPortLineEndToken = "\r\n";
+
+            random = new Random();
         }
         public event SerialDataReceivedEventHandler DataReceived;
         void RaiseDataReceived()
@@ -70,6 +74,8 @@ namespace WorkBench.TestEquipment.EK
         public Stream BaseStream => throw new NotImplementedException();
         internal int _timeout;
         public int ReadTimeout { get => _timeout; set => _timeout = value; }
+
+        int activeChannel { get; set; } = 1;
         public void Write(string str)
         {
             str = str.TrimEnd(new char[] { '\r', '\n' });
@@ -84,18 +90,24 @@ namespace WorkBench.TestEquipment.EK
                     answer = "L";
                     break;
                 case "TCURR?":
-                    answer = (new Random().NextDouble() * 16.9 + 3.5).ToString("N4");
+                    answer = (new Random().NextDouble() * 1 + activeChannel - .5).ToString("N4");
                     break;
                 case "CURR?":
                     //prevValue += (new System.Random()).NextDouble() * 0.0016;
                     //answer = prevValue.ToString("N4");
-                    answer = (new Random().NextDouble() * 0.009 + 13.5).ToString("N4");
+                    answer = (new Random().NextDouble() * 1 + activeChannel - .5 + 10).ToString("N4");
                     break;
                 case "CHAN 1":
                     answer = "1";
+                    activeChannel = 1;
                     break;
                 case "CHAN 2":
                     answer = "2";
+                    activeChannel = 2;
+                    break;
+                case "CHAN 3":
+                    answer = "3";
+                    activeChannel = 3;
                     break;
                 default:
                     break;
@@ -105,6 +117,11 @@ namespace WorkBench.TestEquipment.EK
                     "Readline = {0} | {1}",
                     answer.Replace("\r", "\\r").Replace("\n", "\\n"),
                     BitConverter.ToString(Encoding.ASCII.GetBytes(answer))));
+
+            if (random.Next(100) > 40)
+            {
+                answer = string.Empty;
+            }
 
             answer += _serialPortLineEndToken;
             foreach (byte item in answer.ToCharArray())

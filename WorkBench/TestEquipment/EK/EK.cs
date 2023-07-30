@@ -75,8 +75,6 @@ namespace WorkBench.TestEquipment.EK
             if (!_in_REMOTE_mode)
             {
 
-                bool ekanswered = false;
-
                 var logger = log4net.LogManager.GetLogger("Communication");
 
                 logger.Debug(string.Format("EK.Open( {0} ) ", Communicator.ToString()));
@@ -87,22 +85,23 @@ namespace WorkBench.TestEquipment.EK
 
                 if (communicatorOpened)
                 {
-                    var answerStatus = Query("REMOTE", out string answer);
+                    var validationRule = (string s) => s.Trim().ToUpper() == "R";
+                    var answerStatus = Query("REMOTE", out string answer, validationRule);
 
-                    ekanswered = answer == "R";
-
-                    if (ekanswered)
+                    if (answerStatus == TextCommunicatorQueryCommandStatus.Success)
                     {
                         _in_REMOTE_mode = true; // если пришел ответ, то прибор першел в режим удаленной работы. необходимо перевести в локальный режим по окончании сеанса связи
                         SetActiveChannel(EKchanNum._1);
+                        return true;
                     }
                     else
                     {
                         log4net.LogManager.GetLogger("Communication").Debug("communicator close() " + Communicator.ToString());
                         Communicator.Close();
+                        return false;
                     }
                 }
-                return ekanswered;
+                return false;
             }
             return Communicator.IsOpen;
         }
@@ -121,10 +120,21 @@ namespace WorkBench.TestEquipment.EK
             
             return Communicator.Close();
         }
-        internal TextCommunicatorQueryCommandStatus Query (string cmd, out string answer)
+
+        public TextCommunicatorQueryCommandStatus Query(string cmd, out string answer)
         {
-            return Communicator.QueryCommand(cmd, out answer, null);
+            return Query(cmd, out answer, null);
         }
+
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule)
+        {
+            var answerStatus = Communicator.QueryCommand(cmd, out answer, validationRule);
+
+            answer = answer.Trim();
+
+            return answerStatus;
+        }
+
         public void Dispose() => Close();
 
         public override string ToString() => $"{Description} {Name}({Communicator})";

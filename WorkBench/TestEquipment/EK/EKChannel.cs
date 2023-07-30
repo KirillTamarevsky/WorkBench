@@ -47,5 +47,6 @@ namespace WorkBench.TestEquipment.EK
         }
 
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => ParentEK.Query(cmd, out answer);
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => ParentEK.Query(cmd, out answer, validationRule);
     }
 }

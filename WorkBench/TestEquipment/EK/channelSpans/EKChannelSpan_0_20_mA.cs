@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -17,7 +18,7 @@ namespace WorkBench.TestEquipment.EK.channelSpans
 {
     public class EKChannelSpan_0_20_mA : IInstrumentChannelSpanReader
     {
-        private OneMeasure LastValue { get; set; }
+        private OneMeasure? LastReadedValue { get; set; }
 
         public EKChannel parentChannel { get; }
 
@@ -27,9 +28,10 @@ namespace WorkBench.TestEquipment.EK.channelSpans
         {
             parentChannel = parent;
             Scale = new Scale(0, 20, new mA());
-            LastValue = new OneMeasure(0, new mA());
+            LastReadedValue = null; // new OneMeasure(0, new mA());
         }
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentChannel.Query(cmd, out answer);
+        internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentChannel.Query(cmd, out answer, validationRule);
         private bool readingnow;
         public OneMeasure Read(IUOM uom)
         {
@@ -52,14 +54,25 @@ namespace WorkBench.TestEquipment.EK.channelSpans
                     //Ответ: 2.0501
                     //
                     //TODO добавить проверку ответа на ERROR
-                    var ekReplyStatus = Query("CURR?", out string ekReply);
-                    double.TryParse(ekReply.Replace(".", ","), out double result);
+                    var validationRule = (string s) =>
+                    {
+                        return double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+                    };
+                    var ekReplyStatus = Query("CURR?", out string ekReply, validationRule);
+                    if (ekReplyStatus == TextCommunicatorQueryCommandStatus.Success)
+                    {
+                        var result = double.Parse(ekReply.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
+                        LastReadedValue = new OneMeasure(result, new mA(), DateTime.Now);
+                    }
+                    else
+                    {
+                        LastReadedValue = null;
+                    }
                     
-                    LastValue = new OneMeasure(result, new mA(), DateTime.Now);
                     readingnow = false;
                 }
             }
-            return LastValue;
+            return LastReadedValue;
         }
 
         public override string ToString()
