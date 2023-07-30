@@ -99,7 +99,7 @@ namespace benchGUI
             {
                 foreach (DataGridViewRow item in dataGridView1.Rows)
                 {
-                    item.Cells["calcPressure"].Value = ((pressureScaleMax - pressureScaleMin) * ((double)(item.Cells["percent"].Value)) / (double)100 + pressureScaleMin).ToString("N4");
+                    item.Cells["calcPressure"].Value = ((pressureScaleMax - pressureScaleMin) * ((double)(item.Cells["percent"].Value)) / (double)100 + pressureScaleMin).ToString("0.0000");
                 }
 
 
