@@ -21,9 +21,11 @@ namespace WorkBench.TestEquipment.CPC6000
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentCPC6000.Query(cmd, out answer, validationRule);
         public IInstrumentChannelSpan[] AvailableSpans { get; }
-        private CPC6000PressureModule ActivePressureModule { get; set; }
-        private int ActiveTurnDownNumber { get; set; }
-        private PressureType ActivePressureType { get; set; }
+        
+        private CPC6000PressureModule? ActivePressureModule { get; set; }
+        private int? ActiveTurnDownNumber { get; set; }
+        private PressureType? ActivePressureType { get; set; }
+
         internal IUOM ActiveUOM { get; private set; }
         private OneMeasure thisChannelRangeMin { get; }
         private OneMeasure thisChannelRangeMax { get; }
@@ -35,21 +37,21 @@ namespace WorkBench.TestEquipment.CPC6000
             ChannelNumber = chanNumber;
 
             parentCPC6000.SetActiveChannel(ChannelNumber);
-            SetPUnit(new kPa());
+            //SetPUnit(new kPa());
             Communicator.SendLine("Outform 1");
-            List<CPC6000ChannelSpan> availableSpans = new List<CPC6000ChannelSpan>();
+            List<CPC6000ChannelTurnDown> availableSpans = new List<CPC6000ChannelTurnDown>();
             foreach (var pressureType in new List<PressureType>() { PressureType.Absolute, PressureType.Gauge })
             {
-                var command = pressureType switch { PressureType.Gauge => "Ptype G", PressureType.Absolute => "Ptype A" };
-                var expectedResponse = pressureType switch { PressureType.Gauge => "GAUGE", PressureType.Absolute => "ABSOLUTE" };
-                Communicator.SendLine(command);
-                var answerStatus = Query("Ptype?", out string answer);
-                if (answer.Trim().ToUpper() == expectedResponse)
+                SetActivePressureType(pressureType);
+                var activePressureType = GetActivePressureType();
+
+                if (activePressureType == pressureType)
                 {
                     Func<string, bool> validationRule = (s) =>
                     {
                         return s.ToUpper().Contains("PRI");
                     };
+
                     var replyStatus = Query("List?", out string existingTurnDowns, validationRule);
                     existingTurnDowns = existingTurnDowns.Trim();
                     var modules = existingTurnDowns.Split(";");
@@ -81,13 +83,13 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
             }
             AvailableSpans = availableSpans.ToArray();
-            
+
             thisChannelRangeMin = availableSpans.OrderBy(sp => sp.RangeMin.Value).First().RangeMin;
             thisChannelRangeMax = availableSpans.OrderByDescending(sp => sp.RangeMax.Value).First().RangeMax;
 
         }
 
-        private CPC6000ChannelSpan Get_new_CPC6000ChannelSpan(CPC6000PressureModule modType, int turnDownNumber, PressureType pressureType)
+        private CPC6000ChannelTurnDown Get_new_CPC6000ChannelSpan(CPC6000PressureModule modType, int turnDownNumber, PressureType pressureType)
         {
             SetActiveTurndown(modType, turnDownNumber, pressureType);
             var unit = GetPUnit();
@@ -110,8 +112,8 @@ namespace WorkBench.TestEquipment.CPC6000
                 return null;
             }
             var RangeMax = new OneMeasure(double.Parse(answer.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture), unit);
-            
-            return new CPC6000ChannelSpan(this, modType, turnDownNumber, pressureType, RangeMin, RangeMax);
+
+            return new CPC6000ChannelTurnDown(this, modType, turnDownNumber, pressureType, RangeMin, RangeMax);
         }
 
         public string Name
@@ -126,14 +128,25 @@ namespace WorkBench.TestEquipment.CPC6000
         }
 
 
-        public int NUM { get => (int)ChannelNumber ; }
+        public int NUM { get => (int)ChannelNumber; }
         public override string ToString() => Name;
 
-        internal void SetActiveTurndown(CPC6000PressureModule pressureModule, int turnDownNumber, PressureType pressureType)
+        internal void SetActiveTurndown(CPC6000ChannelTurnDown td)
         {
-            parentCPC6000.SetActiveChannel(ChannelNumber);
-            if (ActivePressureModule != pressureModule || ActiveTurnDownNumber != turnDownNumber )
+            if (td == null || td.parentChannel != this)
             {
+                return;
+            }
+
+            SetActiveTurndown(td.module, td.turndown, td.PressureType);
+            
+        }
+        private void SetActiveTurndown(CPC6000PressureModule pressureModule, int turnDownNumber, PressureType pressureType)
+        {
+            if ( ActivePressureModule == null || ActivePressureModule != pressureModule || ActiveTurnDownNumber == null || ActiveTurnDownNumber != turnDownNumber)
+            {
+                parentCPC6000.SetActiveChannel(ChannelNumber);
+
                 switch (pressureModule)
                 {
                     case CPC6000PressureModule.Primary:
@@ -145,27 +158,14 @@ namespace WorkBench.TestEquipment.CPC6000
                 }
                 ActivePressureModule = pressureModule;
                 ActiveTurnDownNumber = turnDownNumber;
-                ActivePressureType = GetActivePressureType();
             }
-            if (ActivePressureType != pressureType)
-            {
-                switch (pressureType)
-                {
-                    case PressureType.Absolute:
-                        Communicator.SendLine("Ptype A");
-                        break;
-                    case PressureType.Gauge:
-                        Communicator.SendLine("Ptype G");
-                        break;
-                    default:
-                        break;
-                }
-                ActivePressureType = pressureType;
-            }
-
+            SetActivePressureType(pressureType);
         }
+
         internal PressureType GetActivePressureType()
         {
+            parentCPC6000.SetActiveChannel(ChannelNumber);
+
             PressureType res = PressureType.Unknown;
 
             var validationRule = (string s) => s.Trim().ToUpper().Contains("GAUGE") | s.Trim().ToUpper().Contains("ABSOLUTE");
@@ -184,8 +184,31 @@ namespace WorkBench.TestEquipment.CPC6000
             }
             return res;
         }
+        internal void SetActivePressureType(PressureType pressureType)
+        {
+            parentCPC6000.SetActiveChannel(ChannelNumber);
+
+            if (ActivePressureType == null || ActivePressureType != pressureType)
+            {
+                switch (pressureType)
+                {
+                    case PressureType.Absolute:
+                        Communicator.SendLine("Ptype A");
+                        break;
+                    case PressureType.Gauge:
+                        Communicator.SendLine("Ptype G");
+                        break;
+                    default:
+                        break;
+                }
+
+                ActivePressureType = pressureType;
+            }
+        }
         internal IUOM GetPUnit()
         {
+            parentCPC6000.SetActiveChannel(ChannelNumber);
+
             IUOM readedUOM = null;
             List<string> possibleUnits = new List<string>()
             {
@@ -244,6 +267,8 @@ namespace WorkBench.TestEquipment.CPC6000
         }
         internal void SetPUnit(IUOM targetUOM)
         {
+            parentCPC6000.SetActiveChannel(ChannelNumber);
+
             var cpc6000UnitCode = targetUOM.Name;
             if (targetUOM.GetType() == typeof(Kgfcmsq))
             {

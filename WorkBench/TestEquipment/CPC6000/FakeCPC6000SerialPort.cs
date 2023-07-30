@@ -148,11 +148,11 @@ namespace WorkBench.TestEquipment.CPC6000
 
                     break;
                 case "A?":
-                    //Thread.Sleep(5);
+                    Thread.Sleep(500);
                     answer = $" {random.NextDouble() / 10 + 5:N4}";
                     break;
                 case "B?":
-                    //Thread.Sleep(500);
+                    Thread.Sleep(500);
                     answer = $" {random.NextDouble() * 35 + 35:N4}";
                     break;
                 case "Setpt?":
@@ -227,14 +227,14 @@ namespace WorkBench.TestEquipment.CPC6000
                 default:
                     break;
             }
-            if (random.Next(100) > 30)
+            if (random.Next(100) > 99)
             {
                 answer = string.Empty;
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                 answer = new string(Enumerable.Repeat(chars, 10)
                     .Select(s => s[random.Next(s.Length)]).ToArray());
             }
-            if (random.Next(100) > 30)
+            if (random.Next(100) > 99)
             {
                 answer = string.Empty;
             }

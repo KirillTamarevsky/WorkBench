@@ -11,11 +11,14 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Globalization;
 using log4net.Util;
 using WorkBench.Communicators;
+using log4net;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    internal class CPC6000ChannelSpan : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader
+    internal class CPC6000ChannelTurnDown : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader
     {
+        readonly ILog logger = LogManager.GetLogger("Communication");
+
         internal CPC6000Channel parentChannel { get; }
         private ITextCommunicator Communicator => parentChannel.Communicator;
         internal CPC6000PressureModule module { get; }
@@ -49,7 +52,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 throw new Exception();
             }
         }
-        public CPC6000ChannelSpan(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType, OneMeasure rngMin, OneMeasure rngMax)
+        public CPC6000ChannelTurnDown(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType, OneMeasure rngMin, OneMeasure rngMax)
         {
             parentChannel = _parentChannel;
             module = _module;
@@ -70,7 +73,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     lock (Communicator)
                     {
 
-                        parentChannel.SetActiveTurndown(module, turndown, PressureType);
+                        parentChannel.SetActiveTurndown(this);
                         var answerStatus = Query("Mode?", out string answer);
                         switch (answer.ToUpper())
                         {
@@ -98,7 +101,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     lock (Communicator)
                     {
 
-                        parentChannel.SetActiveTurndown(module, turndown, PressureType);
+                        parentChannel.SetActiveTurndown(this);
                         switch (value)
                         {
                             case PressureControllerOperationMode.STANDBY:
@@ -129,7 +132,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 lock (Communicator)
                 {
 
-                    parentChannel.SetActiveTurndown(module, turndown, PressureType);
+                    parentChannel.SetActiveTurndown(this);
                     var punit = GetPUnit();
                     double setpoint = double.NaN;
                     var answerStatus = Query("Setpt?", out string answer);
@@ -146,7 +149,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 lock (Communicator)
                 {
 
-                    parentChannel.SetActiveTurndown(module, turndown, PressureType);
+                    parentChannel.SetActiveTurndown(this);
                     SetPUnit(value.UOM);
                     var setpoint_str = value.Value.ToString("E04", CultureInfo.InvariantCulture);
                     Communicator.SendLine($"Setpt {setpoint_str}");
@@ -160,7 +163,7 @@ namespace WorkBench.TestEquipment.CPC6000
             lock (Communicator)
             {
 
-                parentChannel.SetActiveTurndown(module, turndown, PressureType);
+                parentChannel.SetActiveTurndown(this);
 
                 Communicator.SendLine("Autozero");
             }
@@ -193,13 +196,14 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public OneMeasure Read(IUOM uom)
         {
+            logger.Info($"{this.parentChannel.ChannelNumber}{this.module}{this.turndown}{this.PressureType}");
             Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
 
             lock (Communicator)
             {
 
                 if (uom.UOMType != UOMType.Pressure) throw new Exception($"not possible to read uom type {uom.Name} ");
-                parentChannel.SetActiveTurndown(module, turndown, PressureType);
+                parentChannel.SetActiveTurndown(this);
                 var unit = GetPUnit();
                 if (unit == null)
                 {
