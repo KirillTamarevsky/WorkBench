@@ -52,7 +52,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 throw new Exception();
             }
         }
-        public CPC6000ChannelTurnDown(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType, OneMeasure rngMin, OneMeasure rngMax)
+        internal CPC6000ChannelTurnDown(CPC6000Channel _parentChannel, CPC6000PressureModule _module, int _turndown, PressureType pressureType, OneMeasure rngMin, OneMeasure rngMax)
         {
             parentChannel = _parentChannel;
             module = _module;

@@ -227,14 +227,14 @@ namespace WorkBench.TestEquipment.CPC6000
                 default:
                     break;
             }
-            if (random.Next(100) > 99)
+            if (random.Next(100) > 40)
             {
                 answer = string.Empty;
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                 answer = new string(Enumerable.Repeat(chars, 10)
                     .Select(s => s[random.Next(s.Length)]).ToArray());
             }
-            if (random.Next(100) > 99)
+            if (random.Next(100) > 60)
             {
                 answer = string.Empty;
             }
@@ -258,10 +258,10 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public int ReadByte()
         {
-            //if (random.NextDouble() > 0.98)
-            //{
-            //    throw new TimeoutException();
-            //}
+            if (random.Next(100) > 95)
+            {
+                throw new TimeoutException();
+            }
             return answerBytesQueue.Dequeue();
         }
 

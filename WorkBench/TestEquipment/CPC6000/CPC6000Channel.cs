@@ -17,28 +17,28 @@ namespace WorkBench.TestEquipment.CPC6000
     public class CPC6000Channel : IInstrumentChannel
     {
         internal CPC6000 parentCPC6000 { get; }
+        public CPC6000ChannelNumber ChannelNumber { get; }
+        public IInstrumentChannelSpan[] AvailableSpans { get; }
+        
         internal ITextCommunicator Communicator { get => parentCPC6000.Communicator; }
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentCPC6000.Query(cmd, out answer, validationRule);
-        public IInstrumentChannelSpan[] AvailableSpans { get; }
         
         private CPC6000PressureModule? ActivePressureModule { get; set; }
         private int? ActiveTurnDownNumber { get; set; }
         private PressureType? ActivePressureType { get; set; }
-
         internal IUOM ActiveUOM { get; private set; }
+
         private OneMeasure thisChannelRangeMin { get; }
         private OneMeasure thisChannelRangeMax { get; }
 
-        public CPC6000ChannelNumber ChannelNumber { get; }
         public CPC6000Channel(CPC6000 _parent, CPC6000ChannelNumber chanNumber)
         {
             parentCPC6000 = _parent;
             ChannelNumber = chanNumber;
-
-            parentCPC6000.SetActiveChannel(ChannelNumber);
+            parentCPC6000.SetActiveChannel(chanNumber);
             //SetPUnit(new kPa());
-            Communicator.SendLine("Outform 1");
+            parentCPC6000.Communicator.SendLine("Outform 1");
             List<CPC6000ChannelTurnDown> availableSpans = new List<CPC6000ChannelTurnDown>();
             foreach (var pressureType in new List<PressureType>() { PressureType.Absolute, PressureType.Gauge })
             {
@@ -86,7 +86,18 @@ namespace WorkBench.TestEquipment.CPC6000
 
             thisChannelRangeMin = availableSpans.OrderBy(sp => sp.RangeMin.Value).First().RangeMin;
             thisChannelRangeMax = availableSpans.OrderByDescending(sp => sp.RangeMax.Value).First().RangeMax;
-
+        }
+        internal static CPC6000Channel GetCPC6000Channel(CPC6000 _parentCPC6000, CPC6000ChannelNumber chanNumber)
+        {
+            try
+            {
+                var cpc6000Channel = new CPC6000Channel(_parentCPC6000, chanNumber);
+                return cpc6000Channel;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         private CPC6000ChannelTurnDown Get_new_CPC6000ChannelSpan(CPC6000PressureModule modType, int turnDownNumber, PressureType pressureType)

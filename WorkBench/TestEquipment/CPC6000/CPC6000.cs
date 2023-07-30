@@ -54,11 +54,9 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             lock (Communicator)
             {
-
-
                 if (IsOpen) return true;
 
-                var logger = log4net.LogManager.GetLogger("CPC6000Communication");
+                //var logger = log4net.LogManager.GetLogger("CPC6000Communication");
 
                 logger.Debug($"CPC6000.Open( {Communicator} ) ");
 
@@ -92,14 +90,19 @@ namespace WorkBench.TestEquipment.CPC6000
 
                 #region Setup Channels
 
-                var CPC6000ChannelA = new CPC6000Channel(this, CPC6000ChannelNumber.A);
+                var CPC6000ChannelA = CPC6000Channel.GetCPC6000Channel(this, CPC6000ChannelNumber.A);
 
-                var CPC6000ChannelB = new CPC6000Channel(this, CPC6000ChannelNumber.B);
+                var CPC6000ChannelB = CPC6000Channel.GetCPC6000Channel(this, CPC6000ChannelNumber.B);
 
-                Channels = new IInstrumentChannel[] { CPC6000ChannelA, CPC6000ChannelB };
+                Channels = (new IInstrumentChannel[] { CPC6000ChannelA, CPC6000ChannelB }).Where(c => c!= null).ToArray();
+
+                if (!Channels.Any())
+                {
+                    Communicator.Close();
+                    return false;
+                }
 
                 #endregion
-
 
                 return true;
             }
