@@ -289,6 +289,10 @@ namespace WorkBench.TestEquipment.CPC6000
             {
                 cpc6000UnitCode = "MMH2O 4C";
             }
+            if (targetUOM.Name.ToUpper().Trim() == "PA")
+            {
+                cpc6000UnitCode = "PASCAL";
+            }
             Communicator.SendLine($"Units {cpc6000UnitCode}");
             ActiveUOM = targetUOM;
         }
