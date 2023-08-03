@@ -90,12 +90,12 @@ namespace WorkBench.TestEquipment.EK
                     answer = "L";
                     break;
                 case "TCURR?":
-                    answer = (new Random().NextDouble() * 1 + activeChannel - .5).ToString("N4");
+                    answer = (new Random().NextDouble() * 0.1 + activeChannel - .1).ToString("N4");
                     break;
                 case "CURR?":
                     //prevValue += (new System.Random()).NextDouble() * 0.0016;
                     //answer = prevValue.ToString("N4");
-                    answer = (new Random().NextDouble() * 1 + activeChannel - .5 + 10).ToString("N4");
+                    answer = (new Random().NextDouble() * 0.1 + activeChannel - .05 + 10).ToString("N4");
                     break;
                 case "CHAN 1":
                     answer = "1";

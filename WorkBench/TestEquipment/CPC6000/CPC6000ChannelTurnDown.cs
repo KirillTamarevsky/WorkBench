@@ -28,11 +28,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
         private IUOM GetPUnit()
         {
-            IUOM uom = null;
-            while (uom == null)
-            {
-                uom = parentChannel.GetPUnit();
-            }
+            var uom = parentChannel.GetPUnit();
             return uom;
 
         }

@@ -191,7 +191,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
 
                 case "Units":
-                    _currentUOM = cmdparts[1].Trim();
+                    _currentUOM = $" {cmdparts[1].Trim()}";
                     break;
                 case "Setpt":
                     _setpt = cmdparts[1].Trim();
