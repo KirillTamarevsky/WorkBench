@@ -194,11 +194,11 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             logger.Info($"{this.parentChannel.ChannelNumber}{this.module}{this.turndown}{this.PressureType}");
             Func<string, bool> floatValidationRule = (s) => double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out double _);
-
+            
+            if (uom.UOMType != UOMType.Pressure) return null;
+            
             lock (Communicator)
             {
-
-                if (uom.UOMType != UOMType.Pressure) throw new Exception($"not possible to read uom type {uom.Name} ");
                 parentChannel.SetActiveTurndown(this);
                 var unit = GetPUnit();
                 if (unit == null)
