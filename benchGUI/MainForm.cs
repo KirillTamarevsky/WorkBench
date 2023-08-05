@@ -238,33 +238,22 @@ namespace benchGUI
         private ScatterPlot resultScatter { get; set; }
         void StartAutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
-            AutoCalibrationTask = Task.Run(() =>
-            {
-                if (
-                ((double.TryParse(tbScaleMin.Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out pressureScaleMin)
-                    &
-                double.TryParse(tbScaleMax.Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out pressureScaleMax)))
+            if (
+            double.TryParse(tbScaleMin.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out pressureScaleMin)
+                &&
+            double.TryParse(tbScaleMax.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out pressureScaleMax)
                 && startedEK && startedCPC
-                )
+            )
+            {
+                currentChartDiscrepancy = 0.1;
+                plot_result.Plot.Clear();
+                plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
+                AutoCalibrationTask = Task.Run(() =>
                 {
-                    InvokeControlAction( () =>
-                        {
-                            currentChartDiscrepancy = 0.1;
-                            plot_result.Plot.Clear();
-                            plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
-                        }
-                    );
-
                     do
                     {
                         // add new scatter to plot
-                        InvokeControlAction( () =>
+                        InvokeControlAction(() =>
                         {
                             chart_result_Xs = new double[dataGridView1.Rows.Count];
                             for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
@@ -294,6 +283,7 @@ namespace benchGUI
                         //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
 
                         pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.CONTROL;
+                        
                         ReadPressureInstrumentOperationModeToRadioButtons();
 
                         while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } // { Application.DoEvents(); }
@@ -322,7 +312,7 @@ namespace benchGUI
                                     item.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToString("N4");
                                     var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
                                     item.Cells[error.Name].Value = discrepancy.ToString("N4");
-                                    InvokeControlAction( () =>
+                                    InvokeControlAction(() =>
                                     {
                                         chart_result_Xs[item.Index] = item.Index + 1;
                                         chart_result_Ys[item.Index] = discrepancy;
@@ -339,29 +329,27 @@ namespace benchGUI
                         }
                         if (nUD_CalibrationCyclesCount.Value > nUD_CalibrationCyclesCount.Minimum)
                         {
-                            InvokeControlAction( () => nUD_CalibrationCyclesCount.Value--);
+                            InvokeControlAction(() => nUD_CalibrationCyclesCount.Value--);
 
                         }
                     } while (nUD_CalibrationCyclesCount.Value - 1 >= nUD_CalibrationCyclesCount.Minimum);
-                    
+
                     if (!cancellationToken.IsCancellationRequested && pressureGeneratorSpan != null)
                     {
                         pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
 
-                        while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } 
+                        while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { }
 
                         pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.VENT;
 
                         ReadPressureInstrumentOperationModeToRadioButtons();
                     }
-
-                }
-                InvokeControlAction( () => btnStartAutoCal.Text = "Старт");
-                InvokeControlAction( () => btnStartAutoCal.Enabled = true);
+                    InvokeControlAction(() => btnStartAutoCal.Text = "Старт");
+                    InvokeControlAction(() => btnStartAutoCal.Enabled = true);
 
 
-            });
-
+                });
+            }
         }
 
         void fillMeasuresChart()

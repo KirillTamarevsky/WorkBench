@@ -110,7 +110,7 @@ namespace WorkBench.TestEquipment.CPC6000
             switch (first)
             {
                 case "ID?":
-                    Thread.Sleep(250);
+                    Thread.Sleep(2);
                     answer = "EMENSOR, 600, 12345, 666";
                     break;
                 case "RangeMin?":
