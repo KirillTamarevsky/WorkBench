@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WorkBench;
@@ -29,9 +30,6 @@ namespace benchGUI
 
         private IInstrumentChannelSpanPressureGenerator pressureGeneratorSpan { get; set; }
 
-        private CyclicChannelSpanReader PressureChannelSpanCyclicReader { get; set; }
-
-
         private double pressureScaleMin;
 
         private double pressureScaleMax;
@@ -51,19 +49,19 @@ namespace benchGUI
                     { 
                         if ( PressureInstrument.Open())
                         {
-                            InvokeControlAction(this, () =>
+                            InvokeControlAction( () =>
                             {
                                 PressureInstrument_start();
                             });
                         }
                         else
                         {
-                            InvokeControlAction(this, () =>
+                            InvokeControlAction( () =>
                             {
                                 lbl_cpcStatus.Text = "нет связи";
                             });
                         }
-                        InvokeControlAction(this, () => btn_openPressureInstrument.Enabled = true);
+                        InvokeControlAction( () => btn_openPressureInstrument.Enabled = true);
                     });
 
                     break;
@@ -93,24 +91,18 @@ namespace benchGUI
 
             cb_cpcChannels.Items.Clear();
 
-
             foreach (var item in PressureInstrument.Channels)
             {
-
                 cb_cpcChannels.Items.Add(item);
-                
             }
 
             if (cb_cpcChannels.Items.Count > 0)
             {
                 cb_cpcChannels.SelectedIndex = 0;
-
-
             }
 
             btn_openPressureInstrument.Text = "Разорвать связь";
             //*************************************************************
-
 
             btn_setSetPoint.Enabled = true;
             btn_StepUp.Enabled = true;
@@ -122,8 +114,6 @@ namespace benchGUI
             tb_pressureMicroStep.Enabled = true;
             tb_newSetPoint.Enabled = true;
             cb_cpcChannels.Enabled = true;
-
-
         }
 
         private void PressureInstrument_stop()
@@ -398,24 +388,31 @@ namespace benchGUI
             StartPressureCyclicRead();
         }
 
+        CancellationTokenSource PressureCyclicReadingCTS { get; set; }
         private void StartPressureCyclicRead()
         {
             if (pressureReaderSpan!=null && selectedPressureUOM.UOMType == UOMType.Pressure)
             {
-                PressureChannelSpanCyclicReader = new CyclicChannelSpanReader(pressureReaderSpan, selectedPressureUOM);
-                PressureChannelSpanCyclicReader.OneMeasureReaded += OnOnePressureMeasureReaded;
-                PressureChannelSpanCyclicReader.Start();
+                PressureCyclicReadingCTS = new CancellationTokenSource();
+                var token = PressureCyclicReadingCTS.Token;
+                Task.Run(
+                    () =>
+                    {
+                        while (!token.IsCancellationRequested)
+                        {
+                            var PressureOneMeasure = pressureReaderSpan.Read(selectedPressureUOM);
+                            if (PressureOneMeasure != null && !token.IsCancellationRequested)
+                                OnOnePressureMeasureReaded(null, PressureOneMeasure);
+                        }
+                    });
             }
         }
 
         private void StopPressureCyclicRead()
         {
-            if (PressureChannelSpanCyclicReader != null)
-            {
-                PressureChannelSpanCyclicReader.OneMeasureReaded -= OnOnePressureMeasureReaded;
-                PressureChannelSpanCyclicReader.Stop();
-                PressureChannelSpanCyclicReader = null;
-            }
+            PressureCyclicReadingCTS?.Cancel();
+            PressureCyclicReadingCTS?.Dispose();
+            PressureCyclicReadingCTS = null;
         }
         
         private void OnOnePressureMeasureReaded(object sender, OneMeasure onemeasure)

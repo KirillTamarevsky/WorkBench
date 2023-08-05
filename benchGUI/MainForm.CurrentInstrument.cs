@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WorkBench;
@@ -19,46 +21,28 @@ namespace benchGUI
 
         StabilityCalculator currentStabilityCalc;
 
-
         IInstrument CurrentMeasuringInstrument;
 
         private bool startedEK => CurrentMeasuringInstrument != null && CurrentMeasuringInstrument.IsOpen;
 
-        private IInstrumentChannelSpanReader currentReaderSpan;
-
-        private CyclicChannelSpanReader CurrentChannelSpanCyclicReader;
+        private IInstrumentChannelSpanReader currentReaderSpan { get; set; }
 
         private void btn_openCurrentMeasureInstrument_Click(object sender, EventArgs e)
         {
+            btn_openCurrentMeasureInstrument.Enabled = false;
             switch (startedEK)
             {
                 case false:
                     CurrentMeasuringInstrument = (IInstrument)cb_CurrentMeasuringInstruments.SelectedItem;
-                    if (CurrentMeasuringInstrument.Open())
+
+                    Task.Run(() =>
                     {
-                        //для обновления информации, считанной из прибора, например, серийный номер
-                        cb_CurrentMeasuringInstruments.Items.Remove(CurrentMeasuringInstrument);
-                        cb_CurrentMeasuringInstruments.Items.Add(CurrentMeasuringInstrument);
-                        cb_CurrentMeasuringInstruments.SelectedItem = CurrentMeasuringInstrument;
-
-                        btn_openCurrentMeasureInstrument.Text = "Разорвать связь";
-                        btn_openCurrentMeasureInstrument.BackColor = Color.LightYellow;
-                        cb_CurrentInstrumentChannels.Items.Clear();
-                        cb_CurrentInstrumentChannels.Items.AddRange( CurrentMeasuringInstrument.Channels );
-
-                        if (cb_CurrentInstrumentChannels.Items.Count > 0)
+                        if (CurrentMeasuringInstrument.Open())
                         {
-                            cb_CurrentInstrumentChannels.SelectedIndex = 0;
-                            if (cb_CurrentInstrumentChannels.Items.Count > 1)
-                            {
-                                cb_CurrentInstrumentChannels.Enabled = true;
-                            }
-                            else
-                            {
-                                cb_CurrentInstrumentChannels.Enabled = false;
-                            }
+                            InvokeControlAction(Current_Instrument_Start);
                         }
-                    }
+                        InvokeControlAction(() => btn_openCurrentMeasureInstrument.Enabled = true);
+                    });
                     break;
                 case true:
                     StopCurrentCyclicReading();
@@ -74,10 +58,38 @@ namespace benchGUI
                     currentStabilityCalc.Reset();
                     lbl_cnahValue.BackColor = Color.Transparent;
 
+                    btn_openCurrentMeasureInstrument.Enabled = true;
+
+
                     break;
             }
         }
 
+        private void Current_Instrument_Start()
+        {
+            //для обновления информации, считанной из прибора, например, серийный номер
+            cb_CurrentMeasuringInstruments.Items.Remove(CurrentMeasuringInstrument);
+            cb_CurrentMeasuringInstruments.Items.Add(CurrentMeasuringInstrument);
+            cb_CurrentMeasuringInstruments.SelectedItem = CurrentMeasuringInstrument;
+
+            btn_openCurrentMeasureInstrument.Text = "Разорвать связь";
+            btn_openCurrentMeasureInstrument.BackColor = Color.LightYellow;
+            cb_CurrentInstrumentChannels.Items.Clear();
+            cb_CurrentInstrumentChannels.Items.AddRange(CurrentMeasuringInstrument.Channels);
+
+            if (cb_CurrentInstrumentChannels.Items.Count > 0)
+            {
+                cb_CurrentInstrumentChannels.SelectedIndex = 0;
+                if (cb_CurrentInstrumentChannels.Items.Count > 1)
+                {
+                    cb_CurrentInstrumentChannels.Enabled = true;
+                }
+                else
+                {
+                    cb_CurrentInstrumentChannels.Enabled = false;
+                }
+            }
+        }
         private void cb_currentReaderSpan_SelectedIndexChanged(object sender, EventArgs e)
         {
             StopCurrentCyclicReading();
@@ -109,29 +121,33 @@ namespace benchGUI
             else
             {
                 cb_currentReaderSpan.Enabled = false;
-
             }
-
         }
+
+        CancellationTokenSource CurrentCyclicReadingCTS { get; set; }
+        private IUOM currentInstrumentUom { get; } = new mA();
         private void StartCurrentCyclicReading()
         {
-            CurrentChannelSpanCyclicReader = new CyclicChannelSpanReader(currentReaderSpan, new mA());
-            CurrentChannelSpanCyclicReader.OneMeasureReaded += OnOneCurrentMeasureReaded;
-            CurrentChannelSpanCyclicReader.Start();
+            CurrentCyclicReadingCTS = new CancellationTokenSource();
+            var token = CurrentCyclicReadingCTS.Token;
+            Task.Run(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    var CurrentOneMeasure = currentReaderSpan.Read(currentInstrumentUom);
+                    if (CurrentOneMeasure != null && !token.IsCancellationRequested) 
+                        OnOneCurrentMeasureReaded(null, CurrentOneMeasure);
+                }
+            });
         }
-
 
         private void StopCurrentCyclicReading()
         {
-            if (CurrentChannelSpanCyclicReader != null)
-            {
-                CurrentChannelSpanCyclicReader.OneMeasureReaded -= OnOneCurrentMeasureReaded;
-                CurrentChannelSpanCyclicReader.Stop();
-                CurrentChannelSpanCyclicReader=null;
-            }
-
+            CurrentCyclicReadingCTS?.Cancel();
+            CurrentCyclicReadingCTS?.Dispose();
+            CurrentCyclicReadingCTS = null;
         }
-
+        
         private void OnOneCurrentMeasureReaded(object sender, OneMeasure oneMeasure)
         {
             currentStabilityCalc.AddMeasure(oneMeasure);
@@ -183,7 +199,7 @@ namespace benchGUI
 
         }
 
-        private bool showCurrentInPressureUnits;
+        private bool showCurrentInPressureUnits { get; set; }
         private void lbl_cnahValue_Click(object sender, EventArgs e)
         {
             switch (showCurrentInPressureUnits)

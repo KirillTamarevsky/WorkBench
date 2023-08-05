@@ -126,7 +126,7 @@ namespace benchGUI
                 {
                     HART_READ_SCALE();
                 }
-                InvokeControlAction(this, () =>
+                InvokeControlAction( () =>
                 {
                     btn_ReadHART_Scale.Enabled = true;
                     btn_HART_ZEROTRIM.Enabled = true;
@@ -147,7 +147,7 @@ namespace benchGUI
                 }
             }).ContinueWith((t) =>
             {
-                InvokeControlAction(this, () =>
+                InvokeControlAction( () =>
                 {
                     btn_ReadHART_Scale.Enabled = true;
                     btn_HART_ZEROTRIM.Enabled = true;
@@ -160,7 +160,7 @@ namespace benchGUI
         {
             SetHart_mA_level(4f).ContinueWith((t) =>
             {
-                InvokeControlAction(this, () =>
+                InvokeControlAction( () =>
                 {
                     btn_HART_trim4mA.Enabled = true;
                     btn_HART_trim20mA.Enabled = false;
@@ -171,7 +171,7 @@ namespace benchGUI
         {
             SetHart_mA_level(20f).ContinueWith((t) =>
             {
-                InvokeControlAction(this, () =>
+                InvokeControlAction( () =>
                 {
                     btn_HART_trim4mA.Enabled = false;
                     btn_HART_trim20mA.Enabled = true;
@@ -182,7 +182,7 @@ namespace benchGUI
         {
             SetHart_mA_level(0f).ContinueWith((t) =>
             {
-                InvokeControlAction(this, () =>
+                InvokeControlAction( () =>
                 {
                     btn_HART_trim4mA.Enabled = false;
                     btn_HART_trim20mA.Enabled = false;
@@ -268,7 +268,7 @@ namespace benchGUI
                 {
                     var pv = BitConverter.ToSingle(new byte[] { commres.Data[8], commres.Data[7], commres.Data[6], commres.Data[5] }, 0);
                     var mA = BitConverter.ToSingle(new byte[] { commres.Data[3], commres.Data[2], commres.Data[1], commres.Data[0] }, 0);
-                    InvokeControlAction(this, () =>
+                    InvokeControlAction( () =>
                     {
                         tb_HART_PV.Text = pv.ToString("N4");
                         tb_HART_PV_MA.Text = mA.ToString("N4");
@@ -278,7 +278,7 @@ namespace benchGUI
                 if (commres != null && commres.Data.Length >= 14)
                 {
                     var sv = BitConverter.ToSingle(new byte[] { commres.Data[13], commres.Data[12], commres.Data[11], commres.Data[10] }, 0);
-                    InvokeControlAction(this, () =>
+                    InvokeControlAction( () =>
                     {
                         tb_HART_SV.Text = sv.ToString("N4");
                     });
@@ -287,7 +287,7 @@ namespace benchGUI
                 if (commres != null && commres.Data.Length >= 19)
                 {
                     var tv = BitConverter.ToSingle(new byte[] { commres.Data[18], commres.Data[17], commres.Data[16], commres.Data[15] }, 0);
-                    InvokeControlAction(this, () =>
+                    InvokeControlAction( () =>
                     {
                         tb_HART_TV.Text = tv.ToString("N4");
                     });
@@ -296,7 +296,7 @@ namespace benchGUI
                 if (commres != null && commres.Data.Length == 24)
                 {
                     var qv = BitConverter.ToSingle(new byte[] { commres.Data[23], commres.Data[22], commres.Data[21], commres.Data[20] }, 0);
-                    InvokeControlAction(this, () =>
+                    InvokeControlAction( () =>
                     {
                         tb_HART_QV.Text = qv.ToString("N4");
                     });
@@ -317,7 +317,7 @@ namespace benchGUI
                 var s1 = HART_unpack_3bytes_to_string(new byte[] { commres.Data[0], commres.Data[1], commres.Data[2] });
                 var s2 = HART_unpack_3bytes_to_string(new byte[] { commres.Data[3], commres.Data[4], commres.Data[5] });
                 var tag = $"{s1}{s2}";
-                InvokeControlAction(this, () => { tb_HART_TAG.Text = tag; });
+                InvokeControlAction( () => { tb_HART_TAG.Text = tag; });
             }
             else
             {
@@ -327,7 +327,7 @@ namespace benchGUI
         private void HART_DISCONNECT()
         {
             HartAddr = new ShortAddress(0);
-            InvokeControlAction(this, () =>
+            InvokeControlAction( () =>
             {
                 tb_HART_PV.Text = string.Empty;
                 tb_HART_PV_MA.Text = string.Empty;
@@ -362,7 +362,7 @@ namespace benchGUI
                 var scaleMax = BitConverter.ToSingle(new byte[] { commres.Data[6], commres.Data[5], commres.Data[4], commres.Data[3] }, 0);
                 var scaleMin = BitConverter.ToSingle(new byte[] { commres.Data[10], commres.Data[9], commres.Data[8], commres.Data[7] }, 0);
                 var step = (scaleMax - scaleMin) / 4;
-                InvokeControlAction(this, () =>
+                InvokeControlAction( () =>
                 {
                     tbScaleMax.Text = scaleMax.ToString("N4");
                     tbScaleMin.Text = scaleMin.ToString("N4");

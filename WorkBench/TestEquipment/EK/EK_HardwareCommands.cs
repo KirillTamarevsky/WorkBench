@@ -17,12 +17,12 @@ namespace WorkBench.TestEquipment.EK
         #region EK hardware interface commands
         //------------------------------------------------------------------------------------------
         private EKchanNum activeChannel;
-        internal int SetActiveChannel(EKchanNum channelNumber)
+        internal EKchanNum SetActiveChannel(EKchanNum channelNumber)
         {
             if (channelNumber == EKchanNum.None)
             {
                 activeChannel = EKchanNum.None;
-                return 0;
+                return activeChannel;
             }
             if (activeChannel != channelNumber)
             {
@@ -41,11 +41,14 @@ namespace WorkBench.TestEquipment.EK
                 if (answerStatus == Communicators.TextCommunicatorQueryCommandStatus.Success)
                 {
                     int actChanNumber = int.Parse(reply.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture);
-                    activeChannel = channelNumber;
-                    return actChanNumber;
+                    activeChannel = (EKchanNum)actChanNumber;
+                }
+                else
+                {
+                    activeChannel = EKchanNum.None;
                 }
             }
-            return (int)channelNumber;
+            return activeChannel;
         }
 
         //internal OneMeasure Read_0_20_Current_with_ext_pwr(EKchanNum eKChannel)

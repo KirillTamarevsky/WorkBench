@@ -149,11 +149,11 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "A?":
                     Thread.Sleep(50);
-                    answer = $" {random.NextDouble() / 10 + 5:N4}";
+                    answer = $" {random.NextDouble() - 0.5 + 15:N4}";
                     break;
                 case "B?":
                     Thread.Sleep(50);
-                    answer = $" {random.NextDouble() * 35 + 35:N4}";
+                    answer = $" {random.NextDouble() -0.5 + 35:N4}";
                     break;
                 case "Setpt?":
                     answer = _setpt;

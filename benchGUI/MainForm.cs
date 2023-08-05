@@ -228,7 +228,7 @@ namespace benchGUI
             }
             else
             {
-                InvokeControlAction(btnStartAutoCal, () => btnStartAutoCal.Enabled = false);
+                InvokeControlAction( () => btnStartAutoCal.Enabled = false);
                 AutoCalCancellationTokenSource.Cancel();
             }
         }
@@ -253,18 +253,18 @@ namespace benchGUI
                 && startedEK && startedCPC
                 )
                 {
-                    InvokeControlAction(plot_result, () =>
-                                                                {
-                                                                    currentChartDiscrepancy = 0.1;
-                                                                    plot_result.Plot.Clear();
-                                                                    plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
-                                                                }
+                    InvokeControlAction( () =>
+                        {
+                            currentChartDiscrepancy = 0.1;
+                            plot_result.Plot.Clear();
+                            plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
+                        }
                     );
 
                     do
                     {
                         // add new scatter to plot
-                        InvokeControlAction(this, () =>
+                        InvokeControlAction( () =>
                         {
                             chart_result_Xs = new double[dataGridView1.Rows.Count];
                             for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
@@ -322,7 +322,7 @@ namespace benchGUI
                                     item.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToString("N4");
                                     var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
                                     item.Cells[error.Name].Value = discrepancy.ToString("N4");
-                                    InvokeControlAction(plot_result, () =>
+                                    InvokeControlAction( () =>
                                     {
                                         chart_result_Xs[item.Index] = item.Index + 1;
                                         chart_result_Ys[item.Index] = discrepancy;
@@ -339,23 +339,25 @@ namespace benchGUI
                         }
                         if (nUD_CalibrationCyclesCount.Value > nUD_CalibrationCyclesCount.Minimum)
                         {
-                            InvokeControlAction(nUD_CalibrationCyclesCount, () => nUD_CalibrationCyclesCount.Value--);
+                            InvokeControlAction( () => nUD_CalibrationCyclesCount.Value--);
 
                         }
                     } while (nUD_CalibrationCyclesCount.Value - 1 >= nUD_CalibrationCyclesCount.Minimum);
+                    
+                    if (!cancellationToken.IsCancellationRequested && pressureGeneratorSpan != null)
+                    {
+                        pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
 
-                    pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
-                    //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+                        while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } 
 
-                    while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } // { Application.DoEvents(); }
+                        pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.VENT;
 
-                    pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.VENT;
-
-                    ReadPressureInstrumentOperationModeToRadioButtons();
+                        ReadPressureInstrumentOperationModeToRadioButtons();
+                    }
 
                 }
-                InvokeControlAction(btnStartAutoCal, () => btnStartAutoCal.Text = "Старт");
-                InvokeControlAction(btnStartAutoCal, () => btnStartAutoCal.Enabled = true);
+                InvokeControlAction( () => btnStartAutoCal.Text = "Старт");
+                InvokeControlAction( () => btnStartAutoCal.Enabled = true);
 
 
             });
@@ -365,7 +367,7 @@ namespace benchGUI
         void fillMeasuresChart()
         {
 
-            InvokeControlAction(this, () =>
+            InvokeControlAction( () =>
             {
                 try
                 {
@@ -427,20 +429,20 @@ namespace benchGUI
 
 
         }
-        private void setLabelText(string txt, Label label) => InvokeControlAction(label, () => label.Text = txt);
-        private void setTextBoxText(string txt, TextBox textbox) => InvokeControlAction(textbox, () => textbox.Text = txt);
-        private void setComboboxSelectedItemIndex(ComboBox cb, int index) => InvokeControlAction(cb, () => cb.SelectedIndex = index);
-        private void setComboboxSelectedItem(ComboBox cb, object item) => InvokeControlAction(cb, () => cb.SelectedItem = item);
-        private void setRadioButtonChecked(RadioButton rb, bool _checked) => InvokeControlAction(rb, () => rb.Checked = _checked);
+        private void setLabelText(string txt, Label label) => InvokeControlAction( () => label.Text = txt);
+        private void setTextBoxText(string txt, TextBox textbox) => InvokeControlAction( () => textbox.Text = txt);
+        private void setComboboxSelectedItemIndex(ComboBox cb, int index) => InvokeControlAction( () => cb.SelectedIndex = index);
+        private void setComboboxSelectedItem(ComboBox cb, object item) => InvokeControlAction( () => cb.SelectedItem = item);
+        private void setRadioButtonChecked(RadioButton rb, bool _checked) => InvokeControlAction( () => rb.Checked = _checked);
 
-        private delegate void SafeCallInvokeControlActionDelegate(Control control, Action action);
-        private void InvokeControlAction(Control control, Action action)
+        private delegate void SafeCallInvokeControlActionDelegate(Action action);
+        private void InvokeControlAction(Action action)
         {
             if (this.InvokeRequired)// control.InvokeRequired)
             {
                 var SafecallDelegate = new SafeCallInvokeControlActionDelegate(InvokeControlAction);
                 //control.BeginInvoke(SafecallDelegate, new object[] { control, action});
-                this.BeginInvoke(SafecallDelegate, new object[] { control, action });
+                this.BeginInvoke(SafecallDelegate, new object[] { action });
             }
             else
             {

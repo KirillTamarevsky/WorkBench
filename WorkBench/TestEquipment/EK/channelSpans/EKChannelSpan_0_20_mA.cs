@@ -43,30 +43,32 @@ namespace WorkBench.TestEquipment.EK.channelSpans
                 {
                     readingnow = true;
 
-                    ek.SetActiveChannel(this.parentChannel.EKchanNum);
-                    //--------------Read_0_20_Current_with_ext_pwr-------------------
-                    //CURR?
-                    //Измерение тока в режиме «0 - 20».
-                    //В случае успешного выполнения команды возвращается результат измерения(мА).
-                    //В противном случае возвращается «ERROR».
-                    //Пример
-                    //Команда: CURR?
-                    //Ответ: 2.0501
-                    //
-                    //TODO добавить проверку ответа на ERROR
-                    var validationRule = (string s) =>
+                    if (ek.SetActiveChannel(this.parentChannel.EKchanNum) == this.parentChannel.EKchanNum)
                     {
-                        return double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out _);
-                    };
-                    var ekReplyStatus = Query("CURR?", out string ekReply, validationRule);
-                    if (ekReplyStatus == TextCommunicatorQueryCommandStatus.Success)
-                    {
-                        var result = double.Parse(ekReply.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
-                        LastReadedValue = new OneMeasure(result, new mA(), DateTime.Now);
-                    }
-                    else
-                    {
-                        LastReadedValue = null;
+                        //--------------Read_0_20_Current_with_ext_pwr-------------------
+                        //CURR?
+                        //Измерение тока в режиме «0 - 20».
+                        //В случае успешного выполнения команды возвращается результат измерения(мА).
+                        //В противном случае возвращается «ERROR».
+                        //Пример
+                        //Команда: CURR?
+                        //Ответ: 2.0501
+                        //
+                        //TODO добавить проверку ответа на ERROR
+                        var validationRule = (string s) =>
+                        {
+                            return double.TryParse(s.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+                        };
+                        var ekReplyStatus = Query("CURR?", out string ekReply, validationRule);
+                        if (ekReplyStatus == TextCommunicatorQueryCommandStatus.Success)
+                        {
+                            var result = double.Parse(ekReply.Trim().Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture);
+                            LastReadedValue = new OneMeasure(result, new mA(), DateTime.Now);
+                        }
+                        else
+                        {
+                            LastReadedValue = null;
+                        }
                     }
                     
                     readingnow = false;

@@ -118,7 +118,7 @@ namespace WorkBench.TestEquipment.EK
                     answer.Replace("\r", "\\r").Replace("\n", "\\n"),
                     BitConverter.ToString(Encoding.ASCII.GetBytes(answer))));
 
-            if (random.Next(100) > 40)
+            if (random.Next(100) > 140)
             {
                 answer = string.Empty;
             }
