@@ -296,10 +296,7 @@ namespace benchGUI
                                 double setpoint = double.Parse(item.Cells[calcPressure.Name].Value.ToString());
 
                                 pressureGeneratorSpan.SetPoint = new OneMeasure(setpoint, selectedPressureUOM, DateTime.Now);
-
-                                //setTextBoxText(pressureGeneratorSpan.GetSetPoint().ToString(), tb_cpcSetPoint);
-                                //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
-
+                                InvokeControlAction(() => tb_PressureSetPoint.Text = $"{pressureGeneratorSpan.SetPoint.Value:N4}");
 
                                 currentStabilityCalc.Reset();
                                 pressureStabilityCalc.Reset();
