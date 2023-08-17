@@ -208,7 +208,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
             var answerStatus = Communicator.QueryCommand(cmd, out answer, finalValidationRule);
 
-            if (answer.StartsWith("E"))
+            if (answer.StartsWith("E") & !answer.Contains("E00"))
             {
                 GetLastError();
 
