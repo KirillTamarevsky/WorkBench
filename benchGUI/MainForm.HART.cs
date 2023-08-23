@@ -19,7 +19,9 @@ namespace benchGUI
     {
         IAddress HartAddr { get; set; } = new ShortAddress(0);
         private HartCommunicationLite hart_communicator { get; set; }
-        BackgroundWorker HartBackgroundWorker { get; set; }
+        Task HartBackgroundWorker { get; set; }
+        CancellationTokenSource HartBackgroundWorkerCTS { get; set; }
+        CancellationToken HartBackgroundWorkerCT { get; set; }
         private void btn_HART_open_Click(object sender, EventArgs e)
         {
             btn_HART_open.Enabled = false;
@@ -52,10 +54,9 @@ namespace benchGUI
                         btn_HART_set_20mA.Enabled = true;
                         btn_HART_set_0mA.Enabled = true;
 
-                        HartBackgroundWorker = new BackgroundWorker();
-                        HartBackgroundWorker.DoWork += HartBackgroundWorker_DoWork;
-                        HartBackgroundWorker.RunWorkerCompleted += HartBackgroundWorker_RunWorkerCompleted;
-                        HartBackgroundWorker.RunWorkerAsync();
+                        HartBackgroundWorkerCTS = new CancellationTokenSource();
+                        HartBackgroundWorkerCT = HartBackgroundWorkerCTS.Token;
+                        HartBackgroundWorker = HartBackgroundWorker_DoWork();
                         break;
                     case OpenResult.ComPortIsOpenAlreadyOpen:
                     case OpenResult.ComPortNotExisting:
@@ -69,29 +70,35 @@ namespace benchGUI
 
         }
 
-        private void HartBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private Task HartBackgroundWorker_DoWork()
         {
-            HartBackgroundWorker.RunWorkerAsync();
-        }
-
-        private void HartBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            lock (hart_communicator)
+            return Task.Run(() =>
             {
-                if (HartAddr is ShortAddress)
+                while (!HartBackgroundWorkerCT.IsCancellationRequested)
                 {
-                    HART_SEND_ZERO_COMMAND();
-                    if (HartAddr is LongAddress)
+                    lock (hart_communicator)
                     {
-                        HART_READ_SCALE();
-                        HART_READ_TAG();
+                        if (HartAddr is ShortAddress)
+                        {
+                            if (!HartBackgroundWorkerCT.IsCancellationRequested)
+                                HART_SEND_ZERO_COMMAND();
+
+                            if (HartAddr is LongAddress)
+                            {
+                                if (!HartBackgroundWorkerCT.IsCancellationRequested)
+                                    HART_READ_SCALE();
+                                if (!HartBackgroundWorkerCT.IsCancellationRequested)
+                                    HART_READ_TAG();
+                            }
+                        }
+                        if (HartAddr is LongAddress)
+                        {
+                            if (!HartBackgroundWorkerCT.IsCancellationRequested)
+                                HART_READ_PV_mA_SV_TV_QV();
+                        }
                     }
                 }
-                if (HartAddr is LongAddress)
-                {
-                    HART_READ_PV_mA_SV_TV_QV();
-                }
-            }
+            });
         }
 
         private void HARTCommunicator_Close()
@@ -109,8 +116,12 @@ namespace benchGUI
             btn_HART_trim20mA.Enabled = false;
             if (HartBackgroundWorker != null)
             {
-                HartBackgroundWorker.DoWork -= HartBackgroundWorker_DoWork;
-                HartBackgroundWorker.RunWorkerCompleted -= HartBackgroundWorker_RunWorkerCompleted;
+                HartBackgroundWorkerCTS.Cancel();
+                HartBackgroundWorker.Wait();
+                HartBackgroundWorkerCTS.Dispose();
+                HartBackgroundWorkerCTS = null;
+                HartBackgroundWorker.Dispose();
+                HartBackgroundWorker = null;
             }
         }
 

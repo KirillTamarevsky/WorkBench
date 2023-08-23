@@ -29,7 +29,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
         string _currentUOM = " Pascal";
 
-        string _setpt = " 0.1234";
+        double _setpt = 0.1234;
 
         string _currentChannel = "A";
 
@@ -110,7 +110,7 @@ namespace WorkBench.TestEquipment.CPC6000
             switch (first)
             {
                 case "ID?":
-                    Thread.Sleep(2);
+                    Thread.Sleep(1);
                     answer = "EMENSOR, 600, 12345, 666";
                     break;
                 case "RangeMin?":
@@ -148,15 +148,18 @@ namespace WorkBench.TestEquipment.CPC6000
 
                     break;
                 case "A?":
-                    Thread.Sleep(50);
-                    answer = $" {random.NextDouble() - 0.5 + 15:N4}";
+                    Thread.Sleep(1);
+                    answer = $" {random.NextDouble()/8 - 0.125/2 + _setpt:N4}";
                     break;
                 case "B?":
-                    Thread.Sleep(50);
+                    Thread.Sleep(1);
                     answer = $" {random.NextDouble() -0.5 + 35:N4}";
                     break;
                 case "Setpt?":
-                    answer = _setpt;
+                    answer = $" {_setpt:N4}";
+                    break;
+                case "Setpt":
+                    _setpt = double.Parse( cmdparts[1].Trim() , NumberStyles.Float, CultureInfo.InvariantCulture);
                     break;
                 case "Ptype":
                     switch (cmdparts[1].ToUpper().Trim())
@@ -193,9 +196,6 @@ namespace WorkBench.TestEquipment.CPC6000
                 case "Units":
                     _currentUOM = $" {cmdparts[1].Trim()}";
                     break;
-                case "Setpt":
-                    _setpt = cmdparts[1].Trim();
-                    break;
                 case "Chan":
                     _currentChannel = cmdparts[1].Trim();
                     break;
@@ -227,7 +227,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 default:
                     break;
             }
-            if (random.Next(100) > 99)
+            if (random.Next(100) > 130)
             {
                 answer = string.Empty;
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -258,7 +258,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
         public int ReadByte()
         {
-            if (random.Next(100) > 99)
+            if (random.Next(1000) > 999)
             {
                 throw new TimeoutException();
             }

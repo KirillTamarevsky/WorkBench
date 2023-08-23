@@ -107,10 +107,24 @@ namespace WorkBench
                     if (MeasuresCount >= MinMeasuresCount)
                     {
 
-                        if (Math.Round(LRSlope, 3, MidpointRounding.ToZero) == 0)
+                        if (Math.Round(LRSlope, 3, MidpointRounding.ToPositiveInfinity) == 0)
                         {
                             TrendStatus = TrendStatus.Stable;
                             StableMeasures.Add(oneMeasure);
+
+
+                            mintimestamp = StableMeasures.Min(cm => cm.TimeStamp);
+                            timespan = DateTime.Now - mintimestamp;
+
+                            while (timespan.TotalSeconds > MinTimeToStabilize.TotalSeconds & Measures.Count > MinMeasuresCount)
+                            {
+                                StableMeasures.RemoveAt(0);
+                                mintimestamp = StableMeasures.Min(cm => cm.TimeStamp);
+                                timespan = DateTime.Now - mintimestamp;
+
+                            }
+
+
                         }
                         else
                         {
