@@ -375,10 +375,10 @@ namespace benchGUI
                 var step = (scaleMax - scaleMin) / 4;
                 InvokeControlAction( () =>
                 {
-                    tbScaleMax.Text = scaleMax.ToString("N4");
-                    tbScaleMin.Text = scaleMin.ToString("N4");
-                    tb_cpcStep.Text = step.ToString("N4");
-                    tb_PressureSetPoint.Text = scaleMin.ToString("N4");
+                    tbScaleMax.Text = scaleMax.ToString("0.0000");
+                    tbScaleMin.Text = scaleMin.ToString("0.0000");
+                    tb_cpcStep.Text = step.ToString("0.0000");
+                    tb_PressureSetPoint.Text = scaleMin.ToString("0.0000");
                 });
                 switch (commres.Data[2])
                 {
