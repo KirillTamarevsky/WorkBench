@@ -304,7 +304,11 @@ namespace Communication.HartLite
                 SendingCommand.BeginInvoke(this, new CommandRequest(command), null, null);
 
             Thread.Sleep(100);
-
+            // try detect communtcation on line
+            while (Port.CDHolding)
+            {
+                Thread.Sleep(10);
+            }
             Port.DtrEnable = false;
             Log.Info($"Before RTS ensable: CD = [{Port.CDHolding}]");
             Port.RtsEnable = true;
