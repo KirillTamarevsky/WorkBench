@@ -14,6 +14,8 @@ namespace Communication.HartLite
         public void Open()
         {
             _serialPort.Open();
+            _serialPort.WriteTimeout = 2000;
+            _serialPort.ReadTimeout = 2000;
         }
 
         public void Close()
