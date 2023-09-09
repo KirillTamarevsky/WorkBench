@@ -187,29 +187,20 @@ namespace benchGUI
         }
         double getPressureCoarseStepValue()
         {
-            return double.Parse(
-                    tb_cpcStep.Text.Replace(',', '.'),
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
+            return tb_cpcStep.Text.ParseToDouble();
         }
         double getPressureSetPointValue()
         {
-            return double.Parse(
-                    tb_PressureSetPoint.Text.Replace(',', '.'),
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
+            return tb_PressureSetPoint.Text.ParseToDouble();
         }
 
         double getPressureFineStepValue()
         {
-            return double.Parse(
-                tb_pressureMicroStep.Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture);
+            return tb_pressureMicroStep.Text.ParseToDouble();
         }
         private void PutOneMeasureToTextBox(OneMeasure oneMeasure, TextBox textBox)
         {
-            setTextBoxText(oneMeasure.Value.ToString("N4"), textBox);
+            setTextBoxText(oneMeasure.Value.ToWBFloatString(), textBox);
         }
 
 
@@ -217,11 +208,7 @@ namespace benchGUI
 
         private void tb_cpcStep_TextChanged(object sender, EventArgs e)
         {
-            if (double.TryParse(
-                    ((TextBox)sender).Text.Replace(',', '.'),
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out _))
+            if (((TextBox)sender).Text.IsFloatString())
             {
                 btn_StepUp.Enabled = true;
                 btn_StepDown.Enabled = true;
@@ -234,11 +221,7 @@ namespace benchGUI
         }
         private void tb_pressureMicroStep_TextChanged(object sender, EventArgs e)
         {
-            if (double.TryParse(
-                ((TextBox)sender).Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out _))
+            if (((TextBox)sender).Text.IsFloatString())
             {
                 btn_pressureMicrostepUP.Enabled = true;
                 btn_pressureMicroStepDown.Enabled = true;
@@ -252,11 +235,7 @@ namespace benchGUI
 
         private void tb_newSetPoint_TextChanged(object sender, EventArgs e)
         {
-            if (double.TryParse(
-                ((TextBox)sender).Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out double parsedSP))
+            if (((TextBox)sender).Text.TryParseToDouble(out double parsedSP))
             {
                 newSetPoint = parsedSP;
                 btn_setSetPoint.Enabled = true;
@@ -281,14 +260,9 @@ namespace benchGUI
 
             var maxPressureSetValue = pressureGeneratorSpan.Scale.Max * (pressureGeneratorSpan.Scale.UOM.Factor / selectedPressureUOM.Factor );
 
-            if (double.TryParse(tbScaleMin.Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out pressureScaleMin) 
-                && double.TryParse(tbScaleMax.Text.Replace(',', '.'),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out pressureScaleMax)
+            if (tbScaleMin.Text.TryParseToDouble(out pressureScaleMin) 
+                && 
+                tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
                 )
             {
                 var fullscale = pressureScaleMax - pressureScaleMin;
@@ -381,7 +355,7 @@ namespace benchGUI
 
             pressureGeneratorSpan = (IInstrumentChannelSpanPressureGenerator)pressureReaderSpan;
 
-            tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToString("N4");
+            tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToWBFloatString();
 
             ReadPressureInstrumentOperationModeToRadioButtons();
             
@@ -431,9 +405,9 @@ namespace benchGUI
             }
             else
             {
-                setLabelText(pressureStabilityCalc.MeanValue.ToString("N4"), lbl_cpcmean);
-                setLabelText(pressureStabilityCalc.StdDeviation.ToString("N4"), lbl_CPCstdev);
-                setLabelText(pressureStabilityCalc.LRSlope.ToString("N4"), lbl_CPCLRSlope);
+                setLabelText(pressureStabilityCalc.MeanValue.ToWBFloatString(), lbl_cpcmean);
+                setLabelText(pressureStabilityCalc.StdDeviation.ToWBFloatString(), lbl_CPCstdev);
+                setLabelText(pressureStabilityCalc.LRSlope.ToWBFloatString(), lbl_CPCLRSlope);
 
                 var trendStatusText = pressureStabilityCalc.GetStatusTextRu();
                 setLabelText(trendStatusText, lbl_CPCstability);
@@ -451,7 +425,7 @@ namespace benchGUI
 
             lbl_cpc_read.BackColor = backColor;
 
-            setLabelText($"{onemeasure.Value:N4} {onemeasure.UOM.Name}", lbl_cpc_read);
+            setLabelText($"{onemeasure.Value.ToWBFloatString()} {onemeasure.UOM.Name}", lbl_cpc_read);
 
             fillMeasuresChart();
 

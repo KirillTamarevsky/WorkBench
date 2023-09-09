@@ -164,9 +164,9 @@ namespace benchGUI
             }
             else
             {
-                setLabelText(currentStabilityCalc.MeanValue.ToString("N4"), lbl_ekmean);
-                setLabelText(currentStabilityCalc.StdDeviation.ToString("N4"), lbl_EKstdev);
-                setLabelText(currentStabilityCalc.LRSlope.ToString("N4"), lbl_EKLRSlope);
+                setLabelText(currentStabilityCalc.MeanValue.ToWBFloatString(), lbl_ekmean);
+                setLabelText(currentStabilityCalc.StdDeviation.ToWBFloatString(), lbl_EKstdev);
+                setLabelText(currentStabilityCalc.LRSlope.ToWBFloatString(), lbl_EKLRSlope);
 
                 var trendStatusText = currentStabilityCalc.GetStatusTextRu();
                 setLabelText(trendStatusText, lbl_EKstability);
@@ -186,7 +186,7 @@ namespace benchGUI
             switch (showCurrentInPressureUnits)
             {
                 case false:
-                    setLabelText($"{oneMeasure.Value:N4} {oneMeasure.UOM.Name}", lbl_cnahValue);
+                    setLabelText($"{oneMeasure.Value.ToWBFloatString()} {oneMeasure.UOM.Name}", lbl_cnahValue);
                     break;
                 case true:
                     var ma = oneMeasure.Value;

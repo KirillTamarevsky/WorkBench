@@ -239,10 +239,13 @@ namespace benchGUI
         void StartAutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
             if (
-            double.TryParse(tbScaleMin.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out pressureScaleMin)
+            tbScaleMin.Text.TryParseToDouble( out pressureScaleMin)
                 &&
-            double.TryParse(tbScaleMax.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out pressureScaleMax)
-                && startedEK && startedCPC
+            tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
+                &&
+            startedEK 
+                && 
+            startedCPC
             )
             {
                 currentChartDiscrepancy = 0.1;
@@ -296,7 +299,7 @@ namespace benchGUI
                                 double setpoint = double.Parse(item.Cells[calcPressure.Name].Value.ToString());
 
                                 pressureGeneratorSpan.SetPoint = new OneMeasure(setpoint, selectedPressureUOM, DateTime.Now);
-                                InvokeControlAction(() => tb_PressureSetPoint.Text = $"{pressureGeneratorSpan.SetPoint.Value:N4}");
+                                InvokeControlAction(() => tb_PressureSetPoint.Text = $"{pressureGeneratorSpan.SetPoint.Value.ToWBFloatString()}");
 
                                 currentStabilityCalc.Reset();
                                 pressureStabilityCalc.Reset();
@@ -305,10 +308,10 @@ namespace benchGUI
                                 if (!cancellationToken.IsCancellationRequested)
                                 {
 
-                                    item.Cells[cpcPressure.Name].Value = pressureStabilityCalc.StableMeanValue.ToString("N4");
-                                    item.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToString("N4");
+                                    item.Cells[cpcPressure.Name].Value = pressureStabilityCalc.StableMeanValue.ToWBFloatString();
+                                    item.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToWBFloatString();
                                     var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
-                                    item.Cells[error.Name].Value = discrepancy.ToString("N4");
+                                    item.Cells[error.Name].Value = discrepancy.ToWBFloatString();
                                     InvokeControlAction(() =>
                                     {
                                         chart_result_Xs[item.Index] = item.Index + 1;
@@ -385,15 +388,10 @@ namespace benchGUI
                         pressureMeasuresScatterPlot.YAxisIndex = 1;
 
                         if (
-                            ((double.TryParse(tbScaleMin.Text.Replace(',', '.'),
-                            NumberStyles.Float,
-                            CultureInfo.InvariantCulture,
-                            out pressureScaleMin)
+                            tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
                             &
-                            double.TryParse(tbScaleMax.Text.Replace(',', '.'),
-                            NumberStyles.Float,
-                            CultureInfo.InvariantCulture,
-                            out pressureScaleMax))))
+                            tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
+                            )
                         {
                             var fullscale = pressureScaleMax - pressureScaleMin;
                             plot_measures.Plot.SetAxisLimits(yMin: pressureScaleMin - fullscale * 0.05, yMax: pressureScaleMax + fullscale * 0.05, yAxisIndex: 1);
