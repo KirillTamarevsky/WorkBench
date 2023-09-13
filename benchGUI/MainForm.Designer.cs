@@ -96,6 +96,7 @@ namespace benchGUI
             tb_HART_SV = new System.Windows.Forms.TextBox();
             tb_HART_TV = new System.Windows.Forms.TextBox();
             tb_HART_QV = new System.Windows.Forms.TextBox();
+            lbl_PressureThreeSigma = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
@@ -836,12 +837,24 @@ namespace benchGUI
             tb_HART_QV.Size = new System.Drawing.Size(64, 23);
             tb_HART_QV.TabIndex = 56;
             // 
+            // lbl_PressureThreeSigma
+            // 
+            lbl_PressureThreeSigma.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            lbl_PressureThreeSigma.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lbl_PressureThreeSigma.Location = new System.Drawing.Point(190, 683);
+            lbl_PressureThreeSigma.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbl_PressureThreeSigma.Name = "lbl_PressureThreeSigma";
+            lbl_PressureThreeSigma.Size = new System.Drawing.Size(80, 26);
+            lbl_PressureThreeSigma.TabIndex = 57;
+            lbl_PressureThreeSigma.Text = "--------";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             ClientSize = new System.Drawing.Size(1236, 781);
+            Controls.Add(lbl_PressureThreeSigma);
             Controls.Add(tb_HART_QV);
             Controls.Add(tb_HART_TV);
             Controls.Add(tb_HART_SV);
@@ -979,6 +992,7 @@ namespace benchGUI
         private System.Windows.Forms.TextBox tb_HART_SV;
         private System.Windows.Forms.TextBox tb_HART_TV;
         private System.Windows.Forms.TextBox tb_HART_QV;
+        private System.Windows.Forms.Label lbl_PressureThreeSigma;
     }
 }
 

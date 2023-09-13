@@ -407,6 +407,7 @@ namespace benchGUI
             {
                 setLabelText(pressureStabilityCalc.MeanValue.ToWBFloatString(), lbl_cpcmean);
                 setLabelText(pressureStabilityCalc.StdDeviation.ToWBFloatString(), lbl_CPCstdev);
+                setLabelText($"{pressureStabilityCalc.ThreeSigmaBandPercent:0.00}", lbl_PressureThreeSigma);
                 setLabelText(pressureStabilityCalc.LRSlope.ToWBFloatString(), lbl_CPCLRSlope);
 
                 var trendStatusText = pressureStabilityCalc.GetStatusTextRu();

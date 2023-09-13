@@ -50,6 +50,7 @@ namespace WorkBench
         public TrendStatus TrendStatus { get; private set; }
         public double MeanValue { get; private set; }
         public double StdDeviation { get; private set; }
+        public double ThreeSigmaBandPercent { get; private set; }
         public double LRSlope { get; private set; }
         public StabilityCalculator(int minMeasuresCount, TimeSpan minTimeToStabilize)
         {
@@ -98,16 +99,18 @@ namespace WorkBench
 
                     MeasuringTimeSpan = timespan;
 
-                    MeanValue = Measures.Average((om) => om.Value);
+                    MeanValue = Measures.Sum((om) => om.Value) / Measures.Count ;
 
-                    StdDeviation = Math.Sqrt(Measures.Sum(meas => Math.Pow(meas.Value - MeanValue, 2)));
+                    StdDeviation = Math.Sqrt( (Measures.Sum(meas => Math.Pow(meas.Value - MeanValue, 2))) / Measures.Count  );
+
+                    ThreeSigmaBandPercent = Measures.Where( m => m.Value <= MeanValue + StdDeviation*3 & m.Value >= MeanValue - StdDeviation*3).Count() / Measures.Count * 100;
 
                     LRSlopeCalc();
 
                     if (MeasuresCount >= MinMeasuresCount)
                     {
 
-                        if (Math.Round(LRSlope, 3, MidpointRounding.ToPositiveInfinity) == 0)
+                        if (Math.Round(LRSlope, 3) == 0)
                         {
                             TrendStatus = TrendStatus.Stable;
                             StableMeasures.Add(oneMeasure);

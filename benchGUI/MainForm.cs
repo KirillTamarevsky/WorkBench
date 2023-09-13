@@ -229,7 +229,7 @@ namespace benchGUI
             }
             else
             {
-                InvokeControlAction( () => btnStartAutoCal.Enabled = false);
+                InvokeControlAction(() => btnStartAutoCal.Enabled = false);
                 AutoCalCancellationTokenSource.Cancel();
             }
         }
@@ -240,12 +240,12 @@ namespace benchGUI
         void StartAutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
             if (
-            tbScaleMin.Text.TryParseToDouble( out pressureScaleMin)
+            tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
                 &&
             tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
                 &&
-            startedEK 
-                && 
+            startedEK
+                &&
             startedCPC
             )
             {
@@ -287,7 +287,7 @@ namespace benchGUI
                         //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
 
                         pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.CONTROL;
-                        
+
                         ReadPressureInstrumentOperationModeToRadioButtons();
 
                         while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { } // { Application.DoEvents(); }
@@ -356,7 +356,7 @@ namespace benchGUI
         void fillMeasuresChart()
         {
 
-            InvokeControlAction( () =>
+            InvokeControlAction(() =>
             {
                 try
                 {
@@ -413,11 +413,11 @@ namespace benchGUI
 
 
         }
-        private void setLabelText(string txt, Label label) => InvokeControlAction( () => label.Text = txt);
-        private void setTextBoxText(string txt, TextBox textbox) => InvokeControlAction( () => textbox.Text = txt);
-        private void setComboboxSelectedItemIndex(ComboBox cb, int index) => InvokeControlAction( () => cb.SelectedIndex = index);
-        private void setComboboxSelectedItem(ComboBox cb, object item) => InvokeControlAction( () => cb.SelectedItem = item);
-        private void setRadioButtonChecked(RadioButton rb, bool _checked) => InvokeControlAction( () => rb.Checked = _checked);
+        private void setLabelText(string txt, Label label) => InvokeControlAction(() => label.Text = txt);
+        private void setTextBoxText(string txt, TextBox textbox) => InvokeControlAction(() => textbox.Text = txt);
+        private void setComboboxSelectedItemIndex(ComboBox cb, int index) => InvokeControlAction(() => cb.SelectedIndex = index);
+        private void setComboboxSelectedItem(ComboBox cb, object item) => InvokeControlAction(() => cb.SelectedItem = item);
+        private void setRadioButtonChecked(RadioButton rb, bool _checked) => InvokeControlAction(() => rb.Checked = _checked);
 
         private delegate void SafeCallInvokeControlActionDelegate(Action action);
         private void InvokeControlAction(Action action)
