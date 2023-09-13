@@ -62,6 +62,7 @@ namespace benchGUI
             cbPressureScaleUOM.Items.Add(new Kgfcmsq());
             cbPressureScaleUOM.Items.Add(new Pa());
             cbPressureScaleUOM.Items.Add(new mmH2OAt4DegreesCelsius());
+            cbPressureScaleUOM.Items.Add(new psi());
             cbPressureScaleUOM.Items.Add(new DegreeCelcius());
             cbPressureScaleUOM.SelectedIndex = 0;
 
