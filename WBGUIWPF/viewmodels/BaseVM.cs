@@ -13,7 +13,7 @@ namespace WBGUIWPF.viewmodels
     public abstract class BaseVM : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        internal void RaisePropertyChanged(string propertyName)
+        internal void RaisePropertyChanged([CallerMemberName] string propertyName = "")
         {
             this.VerifyPropertyName(propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

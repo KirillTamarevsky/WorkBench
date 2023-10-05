@@ -119,8 +119,7 @@ namespace WBGUIWPF.viewmodels
         public void AddReferenceInstrument(BaseVM referenceInstrumentConfigurationVM)
         {
                 ReferenceInstruments.Add(referenceInstrumentConfigurationVM);
-                var referenceInstrumentConfigurationVM_withSerialPort = referenceInstrumentConfigurationVM as IInstrumentWithSerialPort;
-                if (referenceInstrumentConfigurationVM_withSerialPort != null)
+                if (referenceInstrumentConfigurationVM is IInstrumentWithSerialPort referenceInstrumentConfigurationVM_withSerialPort )
                 {
                     referenceInstrumentConfigurationVM_withSerialPort.SerialPortChanged += OnInstrumentChangedSerialPort;
                 }
