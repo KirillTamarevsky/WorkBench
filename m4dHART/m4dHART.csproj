@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="1-PhysicalLinkLayer\Token-Passing\FSK\" />
     <Folder Include="7-ApplicationLayer\" />
-    <Folder Include="1-PhysicalLinkLayer\" />
   </ItemGroup>
 
 </Project>

@@ -2,9 +2,10 @@
 {
     public interface IAddress
     {
+        MasterAddress _masterAddress { get; }
+        bool _fieldDeviceInBurstMode { get; }
         byte[] ToByteArray();
-        void SetNextByte(byte nextByte);
-
-        byte this[int index] { get; }
+        byte[] ToRawBytesArray();
+        IAddress ToSTXAddress(MasterAddress masterAddress);
     }
 }

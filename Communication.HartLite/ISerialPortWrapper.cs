@@ -1,4 +1,5 @@
-﻿using System.IO.Ports;
+﻿using System;
+using System.IO.Ports;
 
 namespace Communication.HartLite
 {
@@ -7,9 +8,8 @@ namespace Communication.HartLite
         void Open();
         void Close();
 
-        int Read(byte[] buffer, int offset, int count);
+        int Read(FSKReceivedByte[] buffer, int offset, int count);
         void Write(byte[] buffer, int offset, int count);
-
         int BytesToRead { get; }
         string PortName { get; set; }
 
@@ -17,8 +17,9 @@ namespace Communication.HartLite
         bool RtsEnable { get; set; }
         bool CtsHolding { get; }
         bool CDHolding { get; }
+        bool IsOpen { get; }
+        int ReadTimeout { get; set; }
 
-        event SerialDataReceivedEventHandler DataReceived;
-        event SerialPinChangedEventHandler PinChanged;
+        event Action<FSKReceivedByte> DataReceived;
     }
 }

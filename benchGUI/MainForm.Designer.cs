@@ -97,6 +97,9 @@ namespace benchGUI
             tb_HART_TV = new System.Windows.Forms.TextBox();
             tb_HART_QV = new System.Windows.Forms.TextBox();
             lbl_PressureThreeSigma = new System.Windows.Forms.Label();
+            tb_longTag = new System.Windows.Forms.TextBox();
+            btn_HART_BURST_OFF = new System.Windows.Forms.Button();
+            btn_HART_BURST_ON = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
@@ -497,6 +500,7 @@ namespace benchGUI
             tbScaleMin.Size = new System.Drawing.Size(69, 23);
             tbScaleMin.TabIndex = 29;
             tbScaleMin.TextChanged += tbScaleMin_TextChanged;
+            tbScaleMin.KeyPress += tbScaleMax_KeyPress;
             // 
             // tbScaleMax
             // 
@@ -506,6 +510,7 @@ namespace benchGUI
             tbScaleMax.Size = new System.Drawing.Size(77, 23);
             tbScaleMax.TabIndex = 30;
             tbScaleMax.TextChanged += tbScaleMax_TextChanged;
+            tbScaleMax.KeyPress += tbScaleMax_KeyPress;
             // 
             // label1
             // 
@@ -547,6 +552,7 @@ namespace benchGUI
             cbPressureScaleUOM.Size = new System.Drawing.Size(89, 23);
             cbPressureScaleUOM.TabIndex = 35;
             cbPressureScaleUOM.SelectedIndexChanged += cbScaleUOM_SelectedIndexChanged;
+            cbPressureScaleUOM.KeyPress += tbScaleMax_KeyPress;
             // 
             // label3
             // 
@@ -800,18 +806,18 @@ namespace benchGUI
             // tb_HART_PV_MA
             // 
             tb_HART_PV_MA.Enabled = false;
-            tb_HART_PV_MA.Location = new System.Drawing.Point(343, 255);
+            tb_HART_PV_MA.Location = new System.Drawing.Point(482, 255);
             tb_HART_PV_MA.Name = "tb_HART_PV_MA";
             tb_HART_PV_MA.Size = new System.Drawing.Size(64, 23);
             tb_HART_PV_MA.TabIndex = 52;
             // 
             // tb_HART_TAG
             // 
-            tb_HART_TAG.Enabled = false;
             tb_HART_TAG.Location = new System.Drawing.Point(273, 255);
             tb_HART_TAG.Name = "tb_HART_TAG";
             tb_HART_TAG.Size = new System.Drawing.Size(64, 23);
             tb_HART_TAG.TabIndex = 53;
+            tb_HART_TAG.KeyPress += tbShortTag_KeyPress;
             // 
             // tb_HART_SV
             // 
@@ -848,12 +854,45 @@ namespace benchGUI
             lbl_PressureThreeSigma.TabIndex = 57;
             lbl_PressureThreeSigma.Text = "--------";
             // 
+            // tb_longTag
+            // 
+            tb_longTag.Location = new System.Drawing.Point(343, 255);
+            tb_longTag.Name = "tb_longTag";
+            tb_longTag.Size = new System.Drawing.Size(133, 23);
+            tb_longTag.TabIndex = 58;
+            tb_longTag.KeyPress += tb_longTag_KeyPress;
+            // 
+            // btn_HART_BURST_OFF
+            // 
+            btn_HART_BURST_OFF.Enabled = false;
+            btn_HART_BURST_OFF.Location = new System.Drawing.Point(551, 255);
+            btn_HART_BURST_OFF.Name = "btn_HART_BURST_OFF";
+            btn_HART_BURST_OFF.Size = new System.Drawing.Size(64, 23);
+            btn_HART_BURST_OFF.TabIndex = 48;
+            btn_HART_BURST_OFF.Text = "BURSToff";
+            btn_HART_BURST_OFF.UseVisualStyleBackColor = true;
+            btn_HART_BURST_OFF.Click += btn_HART_BURST_OFF_Click;
+            // 
+            // btn_HART_BURST_ON
+            // 
+            btn_HART_BURST_ON.Enabled = false;
+            btn_HART_BURST_ON.Location = new System.Drawing.Point(550, 280);
+            btn_HART_BURST_ON.Name = "btn_HART_BURST_ON";
+            btn_HART_BURST_ON.Size = new System.Drawing.Size(64, 23);
+            btn_HART_BURST_ON.TabIndex = 59;
+            btn_HART_BURST_ON.Text = "BURSTon";
+            btn_HART_BURST_ON.UseVisualStyleBackColor = true;
+            btn_HART_BURST_ON.Click += btn_HART_BURST_ON_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             ClientSize = new System.Drawing.Size(1236, 781);
+            Controls.Add(btn_HART_BURST_ON);
+            Controls.Add(btn_HART_BURST_OFF);
+            Controls.Add(tb_longTag);
             Controls.Add(lbl_PressureThreeSigma);
             Controls.Add(tb_HART_QV);
             Controls.Add(tb_HART_TV);
@@ -993,6 +1032,9 @@ namespace benchGUI
         private System.Windows.Forms.TextBox tb_HART_TV;
         private System.Windows.Forms.TextBox tb_HART_QV;
         private System.Windows.Forms.Label lbl_PressureThreeSigma;
+        private System.Windows.Forms.TextBox tb_longTag;
+        private System.Windows.Forms.Button btn_HART_BURST_OFF;
+        private System.Windows.Forms.Button btn_HART_BURST_ON;
     }
 }
 

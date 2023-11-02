@@ -44,20 +44,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandResults\HART_Result_109_Burst_Mode_Control.cs" />
+    <Compile Include="CommandResults\HART_Result_13_Tag_Descriptor_Date.cs" />
+    <Compile Include="CommandResults\HART_Result_18_Write_Tag_Descriptor_Date.cs" />
+    <Compile Include="CommandResults\HART_Result_20_Read_Long_Tag.cs" />
+    <Compile Include="CommandResults\HART_Result_22_Write_Long_Tag.cs" />
+    <Compile Include="CommandResults\HART_Result_Zero_Command_v5.cs" />
+    <Compile Include="CommandResults\HART_Result_Zero_Command_v7.cs" />
+    <Compile Include="CommandResults\IReadUniqueIdetifierCommand.cs" />
     <Compile Include="Commands\HARTCommand.cs" />
-    <Compile Include="Commands\HART_Simulate_Current_Command.cs" />
+    <Compile Include="Commands\HART_109_Burst_Mode_Control.cs" />
+    <Compile Include="Commands\HART_13_Read_Tag_Descriptor_Date.cs" />
+    <Compile Include="Commands\HART_18_Write_Tag_Descriptor_Date.cs" />
+    <Compile Include="Commands\HART_20_ReadLongTag.cs" />
+    <Compile Include="Commands\HART_22_Write_Long_Tag.cs" />
+    <Compile Include="Commands\HART_35_Write_PrimaryVariableRangeValues.cs" />
+    <Compile Include="Commands\HART_40_Simulate_Current_Command.cs" />
     <Compile Include="Commands\HART_Trim_20mA_Command.cs" />
     <Compile Include="Commands\HART_Trim_4mA_Command.cs" />
     <Compile Include="Commands\HART_Zero_Command.cs" />
+    <Compile Include="CommonTables\001_Expanded_Device_Type_Code.cs" />
+    <Compile Include="CommonTables\009_Burst_Mode_Control_Code.cs" />
+    <Compile Include="CommonTables\010_Physical_Signaling_Code.cs" />
     <Compile Include="ConverrtHelpers.cs" />
+    <Compile Include="FrameType.cs" />
+    <Compile Include="FSKReceivedByte.cs" />
     <Compile Include="IAddress.cs" />
     <Compile Include="LongAddress.cs" />
+    <Compile Include="MasterAddress.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="SendingCommandHandler.cs" />
     <Compile Include="HARTDatagram.cs" />
     <Compile Include="ISerialPortWrapper.cs" />
     <Compile Include="OpenResult.cs" />
@@ -65,9 +84,8 @@
     <Compile Include="HartCommandParser.cs" />
     <Compile Include="HartCommunicationLite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReceiveHandler.cs" />
-    <Compile Include="CommandResult.cs" />
-    <Compile Include="ResponseCode.cs" />
+    <Compile Include="CommandResults\CommandResult.cs" />
+    <Compile Include="CommandStatus.cs" />
     <Compile Include="SerialPortWrapper.cs" />
     <Compile Include="ShortAddress.cs" />
   </ItemGroup>
@@ -78,7 +96,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

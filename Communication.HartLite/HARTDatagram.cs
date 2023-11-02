@@ -1,4 +1,5 @@
 using System;
+using m4dHART._2_DataLinkLayer.Wired_Token_Passing;
 
 namespace Communication.HartLite
 {
@@ -8,31 +9,43 @@ namespace Communication.HartLite
         public byte StartDelimiter { get; set; }
         public IAddress Address { get; set; }
         public byte CommandNumber { get; set; }
-        public byte[] ResponseCode { get; set; }
+        public byte[] CommandStatusBytes { get; set; }
         public byte[] Data { get; set; }
 
-        private static byte MasterToSlaveStartDelimiter => 0x2; // 2
-        public static byte SlaveToMasterStartDelimiter => 6;
+        public MasterAddress MasterAddress => Address._masterAddress;
+
 
         public HARTDatagram()
         {
         }
 
-        public HARTDatagram(int preambleLength, IAddress address, byte commandNumber, byte[] responseCode, byte[] data)
+        public HARTDatagram(int preambleLength, byte startDelimiter, IAddress address, byte commandNumber, byte[] responseCode, byte[] data)
         {
             PreambleLength = preambleLength;
-            StartDelimiter = MasterToSlaveStartDelimiter;
+            StartDelimiter = startDelimiter;
             Address = address;
             CommandNumber = commandNumber;
-            ResponseCode = responseCode;
+            CommandStatusBytes = responseCode;
             Data = data;
         }
 
-
-
-        public bool IsChecksumCorrect(byte checksum)
+        public FrameType FrameType
         {
-            return CalculateChecksum() == checksum;
+            get
+            {
+                var frameType = StartDelimiter & 0b00000111;
+                switch (frameType)
+                {
+                    case 1:
+                        return FrameType.BACK;
+                    case 2:
+                        return FrameType.STX;
+                    case 6:
+                        return FrameType.ACK;
+                    default:
+                        return FrameType.UNKNOWN;
+                }
+            }
         }
 
         public virtual Byte[] ToByteArray()
@@ -53,7 +66,7 @@ namespace Communication.HartLite
             const int SIZE_OF_DATA_BYTE_COUNT = 1;
             const int SIZE_OF_CHECKSUM = 1;
 
-            int commandLength = PreambleLength + Data.Length + ResponseCode.Length + Address.ToByteArray().Length +
+            int commandLength = PreambleLength + Data.Length + CommandStatusBytes.Length + Address.ToByteArray().Length +
                                 SIZE_OF_START_DELIMITER + SIZE_OF_COMMAND_NUMBER +
                                 SIZE_OF_DATA_BYTE_COUNT + SIZE_OF_CHECKSUM;
             var commandAsByteArray = new byte[commandLength];
@@ -66,14 +79,14 @@ namespace Communication.HartLite
             }
             commandAsByteArray[currentIndex] = StartDelimiter;
             currentIndex += SIZE_OF_START_DELIMITER;
-            CopyArrayInArray(commandAsByteArray, Address.ToByteArray(), currentIndex);
-            currentIndex += Address.ToByteArray().Length;
+            CopyArrayInArray(commandAsByteArray, Address.ToRawBytesArray(), currentIndex);
+            currentIndex += Address.ToRawBytesArray().Length;
             commandAsByteArray[currentIndex] = CommandNumber;
             currentIndex += SIZE_OF_COMMAND_NUMBER;
-            commandAsByteArray[currentIndex] = (byte)(Data.Length + ResponseCode.Length);
+            commandAsByteArray[currentIndex] = (byte)(Data.Length + CommandStatusBytes.Length);
             currentIndex += SIZE_OF_DATA_BYTE_COUNT;
-            CopyArrayInArray(commandAsByteArray, ResponseCode, currentIndex);
-            currentIndex += ResponseCode.Length;
+            CopyArrayInArray(commandAsByteArray, CommandStatusBytes, currentIndex);
+            currentIndex += CommandStatusBytes.Length;
             CopyArrayInArray(commandAsByteArray, Data, currentIndex);
 
             return commandAsByteArray;

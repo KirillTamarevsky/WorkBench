@@ -17,5 +17,9 @@ namespace Communication.HartLite.Commands
             Number = number;
             Data = data;
         }
+        public virtual CommandResult ToCommandResult(HARTDatagram datagram)
+        {
+            return new CommandResult(datagram);
+        }
     }
 }
