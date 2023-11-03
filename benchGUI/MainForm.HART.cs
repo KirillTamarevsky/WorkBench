@@ -97,6 +97,7 @@ namespace benchGUI
             {
                 while (!HartBackgroundWorkerCT.IsCancellationRequested)
                 {
+                    Thread.Sleep(50);
                     lock (hart_communicator)
                     {
                         if (HartAddr is ShortAddress)

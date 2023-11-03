@@ -357,7 +357,6 @@ namespace Communication.HartLite
             }
             LastReceivedDatagram = new HARTDatagram(preamblesReceived, _delimiter, _address, _commandByte, respCodes, data);
             _currentByteType = ReceiveState.CorrectPDUReceived;
-            Reset();
         }
 
         private void BufferAddByte(byte data, ReceiveState byteType)
@@ -370,6 +369,7 @@ namespace Communication.HartLite
         {
             _currentIndex = -1;
             preamblesReceived = 0;
+            _currentByteType = ReceiveState.NotInCommand;
             _nextByteType = ReceiveState.NotInCommand;
         }
     }
