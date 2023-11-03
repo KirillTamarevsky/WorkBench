@@ -123,7 +123,7 @@ namespace Communication.HartLite
             {
                 CTS_ReadSerial?.Cancel();
                 //ReadSerialTask?.Wait();
-                serThread.Join();
+                serThread?.Join();
             }
             catch (Exception e)
             {

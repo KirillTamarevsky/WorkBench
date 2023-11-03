@@ -27,6 +27,7 @@ namespace benchGUI
         CancellationToken HartBackgroundWorkerCT { get; set; }
 
         CommandResult lastReceivedCommandResult;
+        DateTime lastReceivedCommandResultDateTime;
         private void btn_HART_open_Click(object sender, EventArgs e)
         {
             btn_HART_open.Enabled = false;
@@ -80,6 +81,7 @@ namespace benchGUI
 
         private void OnBACKReceived(CommandResult commres)
         {
+            lastReceivedCommandResultDateTime = DateTime.Now;
             if ( !commres.HasCommunicationError && commres.CommandNumber == 3)
             {
                 Process_PV_mA_SV_TV_QV(commres);
@@ -119,9 +121,15 @@ namespace benchGUI
                         }
                         if (HartAddr is LongAddress)
                         {
-                        if (!HartBackgroundWorkerCT.IsCancellationRequested && !lastReceivedCommandResult.Address._fieldDeviceInBurstMode && !(lastReceivedCommandResult.FrameType == m4dHART._2_DataLinkLayer.Wired_Token_Passing.FrameType.BACK ))
+                        if (!HartBackgroundWorkerCT.IsCancellationRequested && 
+                            !lastReceivedCommandResult.Address._fieldDeviceInBurstMode && 
+                            !(lastReceivedCommandResult.FrameType == m4dHART._2_DataLinkLayer.Wired_Token_Passing.FrameType.BACK ))
                                 HART_READ_PV_mA_SV_TV_QV();
                             
+                        }
+                        if (DateTime.Now  - lastReceivedCommandResultDateTime > TimeSpan.FromSeconds(5))
+                        {
+                            HART_DISCONNECT();
                         }
                     }
                 }
@@ -130,6 +138,8 @@ namespace benchGUI
 
         private void HARTCommunicator_Close()
         {
+            if (hart_communicator == null) return;
+
             hart_communicator.BACKReceived -= OnBACKReceived;
             var closeRes = hart_communicator.Close();
             HartAddr = new ShortAddress(0);
@@ -276,7 +286,7 @@ namespace benchGUI
 
         private Task<CommandResult> SetHart_mA_level(Single mAlevel)
         {
-            var cmd = new HART_40_Simulate_Current_Command(mAlevel);
+            var cmd = new HART_040_Simulate_Current_Command(mAlevel);
             return Task.Run(() =>
             {
                 lock (hart_communicator)
@@ -290,7 +300,7 @@ namespace benchGUI
         private void btn_HART_trim4mA_Click(object sender, EventArgs e)
         {
             var currReading = (float)currentStabilityCalc.MeanValue;
-            var cmd = new HART_Trim_4mA_Command(currReading);
+            var cmd = new HART_045_Trim_Loop_Current_Zero(currReading);
             Task.Run(() =>
             {
                 lock(hart_communicator)
@@ -303,7 +313,7 @@ namespace benchGUI
         private void btn_HART_trim20mA_Click(object sender, EventArgs e)
         {
             var currReading = (float)currentStabilityCalc.MeanValue;
-            var cmd = new HART_Trim_20mA_Command(currReading);
+            var cmd = new HART_046_Trim_Trim_Loop_Current_Gain(currReading);
             Task.Run(() =>
             {
                 lock (hart_communicator)
@@ -325,6 +335,7 @@ namespace benchGUI
                 else
                 {
                     lastReceivedCommandResult = commres;
+                    lastReceivedCommandResultDateTime = DateTime.Now;
                     if (commres.HasCommunicationError)
                     {
                         return SendHARTCommand(cmd);
@@ -360,7 +371,7 @@ namespace benchGUI
             var cmd = new HARTCommand(3, new byte[0]);
             var commres = SendHARTCommand(cmd);
             // PRIMRY variable
-            if (commres != null)
+            if (commres != null && commres.CommandNumber == 3)
             {
                 Process_PV_mA_SV_TV_QV(commres);
             }
@@ -419,23 +430,23 @@ namespace benchGUI
 
         private void HART_READ_TAG()
         {
-            var cmd = new HART_13_Read_Tag_Descriptor_Date();
+            var cmd = new HART_013_Read_Tag_Descriptor_Date();
             var commres = SendHARTCommand(cmd);
-            if (commres is HART_Result_13_Tag_Descriptor_Date aaa)
+            if (commres is HART_Result_013_Tag_Descriptor_Date aaa)
             {
                 InvokeControlAction( () => { tb_HART_TAG.Text = aaa.Tag; });
             }
         }
         private void HART_READ_LONGTAG()
         {
-            var cmd = new HART_20_ReadLongTag();
+            var cmd = new HART_020_ReadLongTag();
             var commres = SendHARTCommand(cmd);
             //if (commres != null && commres.Data.Length == 32)
             //{
             //    var longtag = Encoding.Latin1.GetString(commres.Data);
             //    InvokeControlAction(() => { tb_longTag.Text = longtag; });
             //}
-            if (commres is HART_Result_20_Read_Long_Tag res)
+            if (commres is HART_Result_020_Read_Long_Tag res)
             {
                 InvokeControlAction(() => { tb_longTag.Text = res.LongTag; });
 
@@ -510,7 +521,14 @@ namespace benchGUI
                 {
                     lock (hart_communicator)
                     {
-                        SendHARTCommand(new HART_35_Write_PrimaryVariableRangeValues(uomCode, tbScaleMin.Text.ParseToDouble(), tbScaleMax.Text.ParseToDouble()));
+                        var commres = SendHARTCommand(new HART_035_Write_PrimaryVariableRangeValues(uomCode, tbScaleMin.Text.ParseToDouble(), tbScaleMax.Text.ParseToDouble()));
+                        if (commres is HART_Result_035_Write_PrimaryVariableRangeValues res)
+                        {
+                            do
+                            {
+                                commres = SendHARTCommand(new HART_044_Write_Primary_Variable_Units(uomCode));
+                            } while (commres.CommandStatus.FirstByte is CommandResponseCode rc && rc.Data  != 0 );
+                        }
                         HART_READ_SCALE();
                     }
                 });
@@ -523,13 +541,12 @@ namespace benchGUI
             HART_SEND_ZERO_COMMAND();
             if (HartAddr is LongAddress)
             {
-                var commres = hart_communicator.Send(20, HartAddr, new HARTCommand(15, new byte[0]));
-                if (commres != null && !commres.HasCommunicationError)
+                var commres = SendHARTCommand(new HART_015_Read_Device_Information());
+                if (commres is HART_Result_015_Read_Device_Information res && !res.HasCommunicationError && res.CommandStatus.FirstByte is CommandResponseCode rc && rc.Data == 00)
                 {
 
-
-                    var scaleMax = BitConverter.ToSingle(new byte[] { commres.Data[6], commres.Data[5], commres.Data[4], commres.Data[3] }, 0);
-                    var scaleMin = BitConverter.ToSingle(new byte[] { commres.Data[10], commres.Data[9], commres.Data[8], commres.Data[7] }, 0);
+                    var scaleMax = res.PVUpperRangeValue;
+                    var scaleMin = res.PVLowerRangeValue;
                     var step = (scaleMax - scaleMin) / 4;
                     InvokeControlAction(() =>
                     {
@@ -538,7 +555,7 @@ namespace benchGUI
                         tb_cpcStep.Text = step.ToString("0.0000");
                         tb_PressureSetPoint.Text = scaleMin.ToString("0.0000");
                     });
-                    switch (commres.Data[2])
+                    switch (res.PVUpperAndLowerRangeValuesUnitCode)
                     {
                         case 7: //7 bars
                             setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "bar").FirstOrDefault());
@@ -587,22 +604,22 @@ namespace benchGUI
                 {
                     lock (hart_communicator)
                     {
-                        HARTCommand cmd = new HART_13_Read_Tag_Descriptor_Date();
+                        HARTCommand cmd = new HART_013_Read_Tag_Descriptor_Date();
                         var commres = SendHARTCommand(cmd);
-                        if (commres is HART_Result_13_Tag_Descriptor_Date aaa)
+                        if (commres is HART_Result_013_Tag_Descriptor_Date aaa)
                         {
-                            cmd = new HART_18_Write_Tag_Descriptor_Date(tb_HART_TAG.Text, aaa.Descriptor, DateTime.Now);
+                            cmd = new HART_018_Write_Tag_Descriptor_Date(tb_HART_TAG.Text, aaa.Descriptor, DateTime.Now);
                             commres = SendHARTCommand(cmd);
                         }
                         return commres;
                     }
                 }).ContinueWith((a) =>
                 {
-                    if (a.Result is HART_Result_18_Write_Tag_Descriptor_Date result)
+                    if (a.Result is HART_Result_018_Write_Tag_Descriptor_Date result)
                     {
                         InvokeControlAction(() => tb_HART_TAG.Text = result.Tag); 
                     }
-                    if (a.Result is HART_Result_13_Tag_Descriptor_Date result1)
+                    if (a.Result is HART_Result_013_Tag_Descriptor_Date result1)
                     {
                         InvokeControlAction(() => tb_HART_TAG.Text = result1.Tag);
 
@@ -618,13 +635,13 @@ namespace benchGUI
                 {
                     lock (hart_communicator)
                     {
-                        var cmd = new HART_22_Write_Long_Tag(tb_longTag.Text);
+                        var cmd = new HART_022_Write_Long_Tag(tb_longTag.Text);
                         var commres = SendHARTCommand(cmd);
                         return commres;
                     }
                 }).ContinueWith((a) =>
                 {
-                    if (a.Result is HART_Result_22_Write_Long_Tag result)
+                    if (a.Result is HART_Result_022_Write_Long_Tag result)
                     {
                         InvokeControlAction(() => tb_longTag.Text = result.LongTag);
                     }

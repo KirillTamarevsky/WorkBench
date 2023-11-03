@@ -307,8 +307,8 @@ namespace Communication.HartLite
             {
                 Log.Warn("Checksum is wrong!");
                 // TODO: ERROR.indicate
-                _currentByteType = ReceiveState.WrongCheckSumDUReceived;
                 Reset();
+                _currentByteType = ReceiveState.WrongCheckSumDUReceived;
                 return;
             }
             byte[] respCodes;

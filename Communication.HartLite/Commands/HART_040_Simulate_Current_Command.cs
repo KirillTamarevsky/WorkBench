@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite.Commands
 {
-    public class HART_40_Simulate_Current_Command : HARTCommand
+    public class HART_040_Simulate_Current_Command : HARTCommand
     {
         public float CurrentToSimulate { get; }
         public override byte Number => 40;
         public override byte[] Data => CurrentToSimulate.Single_to_HART_bytearray();
-        public HART_40_Simulate_Current_Command(float currentReading)
+        public HART_040_Simulate_Current_Command(float currentReading)
         {
             CurrentToSimulate = currentReading;
         }

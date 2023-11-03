@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite.CommandResults
 {
-    public class HART_Result_18_Write_Tag_Descriptor_Date : CommandResult
+    public class HART_Result_018_Write_Tag_Descriptor_Date : CommandResult
     {
-        internal HART_Result_18_Write_Tag_Descriptor_Date(HARTDatagram command) : base(command)
+        internal HART_Result_018_Write_Tag_Descriptor_Date(HARTDatagram command) : base(command)
         {
         }
         public string Tag => new byte[] { Data[0], Data[1], Data[2], Data[3], Data[4], Data[5] }.HART_unpack_string();

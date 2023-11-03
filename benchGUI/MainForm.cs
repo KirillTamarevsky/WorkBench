@@ -117,6 +117,7 @@ namespace benchGUI
 
             StopPressureCyclicRead();
             PressureInstrument?.Close();
+            HARTCommunicator_Close();
         }
 
         private void Form1_Shown(object sender, EventArgs e)

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -256,7 +257,7 @@ namespace Communication.HartLite
         }
         public CommandResult SendZeroCommand()
         {
-            return Send(20, new ShortAddress(0), new HART_Zero_Command());
+            return Send(20, new ShortAddress(0), new HART_000_Zero_Command());
         }
         private void SendCommand(HARTDatagram command)
         {
@@ -265,9 +266,9 @@ namespace Communication.HartLite
             byte[] bytesToSend = command.ToByteArray();
 
             Port.DtrEnable = false;
-            Log.Info($"Before RTS enable: CD = [{Port.CDHolding}]");
+            //Log.Info($"Before RTS enable: CD = [{Port.CDHolding}]");
             Port.RtsEnable = true;
-            Log.Info($"RTS [{Port.RtsEnable}]");
+            //Log.Info($"RTS [{Port.RtsEnable}]");
 
             DateTime startTime = DateTime.Now;
 
@@ -347,7 +348,7 @@ namespace Communication.HartLite
             Action<HARTDatagram> cyclicIndicate = (HARTDatagram BACKdatagram) =>
             {
                 Log.Debug($"Cyclic.Indicate(BACK)");
-                BACKReceived?.Invoke(new CommandResult(BACKdatagram));
+                BACKReceived?.DynamicInvoke(new CommandResult(BACKdatagram));
                 RCV_MSG = RCV_MSG_state.None;
             };
 
@@ -359,8 +360,7 @@ namespace Communication.HartLite
 
             while (!cts.IsCancellationRequested)
             {
-                Thread.Sleep(
-                    5);
+                //Thread.Sleep(5);
                 if (Enable_Indicate != Port.CDHolding)
                 {
                     Enable_Indicate = Port.CDHolding;
@@ -379,11 +379,11 @@ namespace Communication.HartLite
                         {
                             case MasterState.WATCHING:
                                 BURST = false;
-                                startTimer($"{CurrentState} to {MasterState.ENABLED} on timeout = 0, HOLD", ONE_BYTE_TRANSMISSION_TIME * HOLD);
+                                startTimer($"{MasterState.WATCHING} to {MasterState.ENABLED} on timeout = 0, HOLD", ONE_BYTE_TRANSMISSION_TIME * HOLD);
                                 CurrentState = MasterState.ENABLED;
                                 continue;
                             case MasterState.ENABLED:
-                                startTimer($"{CurrentState} to {MasterState.WATCHING} on timeout = 0, 2 * RT1", ONE_BYTE_TRANSMISSION_TIME * RT1 * 2);
+                                startTimer($"{MasterState.ENABLED} to {MasterState.WATCHING} on timeout = 0, 2 * RT1", ONE_BYTE_TRANSMISSION_TIME * RT1 * 2);
                                 CurrentState = MasterState.WATCHING;
                                 continue;
                             case MasterState.USING:
@@ -428,6 +428,7 @@ namespace Communication.HartLite
                         if (_parser.CurrentByteType == HartCommandParser.ReceiveState.CorrectPDUReceived)
                         {
                             RCV_MSG = RCV_MSG_state.Success;
+                            _parser.Reset();
                             continue;
                         }
                         if ((Enable_Indicate_switch_time + Enable_Indicate_time_lag <= DateTime.Now) && !Enable_Indicate)
@@ -502,9 +503,17 @@ namespace Communication.HartLite
                     case RCV_MSG_state.Err:
                         if (CurrentState == MasterState.USING)
                         {
+                            RCV_MSG = RCV_MSG_state.None;
                             CurrentState = MasterState.WATCHING;
                             retriesCOUNT++;
                             startTimer("USING RCV_MSG != ACK (RCV_MSG == Err) RT1", ONE_BYTE_TRANSMISSION_TIME * RT1);
+                            break;
+                        }
+                        if (CurrentState == MasterState.WATCHING)
+                        {
+                            RCV_MSG = RCV_MSG_state.None;
+                            startTimer("WATCHING (RCV_MSG == Err) RT2", ONE_BYTE_TRANSMISSION_TIME * RT2);
+                            break;
                         }
                         break;
                     default:
@@ -517,18 +526,21 @@ namespace Communication.HartLite
                     switch (CurrentState)
                     {
                         case MasterState.WATCHING:
-                            continue;
+                            stopTimer($"{CurrentState} => Enable.Indicate ");
+                            break;
                         case MasterState.ENABLED:
                             CurrentState = MasterState.WATCHING;
                             RCV_MSG = RCV_MSG_state.Receiving;
-                            continue;
+                            startTimer($"{CurrentState} => Enable.Indicate RT1", RT1 * ONE_BYTE_TRANSMISSION_TIME);
+                            break;
                         case MasterState.USING:
                             stopTimer($"{CurrentState} => Enable.Indicate ");
-                            continue;
+                            break;
                         default:
                             continue;
                     }
                 }
+
             }
 
             transmitConfirm(TRANSMITResult.fail);

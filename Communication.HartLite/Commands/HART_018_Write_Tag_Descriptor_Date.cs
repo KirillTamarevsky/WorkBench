@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite.Commands
 {
-    public class HART_18_Write_Tag_Descriptor_Date: HARTCommand
+    public class HART_018_Write_Tag_Descriptor_Date: HARTCommand
     {
         public override byte Number => 18;
         public override byte[] Data => ToByteArray();
@@ -16,7 +16,7 @@ namespace Communication.HartLite.Commands
         private string _tag;
         private string _descriptor;
         private DateTime datecode;
-        public HART_18_Write_Tag_Descriptor_Date(string tag, string descriptor, DateTime dateTime)
+        public HART_018_Write_Tag_Descriptor_Date(string tag, string descriptor, DateTime dateTime)
         {
             if (string.IsNullOrEmpty(tag))
             {
@@ -59,7 +59,7 @@ namespace Communication.HartLite.Commands
 
         public override CommandResult ToCommandResult(HARTDatagram datagram)
         {
-            return datagram.CommandNumber == Number? new HART_Result_18_Write_Tag_Descriptor_Date(datagram): base.ToCommandResult(datagram);
+            return datagram.CommandNumber == Number? new HART_Result_018_Write_Tag_Descriptor_Date(datagram): base.ToCommandResult(datagram);
         }
     }
 }

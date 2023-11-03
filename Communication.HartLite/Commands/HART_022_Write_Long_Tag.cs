@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite.Commands
 {
-    public class HART_22_Write_Long_Tag : HARTCommand
+    public class HART_022_Write_Long_Tag : HARTCommand
     {
         public override byte Number => 22;
         public override byte[] Data => ToByteArray();
 
 
         private string NewLongTag { get; set; }
-        public HART_22_Write_Long_Tag(string newLongTag)
+        public HART_022_Write_Long_Tag(string newLongTag)
         {
             if (string.IsNullOrEmpty(newLongTag))
             {
@@ -39,7 +39,7 @@ namespace Communication.HartLite.Commands
 
         public override CommandResult ToCommandResult(HARTDatagram datagram)
         {
-            return datagram.CommandNumber == Number? new HART_Result_22_Write_Long_Tag(datagram) : base.ToCommandResult(datagram);
+            return datagram.CommandNumber == Number? new HART_Result_022_Write_Long_Tag(datagram) : base.ToCommandResult(datagram);
         }
     }
 }

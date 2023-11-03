@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Communication.HartLite.CommandResults;
 
 namespace Communication.HartLite.Commands
 {
-    public class HART_35_Write_PrimaryVariableRangeValues : HARTCommand
+    public class HART_035_Write_PrimaryVariableRangeValues : HARTCommand
     {
         public override byte Number => 35;
         public override byte[] Data => ToByteArray();
         byte _unitCode { get; }
         double _PVUpperRangeValue { get; }
         double _PVLowerRangeValue { get; }
-        public HART_35_Write_PrimaryVariableRangeValues(byte unitCode, double PVLowerRangeValue, double PVUpperRangeValue)
+        public HART_035_Write_PrimaryVariableRangeValues(byte unitCode, double PVLowerRangeValue, double PVUpperRangeValue)
         {
             _unitCode = unitCode;
             _PVLowerRangeValue = PVLowerRangeValue;
@@ -35,6 +36,14 @@ namespace Communication.HartLite.Commands
                 lower[3]
             };
             return res;
+        }
+        public override CommandResult ToCommandResult(HARTDatagram datagram)
+        {
+            if (datagram.CommandNumber == Number)
+            {
+                return new HART_Result_035_Write_PrimaryVariableRangeValues(datagram);
+            }
+            return base.ToCommandResult(datagram);
         }
     }
 }

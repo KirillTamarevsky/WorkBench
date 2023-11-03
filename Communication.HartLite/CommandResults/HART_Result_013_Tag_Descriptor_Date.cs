@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite.CommandResults
 {
-    public class HART_Result_13_Tag_Descriptor_Date : CommandResult
+    public class HART_Result_013_Tag_Descriptor_Date : CommandResult
     {
-        internal HART_Result_13_Tag_Descriptor_Date(HARTDatagram command) : base(command)
+        internal HART_Result_013_Tag_Descriptor_Date(HARTDatagram command) : base(command)
         {
         }
         public string Tag

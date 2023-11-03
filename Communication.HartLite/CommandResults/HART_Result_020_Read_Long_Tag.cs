@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Communication.HartLite.CommandResults
 {
-    public class HART_Result_20_Read_Long_Tag : CommandResult
+    public class HART_Result_020_Read_Long_Tag : CommandResult
     {
-        internal HART_Result_20_Read_Long_Tag(HARTDatagram command) : base(command)
+        internal HART_Result_020_Read_Long_Tag(HARTDatagram command) : base(command)
         {
         }
         public string LongTag

@@ -14,6 +14,12 @@ namespace Communication.HartLite
             var data = bytes.Reverse().ToArray();
             return data;
         }
+        public static Single To_HART_Single(this byte[] data)
+        {
+            if (data.Length < 4) throw new ArgumentException("must be 4 bytes long");
+
+            return BitConverter.ToSingle(data.Reverse().ToArray(), 0);
+        }
         public static string HART_unpack_string(this byte[] bytes)
         {
             if (bytes.Length < 3) return string.Empty;
