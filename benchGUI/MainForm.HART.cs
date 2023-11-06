@@ -1,33 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.SqlTypes;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Communication.HartLite;
-using Communication.HartLite.CommandResults;
-using Communication.HartLite.Commands;
+using m4dHART._2_DataLinkLayer;
+using m4dHART._2_DataLinkLayer.Wired_Token_Passing;
+using m4dHART._7_ApplicationLayer.CommandResponses;
+using m4dHART._7_ApplicationLayer.Commands;
+using m4dHART._7_ApplicationLayer.CommonTables;
 using WorkBench;
 using WorkBench.Interfaces;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace benchGUI
 {
     public partial class MainForm
     {
         IAddress HartAddr { get; set; } = new ShortAddress(0);
-        private HartCommunicationLite hart_communicator { get; set; }
+        private TokenPassingDataLinkLayer hart_communicator { get; set; }
         Task HartBackgroundWorker { get; set; }
         CancellationTokenSource HartBackgroundWorkerCTS { get; set; }
         CancellationToken HartBackgroundWorkerCT { get; set; }
 
-        CommandResult lastReceivedCommandResult;
+        CommandResponseBase lastReceivedCommandResult;
         DateTime lastReceivedCommandResultDateTime;
+        DateTime LastPingTime = DateTime.Now;
+
         private void btn_HART_open_Click(object sender, EventArgs e)
         {
             btn_HART_open.Enabled = false;
@@ -39,20 +38,20 @@ namespace benchGUI
             {
                 HARTCommunicator_Close();
             }
-            btn_HART_open.Enabled = true;
+                btn_HART_open.Enabled = true;
         }
 
         private void HARTCommunicator_Open()
         {
-            var selectedHartPortName = cb_HART_SerialPort.Text?.ToString();
+                var selectedHartPortName = cb_HART_SerialPort.Text?.ToString();
             if (!string.IsNullOrEmpty(selectedHartPortName))
             {
 
-                hart_communicator = new HartCommunicationLite(selectedHartPortName);
+                hart_communicator = new TokenPassingDataLinkLayer(selectedHartPortName);
                 var openRes = hart_communicator.Open();
                 switch (openRes)
                 {
-                    case OpenResult.Opened:
+                    case OpenResult.Success:
                         btn_HART_open.Text = "Закрыть";
                         btn_HART_ZEROTRIM.Enabled = true;
                         btn_ReadHART_Scale.Enabled = true;
@@ -67,29 +66,65 @@ namespace benchGUI
                         HartBackgroundWorkerCT = HartBackgroundWorkerCTS.Token;
                         HartBackgroundWorker = HartBackgroundWorker_DoWork();
                         break;
-                    case OpenResult.ComPortIsOpenAlreadyOpen:
-                    case OpenResult.ComPortNotExisting:
-                    case OpenResult.UnknownComPortError:
-                        hart_communicator.Close();
-                        break;
                     default:
+                        hart_communicator.Close();
                         break;
                 }
             }
 
         }
 
-        private void OnBACKReceived(CommandResult commres)
+        private void HARTCommunicator_Close()
+        {
+            HART_DISCONNECT();
+            if (hart_communicator == null) return;
+
+            hart_communicator.BACKReceived -= OnBACKReceived;
+            hart_communicator.Close();
+            HartAddr = new ShortAddress(0);
+            if (HartBackgroundWorker != null)
+            {
+                HartBackgroundWorkerCTS.Cancel();
+                HartBackgroundWorker.Wait();
+                HartBackgroundWorkerCTS.Dispose();
+                HartBackgroundWorkerCTS = null;
+                HartBackgroundWorker.Dispose();
+                HartBackgroundWorker = null;
+            }
+            hart_communicator = null;
+            btn_HART_open.Text = "Открыть";
+            btn_HART_ZEROTRIM.Enabled = false;
+            btn_ReadHART_Scale.Enabled = false;
+            btn_HART_set_0mA.Enabled = false;
+            btn_HART_set_4mA.Enabled = false;
+            btn_HART_set_20mA.Enabled = false;
+            btn_HART_trim4mA.Enabled = false;
+            btn_HART_trim20mA.Enabled = false;
+            btn_HART_BURST_OFF.Enabled = false;
+            btn_HART_BURST_ON.Enabled = false;
+
+            tb_longTag.Text = string.Empty;
+            tb_HART_PV.Text = string.Empty;
+            tb_HART_SV.Text = string.Empty;
+            tb_HART_TV.Text = string.Empty;
+            tb_HART_QV.Text = string.Empty;
+            tb_HART_PV_MA.Text = string.Empty;
+            tb_HART_Damping.Text = string.Empty;
+            cb_HART_Xfer_Function.DataSource = null;
+
+            tb_HART_PV.BackColor = DefaultBackColor;
+            btn_HART_BURST_OFF.BackColor = DefaultBackColor;
+
+            gb_HART.BackColor = DefaultBackColor;
+            tb_HART_PV_MA.BackColor = DefaultBackColor;
+        }
+
+        private void OnBACKReceived(CommandResponseBase commres)
         {
             lastReceivedCommandResultDateTime = DateTime.Now;
-            if ( !commres.HasCommunicationError && commres.CommandNumber == 3)
+            if ( commres is CommandResponse cr && cr.CommandNumber == 3)
             {
-                Process_PV_mA_SV_TV_QV(commres);
-                //if (btn_HART_BURST_OFF.BackColor != Control.DefaultBackColor) { btn_HART_BURST_OFF.BackColor = Control.DefaultBackColor; }
-                //else
-                //{
-                //    btn_HART_BURST_OFF.BackColor = Color.LightGreen;
-                //}
+                Process_PV_mA_SV_TV_QV(cr);
             }
         }
 
@@ -121,49 +156,25 @@ namespace benchGUI
                         }
                         if (HartAddr is LongAddress)
                         {
-                        if (!HartBackgroundWorkerCT.IsCancellationRequested && 
-                            !lastReceivedCommandResult.Address._fieldDeviceInBurstMode && 
-                            !(lastReceivedCommandResult.FrameType == m4dHART._2_DataLinkLayer.Wired_Token_Passing.FrameType.BACK ))
+                        if (!HartBackgroundWorkerCT.IsCancellationRequested && !lastReceivedCommandResult.BURST )
                                 HART_READ_PV_mA_SV_TV_QV();
-                            
                         }
                         if (DateTime.Now  - lastReceivedCommandResultDateTime > TimeSpan.FromSeconds(5))
                         {
                             HART_DISCONNECT();
+                        }
+                        if (DateTime.Now - LastPingTime > TimeSpan.FromMilliseconds(1500))
+                        {
+                            HART_READ_PV_mA_SV_TV_QV();
+                            LastPingTime = DateTime.Now;
+
                         }
                     }
                 }
             });
         }
 
-        private void HARTCommunicator_Close()
-        {
-            if (hart_communicator == null) return;
 
-            hart_communicator.BACKReceived -= OnBACKReceived;
-            var closeRes = hart_communicator.Close();
-            HartAddr = new ShortAddress(0);
-            if (HartBackgroundWorker != null)
-            {
-                HartBackgroundWorkerCTS.Cancel();
-                HartBackgroundWorker.Wait();
-                HartBackgroundWorkerCTS.Dispose();
-                HartBackgroundWorkerCTS = null;
-                HartBackgroundWorker.Dispose();
-                HartBackgroundWorker = null;
-            }
-            hart_communicator = null;
-            btn_HART_open.Text = "Открыть";
-            btn_HART_ZEROTRIM.Enabled = false;
-            btn_ReadHART_Scale.Enabled = false;
-            btn_HART_set_0mA.Enabled = false;
-            btn_HART_set_4mA.Enabled = false;
-            btn_HART_set_20mA.Enabled = false;
-            btn_HART_trim4mA.Enabled = false;
-            btn_HART_trim20mA.Enabled = false;
-            btn_HART_BURST_OFF.Enabled = false;
-            btn_HART_BURST_ON.Enabled = false;
-        }
 
 
         private void btn_ReadHART_Scale_Click(object sender, EventArgs e)
@@ -210,14 +221,13 @@ namespace benchGUI
 
         private void btn_HART_BURST_OFF_Click(object sender, EventArgs e)
         {
-            var cmd = new HART_109_Burst_Mode_Control( Communication.HartLite.CommonTables._009_Burst_Mode_Control_Code.Off, 0);
+            var cmd = new HART_109_Burst_Mode_Control( _009_Burst_Mode_Control_Code.Off, 0);
             Task.Run(() =>
             {
                 lock (hart_communicator)
                 {
                     var cmdResult = SendHARTCommand(cmd);
-                    var commStat = cmdResult.CommandStatus.FirstByte;
-                    var fieldDevStatus = cmdResult.CommandStatus.FieldDeviceStatus;
+                    var fieldDevStatus = cmdResult.DeviceStatus;
                 }
             });
         }
@@ -227,9 +237,9 @@ namespace benchGUI
             {
                 lock (hart_communicator)
                 {
-                    var cmd = new HARTCommand(108, new byte[] { 3 });
+                    HARTCommand cmd = new HARTCommand(108, new byte[] { 3 });
                     var cmdResult = SendHARTCommand(cmd);
-                    cmd = new HART_109_Burst_Mode_Control(Communication.HartLite.CommonTables._009_Burst_Mode_Control_Code.Enable_on_Token_Passing_Data_Link_Layer_only, 3);
+                    cmd = new HART_109_Burst_Mode_Control(_009_Burst_Mode_Control_Code.Enable_on_Token_Passing_Data_Link_Layer_only, 3);
                     cmdResult = SendHARTCommand(cmd);
 
                 }
@@ -241,7 +251,7 @@ namespace benchGUI
             SetHart_mA_level(4f).ContinueWith((t) =>
             {
                 var commandResult = t.Result;
-                if (commandResult != null && commandResult.CommandNumber == 40 && commandResult.CommandStatus.FieldDeviceStatus.LoopCurrentFixed)
+                if (commandResult is CommandResponse && commandResult.CommandNumber == 40 && commandResult.DeviceStatus.LoopCurrentFixed)
                 {
                     InvokeControlAction( () =>
                     {
@@ -257,7 +267,7 @@ namespace benchGUI
             SetHart_mA_level(20f).ContinueWith((t) =>
             {
                 var commandResult = t.Result;
-                if (commandResult != null && commandResult.CommandNumber == 40 && commandResult.CommandStatus.FieldDeviceStatus.LoopCurrentFixed)
+                if (commandResult is CommandResponse && commandResult.CommandNumber == 40 && commandResult.DeviceStatus.LoopCurrentFixed)
                 {
                     InvokeControlAction( () =>
                     {
@@ -272,7 +282,7 @@ namespace benchGUI
             SetHart_mA_level(0f).ContinueWith((t) =>
             {
                 var commandResult = t.Result;
-                if (commandResult != null && commandResult.CommandNumber == 40 && !commandResult.CommandStatus.FieldDeviceStatus.LoopCurrentFixed)
+                if (commandResult is CommandResponse && commandResult.CommandNumber == 40 && !commandResult.DeviceStatus.LoopCurrentFixed)
                 {
                     InvokeControlAction( () =>
                     {
@@ -284,7 +294,7 @@ namespace benchGUI
                 );
         }
 
-        private Task<CommandResult> SetHart_mA_level(Single mAlevel)
+        private Task<CommandResponseBase> SetHart_mA_level(Single mAlevel)
         {
             var cmd = new HART_040_Simulate_Current_Command(mAlevel);
             return Task.Run(() =>
@@ -323,9 +333,9 @@ namespace benchGUI
             });
         }
 
-        private CommandResult SendHARTCommand(HARTCommand cmd)
+        private CommandResponseBase SendHARTCommand(HARTCommand cmd)
         {
-            CommandResult commres = null;
+            CommandResponseBase commres = null;
             HART_SEND_ZERO_COMMAND();
             if (HartAddr is LongAddress)
             {
@@ -336,17 +346,49 @@ namespace benchGUI
                 {
                     lastReceivedCommandResult = commres;
                     lastReceivedCommandResultDateTime = DateTime.Now;
-                    if (commres.HasCommunicationError)
+                    InvokeControlAction(() =>
                     {
+                        if (commres.BURST)
+                        {
+                            btn_HART_BURST_OFF.BackColor = System.Drawing.Color.LightGreen;
+                        }
+                        else
+                        {
+                            btn_HART_BURST_OFF.BackColor = Control.DefaultBackColor;
+                        }
+                        // !!!!!!!! DEVICE MALFUNCTION !!!!!!!!
+                        if (commres.DeviceStatus.DeviceMalfunction)
+                        {
+                            gb_HART.BackColor = Color.Red;
+                        }
+                        else
+                        {
+                            gb_HART.BackColor = DefaultBackColor;
+                        }
+                        // LOOP Current Levels
+                        if (commres.DeviceStatus.LoopCurrentFixed)
+                        {
+                            tb_HART_PV_MA.BackColor = Color.LightYellow;
+                        }
+                        else if (commres.DeviceStatus.LoopCurrentSaturated)
+                        {
+                            tb_HART_PV_MA.BackColor = Color.OrangeRed;
+                        }
+                        else
+                        {
+                            tb_HART_PV_MA.BackColor = DefaultBackColor;
+
+                        }
+                    });
+
+                    if (commres is CommandResponseCommError)
+                    {
+                        log4net.LogManager.GetLogger("HART").Debug($"{commres}");
                         return SendHARTCommand(cmd);
                     }
-                    if (commres.Address._fieldDeviceInBurstMode)
+                    if (commres is CommandResponseMasterCommandError commerr && commerr.ResponseCode.Busy)
                     {
-                        btn_HART_BURST_OFF.BackColor = System.Drawing.Color.LightGreen;
-                    }
-                    else
-                    {
-                        btn_HART_BURST_OFF.BackColor = Control.DefaultBackColor;
+                        return SendHARTCommand(cmd);
                     }
                 }
             }
@@ -371,12 +413,12 @@ namespace benchGUI
             var cmd = new HARTCommand(3, new byte[0]);
             var commres = SendHARTCommand(cmd);
             // PRIMRY variable
-            if (commres != null && commres.CommandNumber == 3)
+            if (commres is CommandResponse cr && cr.CommandNumber == 3)
             {
-                Process_PV_mA_SV_TV_QV(commres);
+                Process_PV_mA_SV_TV_QV(cr);
             }
         }
-        private void Process_PV_mA_SV_TV_QV(CommandResult commres)
+        private void Process_PV_mA_SV_TV_QV(CommandResponse commres)
         {
             InvokeControlAction(() =>
             {
@@ -446,11 +488,20 @@ namespace benchGUI
             //    var longtag = Encoding.Latin1.GetString(commres.Data);
             //    InvokeControlAction(() => { tb_longTag.Text = longtag; });
             //}
-            if (commres is HART_Result_020_Read_Long_Tag res)
+            InvokeControlAction(() =>
             {
-                InvokeControlAction(() => { tb_longTag.Text = res.LongTag; });
+                if (commres is HART_Result_020_Read_Long_Tag res)
+                {
+                    tb_longTag.Enabled = true;
+                    tb_longTag.Text = res.LongTag;
+                }
+                if (commres is CommandResponseMasterCommandError me && me.ResponseCode.NotImplemented)
+                {
+                    tb_longTag.Text = string.Empty;
+                    tb_longTag.Enabled = false;
 
-            }
+                }
+            });
         }
 
 
@@ -524,10 +575,7 @@ namespace benchGUI
                         var commres = SendHARTCommand(new HART_035_Write_PrimaryVariableRangeValues(uomCode, tbScaleMin.Text.ParseToDouble(), tbScaleMax.Text.ParseToDouble()));
                         if (commres is HART_Result_035_Write_PrimaryVariableRangeValues res)
                         {
-                            do
-                            {
-                                commres = SendHARTCommand(new HART_044_Write_Primary_Variable_Units(uomCode));
-                            } while (commres.CommandStatus.FirstByte is CommandResponseCode rc && rc.Data  != 0 );
+                            commres = SendHARTCommand(new HART_044_Write_Primary_Variable_Units(uomCode));
                         }
                         HART_READ_SCALE();
                     }
@@ -542,7 +590,7 @@ namespace benchGUI
             if (HartAddr is LongAddress)
             {
                 var commres = SendHARTCommand(new HART_015_Read_Device_Information());
-                if (commres is HART_Result_015_Read_Device_Information res && !res.HasCommunicationError && res.CommandStatus.FirstByte is CommandResponseCode rc && rc.Data == 00)
+                if (commres is HART_Result_015_Read_Device_Information res && (commres is CommandResponse cr) && cr.ResponseCode.Success) 
                 {
 
                     var scaleMax = res.PVUpperRangeValue;
@@ -554,6 +602,12 @@ namespace benchGUI
                         tbScaleMin.Text = scaleMin.ToString("0.0000");
                         tb_cpcStep.Text = step.ToString("0.0000");
                         tb_PressureSetPoint.Text = scaleMin.ToString("0.0000");
+
+                        tb_HART_Damping.Text = res.PVDampingValue_in_seconds.ToString("0.0");
+
+                        cb_HART_Xfer_Function.DataSource = Enum.GetValues(typeof(_003_Transfer_Function_Code));
+
+                        cb_HART_Xfer_Function.SelectedItem = res.PVTransferFunctionCode;
                     });
                     switch (res.PVUpperAndLowerRangeValuesUnitCode)
                     {
@@ -644,6 +698,77 @@ namespace benchGUI
                     if (a.Result is HART_Result_022_Write_Long_Tag result)
                     {
                         InvokeControlAction(() => tb_longTag.Text = result.LongTag);
+                    }
+                });
+            }
+        }
+
+        private void tb_HART_Damping_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r' && hart_communicator != null)
+            {
+                if (tb_HART_Damping.Text.TryParseToDouble(out double newDampingValue))
+                {
+
+                    Task.Run(() =>
+                    {
+                        lock (hart_communicator)
+                        {
+                            var cmd = new HART_034_Write_Primary_Variable_Damping_Value((float)newDampingValue);
+                            var commres = SendHARTCommand(cmd);
+                            return commres;
+                        }
+                    }).ContinueWith((a) =>
+                    {
+                        if (a.Result is HART_Result_034_Write_Primary_Variable_Damping_Value result)
+                        {
+                            InvokeControlAction(() => tb_HART_Damping.Text = result.ActualPVDampingValue.ToString("0.0"));
+                        }
+                        else
+                        {
+                            lock (hart_communicator)
+                            {
+                                HART_READ_SCALE();
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    Task.Run(() =>
+                    {
+                        lock (hart_communicator)
+                        {
+                            HART_READ_SCALE();
+                        }
+                    });
+                }
+            }
+        }
+        private void cb_HART_Xfer_Function_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (hart_communicator != null && Enum.TryParse(cb_HART_Xfer_Function.SelectedValue.ToString(), out _003_Transfer_Function_Code newXferCode))
+            {
+                Task.Run(() =>
+                {
+                    lock (hart_communicator)
+                    {
+                        var cmd = new HART_047_Write_PrimaryVariable_Transfer_Function(newXferCode);
+                        var commres = SendHARTCommand(cmd);
+                        return commres;
+                    }
+                }).ContinueWith((a) =>
+                {
+                    if (a.Result is HART_Result_047_Write_PrimaryVariable_Transfer_Function result)
+                    {
+                        InvokeControlAction(() => cb_HART_Xfer_Function.SelectedItem = result.PVTransferFunctionCode);
+                    }
+                    else
+                    {
+                        lock (hart_communicator)
+                        {
+                            HART_READ_SCALE();
+                        }
                     }
                 });
             }

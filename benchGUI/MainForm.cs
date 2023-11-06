@@ -26,6 +26,7 @@ namespace benchGUI
         {
             InitializeComponent();
 
+
             FormClosing += onFormClosing;
 
             pressureStabilityCalc = new StabilityCalculator(COUNTTOSTABLE, TimeSpan.FromSeconds(TIMETOSTABLE));

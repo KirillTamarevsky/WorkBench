@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Communication.HartLite\Communication.HartLite.csproj" />
     <ProjectReference Include="..\WorkBench\WorkBench.csproj" />
   </ItemGroup>
 

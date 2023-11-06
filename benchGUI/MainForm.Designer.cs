@@ -100,6 +100,10 @@ namespace benchGUI
             tb_longTag = new System.Windows.Forms.TextBox();
             btn_HART_BURST_OFF = new System.Windows.Forms.Button();
             btn_HART_BURST_ON = new System.Windows.Forms.Button();
+            tb_HART_Damping = new System.Windows.Forms.TextBox();
+            lbl_HART_Damping = new System.Windows.Forms.Label();
+            cb_HART_Xfer_Function = new System.Windows.Forms.ComboBox();
+            lbl_HART_Xfer_Function = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
@@ -545,6 +549,8 @@ namespace benchGUI
             // 
             // cbPressureScaleUOM
             // 
+            cbPressureScaleUOM.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            cbPressureScaleUOM.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cbPressureScaleUOM.FormattingEnabled = true;
             cbPressureScaleUOM.Location = new System.Drawing.Point(177, 280);
             cbPressureScaleUOM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -884,12 +890,57 @@ namespace benchGUI
             btn_HART_BURST_ON.UseVisualStyleBackColor = true;
             btn_HART_BURST_ON.Click += btn_HART_BURST_ON_Click;
             // 
+            // tb_HART_Damping
+            // 
+            tb_HART_Damping.Location = new System.Drawing.Point(542, 384);
+            tb_HART_Damping.Name = "tb_HART_Damping";
+            tb_HART_Damping.Size = new System.Drawing.Size(64, 23);
+            tb_HART_Damping.TabIndex = 60;
+            tb_HART_Damping.KeyPress += tb_HART_Damping_KeyPress;
+            // 
+            // lbl_HART_Damping
+            // 
+            lbl_HART_Damping.AutoSize = true;
+            lbl_HART_Damping.Location = new System.Drawing.Point(542, 366);
+            lbl_HART_Damping.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbl_HART_Damping.Name = "lbl_HART_Damping";
+            lbl_HART_Damping.Size = new System.Drawing.Size(55, 15);
+            lbl_HART_Damping.TabIndex = 61;
+            lbl_HART_Damping.Text = "damping";
+            // 
+            // cb_HART_Xfer_Function
+            // 
+            cb_HART_Xfer_Function.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cb_HART_Xfer_Function.DropDownWidth = 200;
+            cb_HART_Xfer_Function.FormattingEnabled = true;
+            cb_HART_Xfer_Function.Location = new System.Drawing.Point(542, 434);
+            cb_HART_Xfer_Function.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            cb_HART_Xfer_Function.MaxDropDownItems = 20;
+            cb_HART_Xfer_Function.Name = "cb_HART_Xfer_Function";
+            cb_HART_Xfer_Function.Size = new System.Drawing.Size(89, 23);
+            cb_HART_Xfer_Function.TabIndex = 62;
+            cb_HART_Xfer_Function.SelectionChangeCommitted += cb_HART_Xfer_Function_SelectionChangeCommitted;
+            // 
+            // lbl_HART_Xfer_Function
+            // 
+            lbl_HART_Xfer_Function.AutoSize = true;
+            lbl_HART_Xfer_Function.Location = new System.Drawing.Point(542, 413);
+            lbl_HART_Xfer_Function.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbl_HART_Xfer_Function.Name = "lbl_HART_Xfer_Function";
+            lbl_HART_Xfer_Function.Size = new System.Drawing.Size(80, 15);
+            lbl_HART_Xfer_Function.TabIndex = 63;
+            lbl_HART_Xfer_Function.Text = "Xfer_Function";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             ClientSize = new System.Drawing.Size(1236, 781);
+            Controls.Add(lbl_HART_Xfer_Function);
+            Controls.Add(cb_HART_Xfer_Function);
+            Controls.Add(lbl_HART_Damping);
+            Controls.Add(tb_HART_Damping);
             Controls.Add(btn_HART_BURST_ON);
             Controls.Add(btn_HART_BURST_OFF);
             Controls.Add(tb_longTag);
@@ -1035,6 +1086,10 @@ namespace benchGUI
         private System.Windows.Forms.TextBox tb_longTag;
         private System.Windows.Forms.Button btn_HART_BURST_OFF;
         private System.Windows.Forms.Button btn_HART_BURST_ON;
+        private System.Windows.Forms.TextBox tb_HART_Damping;
+        private System.Windows.Forms.Label lbl_HART_Damping;
+        private System.Windows.Forms.ComboBox cb_HART_Xfer_Function;
+        private System.Windows.Forms.Label lbl_HART_Xfer_Function;
     }
 }
 
