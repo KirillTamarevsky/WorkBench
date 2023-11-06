@@ -151,7 +151,6 @@ namespace benchGUI
                                     HART_READ_TAG();
                                     HART_READ_LONGTAG();
                                 }
-
                             }
                         }
                         if (HartAddr is LongAddress)
@@ -309,7 +308,28 @@ namespace benchGUI
 
         private void btn_HART_trim4mA_Click(object sender, EventArgs e)
         {
-            var currReading = (float)currentStabilityCalc.MeanValue;
+            float currReading;
+            if (currentReaderSpan == null)
+            {
+                using (var currInputDialogue = new GetMeasuredCurrentValueDialog())
+                {
+                    currInputDialogue.StartPosition = FormStartPosition.CenterParent;
+                    var dialogueResult = currInputDialogue.ShowDialog();
+                    if (dialogueResult == DialogResult.OK)
+                    {
+                        currReading = currInputDialogue.MeasuredCurrentValue;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+            }
+            else
+            {
+                currReading = (float)currentStabilityCalc.MeanValue;
+            }
             var cmd = new HART_045_Trim_Loop_Current_Zero(currReading);
             Task.Run(() =>
             {
@@ -322,7 +342,28 @@ namespace benchGUI
 
         private void btn_HART_trim20mA_Click(object sender, EventArgs e)
         {
-            var currReading = (float)currentStabilityCalc.MeanValue;
+            float currReading;
+            if (currentReaderSpan == null)
+            {
+                using (var currInputDialogue = new GetMeasuredCurrentValueDialog())
+                {
+                    currInputDialogue.StartPosition = FormStartPosition.CenterParent;
+                    var dialogueResult = currInputDialogue.ShowDialog();
+                    if (dialogueResult == DialogResult.OK)
+                    {
+                        currReading = currInputDialogue.MeasuredCurrentValue;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+            }
+            else
+            {
+                currReading = (float)currentStabilityCalc.MeanValue;
+            }
             var cmd = new HART_046_Trim_Trim_Loop_Current_Gain(currReading);
             Task.Run(() =>
             {
@@ -405,8 +446,42 @@ namespace benchGUI
                 {
                     HartAddr = uniqueIDcommand.LongAddress;
                 }
+                var dynVarAssignments = SendHARTCommand(new HART_050_Read_Dynamic_Variables_Assignments());
+                if (dynVarAssignments is HART_Result_050_Read_Dynamic_Variables_Assignments dynResp)
+                {
+                    var PVVarInfo = SendHARTCommand(new HART_054_Read_Device_Variable_Information(dynResp.DeviceVariable_assigned_to_PV));
+                    if (PVVarInfo is HART_Result_054_Read_Device_Variable_Information_cs pvinfo)
+                    {
+                        InvokeControlAction(() =>{
+                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
+                        tt.InitialDelay = 1;
+                        tt.ShowAlways = true;
+                        tt.SetToolTip(tbScaleMin, $"{pvinfo.LowerTransducerLimit}");
+                        
+                        tt = new System.Windows.Forms.ToolTip();
+                        tt.InitialDelay = 1;
+                        tt.ShowAlways = true;
+                        tt.SetToolTip(tbScaleMax, $"{pvinfo.UpperTransducerLimit}");
+                        });
+                    }
+                    else
+                    {
+                        InvokeControlAction(() =>{
+                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
+                        tt.SetToolTip(tbScaleMin, $"NA");
+                        tt.SetToolTip(tbScaleMax, $"NA");
+                        });
+                    }
+                }
+                else
+                {
+                    InvokeControlAction(() => {
+                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
+                        tt.SetToolTip(tbScaleMin, $"NA");
+                        tt.SetToolTip(tbScaleMax, $"NA");
+                    });
+                }
             }
-
         }
         private void HART_READ_PV_mA_SV_TV_QV()
         {
