@@ -20,8 +20,8 @@ namespace WBGUIWPF.viewmodels
         public string SerialNumber { get; set; }
         public ObservableCollection<SerialPortConfigurationVM> AvailableSerialPortConfigurations { get; set; }
         
-        public event EventHandler<SerialPortConfigurationVM> SerialPortChanged;
-        private SerialPortConfigurationVM? serialPortConfigurationVM;
+        public event EventHandler<SerialPortConfigurationVM>? SerialPortChanged;
+        private SerialPortConfigurationVM? serialPortConfigurationVM { get; set; }
         public SerialPortConfigurationVM? SelectedSerialPortConfiguration 
         {
             get => serialPortConfigurationVM;
@@ -32,7 +32,7 @@ namespace WBGUIWPF.viewmodels
                     SerialPortChanged?.Invoke(this, value);
                 }
                 serialPortConfigurationVM = value;
-                RaisePropertyChanged(nameof(SelectedSerialPortConfiguration));
+                RaisePropertyChanged();
             }
         }
 #if DEBUG
@@ -82,7 +82,7 @@ namespace WBGUIWPF.viewmodels
 
         public JsonObject GetConfig()
         {
-            var dictionary = new Dictionary<string, JsonNode>
+            var dictionary = new Dictionary<string, JsonNode?>
             {
                 ["BenchComponentID"] = THIS_BENCH_COMPONENT_ID,
                 ["SerialNumber"] = SerialNumber,
