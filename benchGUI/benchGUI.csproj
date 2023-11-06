@@ -40,6 +40,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\m4dHART\m4dHART\m4dHART.csproj" />
     <ProjectReference Include="..\WorkBench\WorkBench.csproj" />
   </ItemGroup>
   <ItemGroup>
