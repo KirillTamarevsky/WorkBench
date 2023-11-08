@@ -309,7 +309,7 @@ namespace benchGUI
         private void btn_HART_trim4mA_Click(object sender, EventArgs e)
         {
             float currReading;
-            if (currentReaderSpan == null)
+            if (!startedEK)
             {
                 using (var currInputDialogue = new GetMeasuredCurrentValueDialog())
                 {
@@ -343,7 +343,7 @@ namespace benchGUI
         private void btn_HART_trim20mA_Click(object sender, EventArgs e)
         {
             float currReading;
-            if (currentReaderSpan == null)
+            if (!startedEK)
             {
                 using (var currInputDialogue = new GetMeasuredCurrentValueDialog())
                 {
