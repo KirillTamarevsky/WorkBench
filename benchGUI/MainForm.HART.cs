@@ -585,6 +585,11 @@ namespace benchGUI
             HartAddr = new ShortAddress(0);
             InvokeControlAction( () =>
             {
+                if (hart_communicator != null)
+                {
+                    hart_communicator.BACKReceived -= OnBACKReceived;
+                }
+
                 tb_HART_PV.Text = string.Empty;
                 tb_HART_PV_MA.Text = string.Empty;
                 tb_HART_TAG.Text = "нет связи.";
