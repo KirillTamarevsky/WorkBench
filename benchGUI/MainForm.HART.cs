@@ -250,7 +250,7 @@ namespace benchGUI
             SetHart_mA_level(4f).ContinueWith((t) =>
             {
                 var commandResult = t.Result;
-                if (commandResult is CommandResponse && commandResult.CommandNumber == 40 && commandResult.DeviceStatus.LoopCurrentFixed)
+                if (commandResult is CommandResponse && commandResult.CommandNumber == 40) // Endress+Hauser Cerabar S doesnot return LoopFixed flag // && commandResult.DeviceStatus.LoopCurrentFixed) && commandResult.DeviceStatus.LoopCurrentFixed)
                 {
                     InvokeControlAction( () =>
                     {
@@ -266,7 +266,7 @@ namespace benchGUI
             SetHart_mA_level(20f).ContinueWith((t) =>
             {
                 var commandResult = t.Result;
-                if (commandResult is CommandResponse && commandResult.CommandNumber == 40 && commandResult.DeviceStatus.LoopCurrentFixed)
+                if (commandResult is CommandResponse && commandResult.CommandNumber == 40) // Endress+Hauser Cerabar S doesnot return LoopFixed flag // && commandResult.DeviceStatus.LoopCurrentFixed)
                 {
                     InvokeControlAction( () =>
                     {
@@ -281,7 +281,7 @@ namespace benchGUI
             SetHart_mA_level(0f).ContinueWith((t) =>
             {
                 var commandResult = t.Result;
-                if (commandResult is CommandResponse && commandResult.CommandNumber == 40 && !commandResult.DeviceStatus.LoopCurrentFixed)
+                if (commandResult is CommandResponse && commandResult.CommandNumber == 40) // && !commandResult.DeviceStatus.LoopCurrentFixed)
                 {
                     InvokeControlAction( () =>
                     {
