@@ -61,7 +61,6 @@ namespace benchGUI
                         btn_HART_BURST_OFF.Enabled = true;
                         btn_HART_BURST_ON.Enabled = true;
 
-                        hart_communicator.BACKReceived += OnBACKReceived;
                         HartBackgroundWorkerCTS = new CancellationTokenSource();
                         HartBackgroundWorkerCT = HartBackgroundWorkerCTS.Token;
                         HartBackgroundWorker = HartBackgroundWorker_DoWork();
@@ -162,7 +161,7 @@ namespace benchGUI
                         {
                             HART_DISCONNECT();
                         }
-                        if (DateTime.Now - LastPingTime > TimeSpan.FromMilliseconds(1500))
+                        if (DateTime.Now - LastPingTime > TimeSpan.FromMilliseconds(2000))
                         {
                             HART_READ_PV_mA_SV_TV_QV();
                             LastPingTime = DateTime.Now;
@@ -377,7 +376,7 @@ namespace benchGUI
         private CommandResponseBase SendHARTCommand(HARTCommand cmd)
         {
             CommandResponseBase commres = null;
-            HART_SEND_ZERO_COMMAND();
+            //HART_SEND_ZERO_COMMAND();
             if (HartAddr is LongAddress)
             {
                 commres = hart_communicator.Send(5, HartAddr, cmd);
@@ -445,42 +444,10 @@ namespace benchGUI
                 if (zeroCommandRes is IReadUniqueIdetifierCommand uniqueIDcommand )
                 {
                     HartAddr = uniqueIDcommand.LongAddress;
+                    hart_communicator.BACKReceived += OnBACKReceived;
+
                 }
-                var dynVarAssignments = SendHARTCommand(new HART_050_Read_Dynamic_Variables_Assignments());
-                if (dynVarAssignments is HART_Result_050_Read_Dynamic_Variables_Assignments dynResp)
-                {
-                    var PVVarInfo = SendHARTCommand(new HART_054_Read_Device_Variable_Information(dynResp.DeviceVariable_assigned_to_PV));
-                    if (PVVarInfo is HART_Result_054_Read_Device_Variable_Information_cs pvinfo)
-                    {
-                        InvokeControlAction(() =>{
-                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
-                        tt.InitialDelay = 1;
-                        tt.ShowAlways = true;
-                        tt.SetToolTip(tbScaleMin, $"{pvinfo.LowerTransducerLimit}");
-                        
-                        tt = new System.Windows.Forms.ToolTip();
-                        tt.InitialDelay = 1;
-                        tt.ShowAlways = true;
-                        tt.SetToolTip(tbScaleMax, $"{pvinfo.UpperTransducerLimit}");
-                        });
-                    }
-                    else
-                    {
-                        InvokeControlAction(() =>{
-                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
-                        tt.SetToolTip(tbScaleMin, $"NA");
-                        tt.SetToolTip(tbScaleMax, $"NA");
-                        });
-                    }
-                }
-                else
-                {
-                    InvokeControlAction(() => {
-                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
-                        tt.SetToolTip(tbScaleMin, $"NA");
-                        tt.SetToolTip(tbScaleMax, $"NA");
-                    });
-                }
+
             }
         }
         private void HART_READ_PV_mA_SV_TV_QV()
@@ -666,7 +633,7 @@ namespace benchGUI
 
         private void HART_READ_SCALE()
         {
-            HART_SEND_ZERO_COMMAND();
+            //HART_SEND_ZERO_COMMAND();
             if (HartAddr is LongAddress)
             {
                 var commres = SendHARTCommand(new HART_015_Read_Device_Information());
@@ -727,6 +694,44 @@ namespace benchGUI
                             setComboboxSelectedItemIndex(cbPressureScaleUOM, -1);
                             break;
                     }
+                }
+                var dynVarAssignments = SendHARTCommand(new HART_050_Read_Dynamic_Variables_Assignments());
+                if (dynVarAssignments is HART_Result_050_Read_Dynamic_Variables_Assignments dynResp)
+                {
+                    var PVVarInfo = SendHARTCommand(new HART_054_Read_Device_Variable_Information(dynResp.DeviceVariable_assigned_to_PV));
+                    if (PVVarInfo is HART_Result_054_Read_Device_Variable_Information_cs pvinfo)
+                    {
+                        InvokeControlAction(() =>
+                        {
+                            System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
+                            tt.InitialDelay = 1;
+                            tt.ShowAlways = true;
+                            tt.SetToolTip(tbScaleMin, $"{pvinfo.LowerTransducerLimit}");
+
+                            tt = new System.Windows.Forms.ToolTip();
+                            tt.InitialDelay = 1;
+                            tt.ShowAlways = true;
+                            tt.SetToolTip(tbScaleMax, $"{pvinfo.UpperTransducerLimit}");
+                        });
+                    }
+                    else
+                    {
+                        InvokeControlAction(() =>
+                        {
+                            System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
+                            tt.SetToolTip(tbScaleMin, $"NA");
+                            tt.SetToolTip(tbScaleMax, $"NA");
+                        });
+                    }
+                }
+                else
+                {
+                    InvokeControlAction(() =>
+                    {
+                        System.Windows.Forms.ToolTip tt = new System.Windows.Forms.ToolTip();
+                        tt.SetToolTip(tbScaleMin, $"NA");
+                        tt.SetToolTip(tbScaleMax, $"NA");
+                    });
                 }
             }
         }
