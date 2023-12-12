@@ -198,10 +198,6 @@ namespace benchGUI
         {
             return tb_pressureMicroStep.Text.ParseToDouble();
         }
-        private void PutOneMeasureToTextBox(OneMeasure oneMeasure, TextBox textBox)
-        {
-            setTextBoxText(oneMeasure.Value.ToWBFloatString(), textBox);
-        }
 
 
         #endregion
@@ -277,7 +273,7 @@ namespace benchGUI
 
             pressureGeneratorSpan.SetPoint = new OneMeasure(newSetPoint, selectedPressureUOM, DateTime.Now);
 
-            PutOneMeasureToTextBox(pressureGeneratorSpan.SetPoint, tb_PressureSetPoint);
+            InvokeControlAction(() => tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToWBFloatString());
 
         }
 
@@ -393,40 +389,35 @@ namespace benchGUI
         {
             pressureStabilityCalc.AddMeasure(onemeasure);
             
-            Color backColor = Color.Transparent;
 
             if (pressureStabilityCalc.TrendStatus == TrendStatus.Unknown)
             {
-                setLabelText($"{pressureStabilityCalc.MeasuresCount}/{pressureStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s", lbl_CPCstability);
-
-                setLabelText("----", lbl_cpcmean);
-                setLabelText("----", lbl_CPCstdev);
-                setLabelText("----", lbl_CPCLRSlope);
+                InvokeControlAction(() => {
+                    lbl_CPCstability.Text = $"{pressureStabilityCalc.MeasuresCount}/{pressureStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
+                    lbl_cpcmean.Text = "----";
+                    lbl_CPCstdev.Text = "----";
+                    lbl_CPCLRSlope.Text = "----";
+                });
             }
             else
             {
-                setLabelText(pressureStabilityCalc.MeanValue.ToWBFloatString(), lbl_cpcmean);
-                setLabelText(pressureStabilityCalc.StdDeviation.ToWBFloatString(), lbl_CPCstdev);
-                setLabelText($"{pressureStabilityCalc.ThreeSigmaBandPercent:0.00}", lbl_PressureThreeSigma);
-                setLabelText(pressureStabilityCalc.LRSlope.ToWBFloatString(), lbl_CPCLRSlope);
+                InvokeControlAction(() => {
+                    lbl_cpcmean.Text = pressureStabilityCalc.MeanValue.ToWBFloatString();
+                    lbl_CPCstdev.Text = pressureStabilityCalc.StdDeviation.ToWBFloatString();
+                    lbl_PressureThreeSigma.Text = $"{pressureStabilityCalc.ThreeSigmaBandPercent:0.00}";
+                    lbl_CPCLRSlope.Text = pressureStabilityCalc.LRSlope.ToWBFloatString();
+                    lbl_CPCstability.Text = pressureStabilityCalc.GetStatusTextRu();
+                });
 
-                var trendStatusText = pressureStabilityCalc.GetStatusTextRu();
-                setLabelText(trendStatusText, lbl_CPCstability);
-
-                backColor = pressureStabilityCalc.TrendStatus switch
-                {
-                    TrendStatus.Stable => Color.Yellow,
-                    _ => Color.Transparent
-                };
             }
-            if (pressureStabilityCalc.Ready)
-            {
-                backColor = Color.GreenYellow;
-            }
+            
+            Color backColor = Color.Transparent;
+            if (pressureStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
+            if (pressureStabilityCalc.Ready) backColor = Color.GreenYellow;
 
             lbl_cpc_read.BackColor = backColor;
 
-            setLabelText($"{onemeasure.Value.ToWBFloatString()} {onemeasure.UOM.Name}", lbl_cpc_read);
+            InvokeControlAction(() => lbl_cpc_read.Text = $"{onemeasure.Value.ToWBFloatString()} {onemeasure.UOM.Name}");
 
             fillMeasuresChart();
 
@@ -439,25 +430,27 @@ namespace benchGUI
 
         private void FillPressureGenerationModeRadioButtons(PressureControllerOperationMode  pressureControllerOperationMode)
         {
-            switch (pressureControllerOperationMode)
-            {
-                case PressureControllerOperationMode.UNKNOWN:
-                    break;
-                case PressureControllerOperationMode.STANDBY:
-                    setRadioButtonChecked(rb_StandBY, true);
-                    break;
-                case PressureControllerOperationMode.MEASURE:
-                    setRadioButtonChecked(rb_Measure, true);
-                    break;
-                case PressureControllerOperationMode.CONTROL:
-                    setRadioButtonChecked(rb_Control, true); 
-                    break;
-                case PressureControllerOperationMode.VENT:
-                    setRadioButtonChecked(rb_Vent, true); 
-                    break;
-                default:
-                    break;
-            }
+            InvokeControlAction(() => {
+                switch (pressureControllerOperationMode)
+                {
+                    case PressureControllerOperationMode.UNKNOWN:
+                        break;
+                    case PressureControllerOperationMode.STANDBY:
+                        rb_StandBY.Checked = true;
+                        break;
+                    case PressureControllerOperationMode.MEASURE:
+                        rb_Measure.Checked = true;
+                        break;
+                    case PressureControllerOperationMode.CONTROL:
+                        rb_Control.Checked = true;
+                        break;
+                    case PressureControllerOperationMode.VENT:
+                        rb_Vent.Checked = true;
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
 

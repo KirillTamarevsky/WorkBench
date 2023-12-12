@@ -51,9 +51,9 @@ namespace benchGUI
                     btn_openCurrentMeasureInstrument.BackColor = Control.DefaultBackColor;
                     lbl_cnahValue.Text = "--.----";
                     cb_CurrentInstrumentChannels.Items.Clear();
-                    cb_CurrentInstrumentChannels.Enabled=false;
+                    cb_CurrentInstrumentChannels.Enabled = false;
                     cb_currentReaderSpan.Items.Clear();
-                    cb_currentReaderSpan.Enabled=false;
+                    cb_currentReaderSpan.Enabled = false;
 
                     currentStabilityCalc.Reset();
                     lbl_cnahValue.BackColor = Color.Transparent;
@@ -103,11 +103,19 @@ namespace benchGUI
             StopCurrentCyclicReading();
 
             cb_currentReaderSpan.Items.Clear();
-
-            foreach (var span in (((IInstrumentChannel)((ComboBox)sender).SelectedItem)).AvailableSpans.Where(sp => sp.Scale.UOM.UOMType == WorkBench.Enums.UOMType.Current))
+            if (sender is ComboBox cb)
             {
-                cb_currentReaderSpan.Items.Add(span);
+                if (cb.SelectedItem is IInstrumentChannel instrChan)
+                {
+                    foreach (var span in instrChan.AvailableSpans.Where(sp => sp.Scale.UOM.UOMType == WorkBench.Enums.UOMType.Current || sp.Scale.UOM.UOMType == UOMType.Temperature))
+                    {
+                        cb_currentReaderSpan.Items.Add(span);
+                    }
+                }
             }
+            //foreach (var span in (((IInstrumentChannel)((ComboBox)sender).SelectedItem)).AvailableSpans.Where(sp => sp.Scale.UOM.UOMType == WorkBench.Enums.UOMType.Current))
+            //{
+            //}
 
             if (cb_currentReaderSpan.Items.Count > 0)
             {
@@ -130,15 +138,7 @@ namespace benchGUI
         {
             CurrentCyclicReadingCTS = new CancellationTokenSource();
             var token = CurrentCyclicReadingCTS.Token;
-            Task.Run(() =>
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    var CurrentOneMeasure = currentReaderSpan.Read(currentInstrumentUom);
-                    if (CurrentOneMeasure != null && !token.IsCancellationRequested) 
-                        OnOneCurrentMeasureReaded(null, CurrentOneMeasure);
-                }
-            });
+            Task.Run(() => CurrentCyclicReaderLoop(token));
         }
 
         private void StopCurrentCyclicReading()
@@ -147,51 +147,58 @@ namespace benchGUI
             CurrentCyclicReadingCTS?.Dispose();
             CurrentCyclicReadingCTS = null;
         }
-        
+
+        private void CurrentCyclicReaderLoop(CancellationToken token)
+        { 
+                while (!token.IsCancellationRequested)
+                {
+                    var CurrentOneMeasure = currentReaderSpan.Read(currentInstrumentUom);
+                    if (CurrentOneMeasure != null && !token.IsCancellationRequested)
+                        OnOneCurrentMeasureReaded(null, CurrentOneMeasure);
+                }
+        }
+
         private void OnOneCurrentMeasureReaded(object sender, OneMeasure oneMeasure)
         {
             currentStabilityCalc.AddMeasure(oneMeasure);
-            Color backColor = Color.Transparent;
 
             if (currentStabilityCalc.TrendStatus == TrendStatus.Unknown)
             {
-
-                setLabelText($"{currentStabilityCalc.MeasuresCount}/{currentStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s", lbl_EKstability);
+                InvokeControlAction(
+                    () => {
+                        lbl_EKstability.Text = $"{currentStabilityCalc.MeasuresCount}/{currentStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
+                        lbl_ekmean.Text = "----";
+                        lbl_EKstdev.Text = "----";
+                        lbl_EKLRSlope.Text = "----";
+                    });
                 
-                setLabelText("----", lbl_ekmean);
-                setLabelText("----", lbl_EKstdev);
-                setLabelText("----", lbl_EKLRSlope);
             }
             else
             {
-                setLabelText(currentStabilityCalc.MeanValue.ToWBFloatString(), lbl_ekmean);
-                setLabelText(currentStabilityCalc.StdDeviation.ToWBFloatString(), lbl_EKstdev);
-                setLabelText(currentStabilityCalc.LRSlope.ToWBFloatString(), lbl_EKLRSlope);
+                InvokeControlAction(() => { 
+                    lbl_ekmean.Text = currentStabilityCalc.MeanValue.ToWBFloatString();
+                    lbl_EKstdev.Text = currentStabilityCalc.StdDeviation.ToWBFloatString();
+                    lbl_EKLRSlope.Text = currentStabilityCalc.LRSlope.ToWBFloatString();
+                    lbl_EKstability.Text = currentStabilityCalc.GetStatusTextRu();
+                });
 
-                var trendStatusText = currentStabilityCalc.GetStatusTextRu();
-                setLabelText(trendStatusText, lbl_EKstability);
-                backColor = currentStabilityCalc.TrendStatus switch
-                {
-                    TrendStatus.Stable => Color.Yellow,
-                    _ => Color.Transparent
-                };
             }
-            if (currentStabilityCalc.Ready)
-            {
-                backColor = Color.GreenYellow;
-            }
+
+            Color backColor = Color.Transparent;
+            if (currentStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
+            if (currentStabilityCalc.Ready) backColor = Color.GreenYellow;
             
             lbl_cnahValue.BackColor = backColor;
 
             switch (showCurrentInPressureUnits)
             {
                 case false:
-                    setLabelText($"{oneMeasure.Value.ToWBFloatString()} {oneMeasure.UOM.Name}", lbl_cnahValue);
+                    InvokeControlAction(() => lbl_cnahValue.Text = $"{oneMeasure.Value.ToWBFloatString()} {oneMeasure.UOM.Name}" );
                     break;
                 case true:
                     var ma = oneMeasure.Value;
                     var press = (ma - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin;
-                    setLabelText($"{press:N2} {selectedPressureUOM.Name}", lbl_cnahValue);
+                    InvokeControlAction(() => lbl_cnahValue.Text = $"{press:N2} {selectedPressureUOM.Name}");
                     break;
             }
 

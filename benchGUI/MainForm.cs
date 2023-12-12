@@ -415,11 +415,6 @@ namespace benchGUI
 
 
         }
-        private void setLabelText(string txt, Label label) => InvokeControlAction(() => label.Text = txt);
-        private void setTextBoxText(string txt, TextBox textbox) => InvokeControlAction(() => textbox.Text = txt);
-        private void setComboboxSelectedItemIndex(ComboBox cb, int index) => InvokeControlAction(() => cb.SelectedIndex = index);
-        private void setComboboxSelectedItem(ComboBox cb, object item) => InvokeControlAction(() => cb.SelectedItem = item);
-        private void setRadioButtonChecked(RadioButton rb, bool _checked) => InvokeControlAction(() => rb.Checked = _checked);
 
         private delegate void SafeCallInvokeControlActionDelegate(Action action);
         private void InvokeControlAction(Action action)

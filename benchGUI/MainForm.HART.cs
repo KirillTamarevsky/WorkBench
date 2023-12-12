@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,6 +18,7 @@ namespace benchGUI
 {
     public partial class MainForm
     {
+        IReadUniqueIdetifierCommand ZeroCommandResponse { get; set; }
         IAddress HartAddr { get; set; } = new ShortAddress(0);
         private TokenPassingDataLinkLayer hart_communicator { get; set; }
         Task HartBackgroundWorker { get; set; }
@@ -26,6 +28,8 @@ namespace benchGUI
         CommandResponseBase lastReceivedCommandResult;
         DateTime lastReceivedCommandResultDateTime;
         DateTime LastPingTime = DateTime.Now;
+
+#region Open / Close HART
 
         private void btn_HART_open_Click(object sender, EventArgs e)
         {
@@ -117,15 +121,9 @@ namespace benchGUI
             gb_HART.BackColor = DefaultBackColor;
             tb_HART_PV_MA.BackColor = DefaultBackColor;
         }
+#endregion
 
-        private void OnBACKReceived(CommandResponseBase commres)
-        {
-            lastReceivedCommandResultDateTime = DateTime.Now;
-            if ( commres is CommandResponse cr && cr.CommandNumber == 3)
-            {
-                Process_PV_mA_SV_TV_QV(cr);
-            }
-        }
+
 
         private Task HartBackgroundWorker_DoWork()
         {
@@ -216,6 +214,8 @@ namespace benchGUI
 
         }
 
+#region BURST
+
 
         private void btn_HART_BURST_OFF_Click(object sender, EventArgs e)
         {
@@ -225,7 +225,6 @@ namespace benchGUI
                 lock (hart_communicator)
                 {
                     var cmdResult = SendHARTCommand(cmd);
-                    var fieldDevStatus = cmdResult.DeviceStatus;
                 }
             });
         }
@@ -243,6 +242,19 @@ namespace benchGUI
                 }
             });
         }
+        private void OnBACKReceived(CommandResponseBase commres)
+        {
+            lastReceivedCommandResultDateTime = DateTime.Now;
+            if (commres is CommandResponse cr && cr.CommandNumber == 3)
+            {
+                Process_PV_mA_SV_TV_QV(cr);
+            }
+        }
+
+#endregion
+
+
+        #region Current Loop Trim
 
         private void btn_HART_set_4mA_Click(object sender, EventArgs e)
         {
@@ -372,6 +384,7 @@ namespace benchGUI
                 }
             });
         }
+#endregion
 
         private CommandResponseBase SendHARTCommand(HARTCommand cmd)
         {
@@ -419,6 +432,19 @@ namespace benchGUI
                             tb_HART_PV_MA.BackColor = DefaultBackColor;
 
                         }
+                        //if (commres.DeviceStatus.MoreStatusAvailable)
+                        //{
+                        //    var getMoreStatusCommand = new HART_048_Read_Additional_Device_Status();
+                        //    var moreStatusResponse = hart_communicator.Send(5, HartAddr, getMoreStatusCommand);
+                        //    if (moreStatusResponse is HART_Result_048_Read_Additional_Device_Status result)
+                        //    {
+                        //        if (((HART_Result_000_Zero_Command_v5) ZeroCommandResponse).HARTProtocolMajorRevisionImplementedByThisDevice >= 7)
+                        //        {
+                        //            var resetMoreStatus = hart_communicator.Send(5, HartAddr, new HART_048_Read_Additional_Device_Status(result.Data));
+                        //        }
+                        //    }
+
+                        //}
                     });
 
                     if (commres is CommandResponseCommError)
@@ -443,8 +469,13 @@ namespace benchGUI
                 var zeroCommandRes = hart_communicator.SendZeroCommand();
                 if (zeroCommandRes is IReadUniqueIdetifierCommand uniqueIDcommand )
                 {
+                    ZeroCommandResponse = uniqueIDcommand;
                     HartAddr = uniqueIDcommand.LongAddress;
                     hart_communicator.BACKReceived += OnBACKReceived;
+                    InvokeControlAction(() => 
+                    { 
+                        gb_HART.Text = $"HART v.{((HART_Result_000_Zero_Command_v5)uniqueIDcommand).HARTProtocolMajorRevisionImplementedByThisDevice}";
+                    });
 
                 }
 
@@ -560,6 +591,8 @@ namespace benchGUI
                 tb_HART_PV.Text = string.Empty;
                 tb_HART_PV_MA.Text = string.Empty;
                 tb_HART_TAG.Text = "нет связи.";
+                gb_HART.Text = "HART";
+
             });
         }
 
@@ -655,45 +688,44 @@ namespace benchGUI
                         cb_HART_Xfer_Function.DataSource = Enum.GetValues(typeof(_003_Transfer_Function_Code));
 
                         cb_HART_Xfer_Function.SelectedItem = res.PVTransferFunctionCode;
+                        switch (res.PVUpperAndLowerRangeValuesUnitCode)
+                        {
+                            case 7: //7 bars
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "bar").FirstOrDefault();
+                                break;
+                            case 8: //8 millibars
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mbar").FirstOrDefault();
+                                break;
+                            case 11: //11 pascals
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "Pa").FirstOrDefault();
+                                break;
+                            case 12: //12 kilopascals
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "kPa").FirstOrDefault();
+                                break;
+                            case 237: //237 megapascals
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "MPa").FirstOrDefault();
+                                break;
+                            case 32: //32 Degrees Celsius
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°C").FirstOrDefault();
+                                break;
+                            case 33: //33 Degrees Fahrenheit
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°F").FirstOrDefault();
+                                break;
+                            case 34: //34 Degrees Rankine
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°R").FirstOrDefault();
+                                break;
+                            case 35: //35 Kelvin
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°K").FirstOrDefault();
+                                break;
+                            case 239: //239 millimeters of water at 4 degrees C
+                            case 4: //4 millimeters of water at 68 degrees F
+                                cbPressureScaleUOM.SelectedItem = cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mmH2O@4°C").FirstOrDefault();
+                                break;
+                            default:
+                                cbPressureScaleUOM.SelectedIndex = -1;
+                                break;
+                        }
                     });
-                    switch (res.PVUpperAndLowerRangeValuesUnitCode)
-                    {
-                        case 7: //7 bars
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "bar").FirstOrDefault());
-                            break;
-                        case 8: //8 millibars
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mbar").FirstOrDefault());
-                            break;
-                        case 11: //11 pascals
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "Pa").FirstOrDefault());
-                            break;
-                        case 12: //12 kilopascals
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "kPa").FirstOrDefault());
-                            break;
-                        case 237: //237 megapascals
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "MPa").FirstOrDefault());
-                            break;
-
-                        case 32: //32 Degrees Celsius
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°C").FirstOrDefault());
-                            break;
-                        case 33: //33 Degrees Fahrenheit
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°F").FirstOrDefault());
-                            break;
-                        case 34: //34 Degrees Rankine
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°R").FirstOrDefault());
-                            break;
-                        case 35: //35 Kelvin
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "°K").FirstOrDefault());
-                            break;
-                        case 239: //239 millimeters of water at 4 degrees C
-                        case 4: //4 millimeters of water at 68 degrees F
-                            setComboboxSelectedItem(cbPressureScaleUOM, cbPressureScaleUOM.Items.Cast<IUOM>().Where(u => u.Name == "mmH2O@4°C").FirstOrDefault());
-                            break;
-                        default:
-                            setComboboxSelectedItemIndex(cbPressureScaleUOM, -1);
-                            break;
-                    }
                 }
                 var dynVarAssignments = SendHARTCommand(new HART_050_Read_Dynamic_Variables_Assignments());
                 if (dynVarAssignments is HART_Result_050_Read_Dynamic_Variables_Assignments dynResp)

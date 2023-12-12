@@ -37,6 +37,7 @@ namespace WorkBench.TestEquipment.EK
             AvailableSpans = new List<IInstrumentChannelSpan>()
             {
                 new EKChannelSpan_0_20_mA(this)
+                , new EKChannelSpan_Pt100_1385_100Ohm(this)
             }.ToArray();
 
         }
