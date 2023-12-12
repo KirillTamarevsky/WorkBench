@@ -107,15 +107,12 @@ namespace benchGUI
             {
                 if (cb.SelectedItem is IInstrumentChannel instrChan)
                 {
-                    foreach (var span in instrChan.AvailableSpans.Where(sp => sp.Scale.UOM.UOMType == WorkBench.Enums.UOMType.Current || sp.Scale.UOM.UOMType == UOMType.Temperature))
+                    foreach (var span in instrChan.AvailableSpans.Where(sp => sp.Scale.UOM.UOMType == UOMType.Current || sp.Scale.UOM.UOMType == UOMType.Temperature))
                     {
                         cb_currentReaderSpan.Items.Add(span);
                     }
                 }
             }
-            //foreach (var span in (((IInstrumentChannel)((ComboBox)sender).SelectedItem)).AvailableSpans.Where(sp => sp.Scale.UOM.UOMType == WorkBench.Enums.UOMType.Current))
-            //{
-            //}
 
             if (cb_currentReaderSpan.Items.Count > 0)
             {
