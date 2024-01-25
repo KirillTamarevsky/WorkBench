@@ -12,6 +12,7 @@ using System.Globalization;
 using log4net.Util;
 using WorkBench.Communicators;
 using log4net;
+using System.Threading;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
@@ -158,11 +159,57 @@ namespace WorkBench.TestEquipment.CPC6000
         {
             lock (Communicator)
             {
-
                 parentChannel.SetActiveTurndown(this);
 
                 Communicator.SendLine("Autozero");
             }
+
+            logger.Info($"{parentChannel.ChannelNumber} autozero command");
+
+            float secondsToComplete = 1;
+            int autoZeroState = 0;
+            Func<string, bool> AutozeroValidationRule = (s) =>
+            {
+                var answerParts = s.Split(',');
+                if (answerParts.Length >= 2) 
+                {
+                    if ((new[]{
+                        "0" // complete
+                        ,"1" // local autozero
+                        ,"2"  // remote autozero
+                    }).Contains(answerParts[0].Trim()))
+                    {
+                        autoZeroState = int.Parse(answerParts[0].Trim());
+                        if (float.TryParse( answerParts[1].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out secondsToComplete))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            };
+
+            do
+            {
+                logger.Info($"{parentChannel.ChannelNumber} sleep for {secondsToComplete}");
+                Thread.Sleep( TimeSpan.FromSeconds( (int)secondsToComplete) );
+                TextCommunicatorQueryCommandStatus queryRes;
+                string res;
+                lock (Communicator)
+                {
+                    queryRes = Communicator.QueryCommand("Autozero?", out res, AutozeroValidationRule);
+                }
+                if (queryRes != TextCommunicatorQueryCommandStatus.Success)
+                {
+                    logger.Info($"{parentChannel.ChannelNumber} autozero? command answer != Success");
+                    break;
+                }
+                logger.Info($"{parentChannel.ChannelNumber} autozero? command answer = {res}");
+            }while (autoZeroState > 0);
+                
+            logger.Info($"{parentChannel.ChannelNumber} set active channel {this.turndown}");
+
+            parentChannel.SetActiveTurndownForced(this);
         }
 
         public override string ToString()

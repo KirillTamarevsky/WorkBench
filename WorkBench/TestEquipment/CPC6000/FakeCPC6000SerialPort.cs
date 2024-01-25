@@ -33,6 +33,8 @@ namespace WorkBench.TestEquipment.CPC6000
 
         string _currentChannel = "A";
 
+        int _seconds_to_autozero_complete = 0;
+
         PressureType PressureType { get; set; } = PressureType.Absolute;
 
         bool isopened;
@@ -223,6 +225,15 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "Errorno?":
                     answer = " 1, No error";
+                    break;
+                case "Autozero":
+                    _seconds_to_autozero_complete = 5;
+                    break;
+                case "Autozero?":
+                    int state = 0;
+                    if (_seconds_to_autozero_complete > 0) state = 2;
+                    answer = $" {state},{_seconds_to_autozero_complete},0,0";
+                    _seconds_to_autozero_complete--;
                     break;
                 default:
                     break;

@@ -290,6 +290,7 @@ namespace benchGUI
         {
             if (((RadioButton)sender).Checked)
             {
+                btn_ZeroPressure.Enabled = false;
                 setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.CONTROL);
             }
         }
@@ -298,6 +299,7 @@ namespace benchGUI
         {
             if (((RadioButton)sender).Checked)
             {
+                btn_ZeroPressure.Enabled = true;
                 setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.VENT);
             }
         }
@@ -306,6 +308,7 @@ namespace benchGUI
         {
             if (((RadioButton)sender).Checked)
             {
+                btn_ZeroPressure.Enabled = false;
                 setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.MEASURE);
             }
         }
@@ -314,6 +317,7 @@ namespace benchGUI
         {
             if (((RadioButton)sender).Checked)
             {
+                btn_ZeroPressure.Enabled = false;
                 setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode.STANDBY);
             }
         }
@@ -466,7 +470,30 @@ namespace benchGUI
 
         private void btn_ZeroPressure_Click(object sender, EventArgs e)
         {
-            Task.Run(() => pressureGeneratorSpan.Zero());
+            Task.Run(
+                () =>
+                {
+                    InvokeControlAction(() =>
+                    {
+                        rb_Control.Enabled = false;
+                        rb_Measure.Enabled = false;
+                        rb_StandBY.Enabled = false;
+                        rb_Vent.Enabled = false;
+                        btnStartAutoCal.Enabled = false;
+                        btn_ZeroPressure.Enabled = false;
+                    });
+                    pressureGeneratorSpan.Zero();
+                    InvokeControlAction(() =>
+                    {
+                        rb_Control.Enabled = true;
+                        rb_Measure.Enabled = true;
+                        rb_StandBY.Enabled = true;
+                        rb_Vent.Enabled = true;
+                        btnStartAutoCal.Enabled = true;
+                        btn_ZeroPressure.Enabled = true;
+                    });
+                }
+                );
         }
 
 

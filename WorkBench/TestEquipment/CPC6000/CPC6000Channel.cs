@@ -149,27 +149,38 @@ namespace WorkBench.TestEquipment.CPC6000
                 return;
             }
 
-            SetActiveTurndown(td.module, td.turndown, td.PressureType);
+            if ( ActivePressureModule == null || ActivePressureModule != td.module || ActiveTurnDownNumber == null || ActiveTurnDownNumber != td.turndown)
+            {
+                SetActiveTurndown(td.module, td.turndown, td.PressureType);
+            }
             
+        }
+        internal void SetActiveTurndownForced(CPC6000ChannelTurnDown td)
+        {
+            if (td == null || td.parentChannel != this)
+            {
+                return;
+            }
+
+            SetActiveTurndown(td.module, td.turndown, td.PressureType);
+
         }
         private void SetActiveTurndown(CPC6000PressureModule pressureModule, int turnDownNumber, PressureType pressureType)
         {
-            if ( ActivePressureModule == null || ActivePressureModule != pressureModule || ActiveTurnDownNumber == null || ActiveTurnDownNumber != turnDownNumber)
-            {
-                parentCPC6000.SetActiveChannel(ChannelNumber);
+            parentCPC6000.SetActiveChannel(ChannelNumber);
 
-                switch (pressureModule)
-                {
-                    case CPC6000PressureModule.Primary:
-                        Communicator.SendLine($"Sensor P,{turnDownNumber}");
-                        break;
-                    case CPC6000PressureModule.Secondary:
-                        Communicator.SendLine($"Sensor S,{turnDownNumber}");
-                        break;
-                }
-                ActivePressureModule = pressureModule;
-                ActiveTurnDownNumber = turnDownNumber;
+            switch (pressureModule)
+            {
+                case CPC6000PressureModule.Primary:
+                    Communicator.SendLine($"Sensor P,{turnDownNumber}");
+                    break;
+                case CPC6000PressureModule.Secondary:
+                    Communicator.SendLine($"Sensor S,{turnDownNumber}");
+                    break;
             }
+            ActivePressureModule = pressureModule;
+            ActiveTurnDownNumber = turnDownNumber;
+
             SetActivePressureType(pressureType);
         }
 
