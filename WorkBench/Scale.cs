@@ -20,7 +20,7 @@ namespace WorkBench
         public IUOM UOM { get; }
         public override string ToString()
         {
-            return $"{Min} ... {Max} {UOM.Name}";
+            return $"{Min:0.0000} ... {Max:0.0000} {UOM.Name}";
         }
     }
 }

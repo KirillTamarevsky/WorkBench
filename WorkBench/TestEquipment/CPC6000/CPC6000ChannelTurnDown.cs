@@ -13,12 +13,21 @@ using log4net.Util;
 using WorkBench.Communicators;
 using log4net;
 using System.Threading;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace WorkBench.TestEquipment.CPC6000
 {
-    internal class CPC6000ChannelTurnDown : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader
+    internal class CPC6000ChannelTurnDown : IInstrumentChannelSpanPressureGenerator, IInstrumentChannelSpanReader, INotifyPropertyChanged
     {
         readonly ILog logger = LogManager.GetLogger("Communication");
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void RaisePropertyChanged([CallerMemberName] string prop = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+        }
 
         internal CPC6000Channel parentChannel { get; }
         private ITextCommunicator Communicator => parentChannel.Communicator;
@@ -33,11 +42,29 @@ namespace WorkBench.TestEquipment.CPC6000
             return uom;
 
         }
-        private void SetPUnit(IUOM targetUOM) => parentChannel.SetPUnit(targetUOM);
+        private void SetPUnit(IUOM targetUOM)
+        {
+            parentChannel.SetPUnit(targetUOM);
+            RaisePropertyChanged(nameof(ToString));
+            RaisePropertyChanged(nameof(Scale));
+        }
         internal int turndown { get; }
         public PressureType PressureType { get; }
-        internal OneMeasure RangeMin { get; }
-        internal OneMeasure RangeMax { get; }
+        
+        private OneMeasure _rangeMin { get; }
+        internal OneMeasure RangeMin { get
+            {
+                if (_rangeMin.TryConvertTo(parentChannel.ActiveUOM, out OneMeasure res)) return res;
+                return _rangeMin;
+            }
+        }
+        
+        private OneMeasure _rangeMax { get; }
+        internal OneMeasure RangeMax { get
+            {
+                if (_rangeMax.TryConvertTo(parentChannel.ActiveUOM, out OneMeasure res)) return res;
+                return _rangeMax;
+            } }
         public Scale Scale { get
             {
                 var unit = parentChannel.ActiveUOM;
@@ -56,8 +83,8 @@ namespace WorkBench.TestEquipment.CPC6000
             turndown = _turndown;
             PressureType = pressureType;
 
-            RangeMin = rngMin;
-            RangeMax = rngMax;
+            _rangeMin = rngMin;
+            _rangeMax = rngMax;
 
         }
         public PressureControllerOperationMode PressureOperationMode
@@ -226,7 +253,7 @@ namespace WorkBench.TestEquipment.CPC6000
                 default:
                     break;
             }
-            return $"{parentChannel} - {Scale} {presstype}";
+            return $"{Scale} {presstype}";
         }
 
         internal string readPressureCommand => parentChannel.ChannelNumber switch

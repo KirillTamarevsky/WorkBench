@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,7 +92,6 @@ namespace benchGUI
             lbl_cpcStatus.Text = "ок.";
 
             cb_cpcChannels.Items.Clear();
-
             foreach (var item in PressureInstrument.Channels)
             {
                 cb_cpcChannels.Items.Add(item);
@@ -124,7 +125,8 @@ namespace benchGUI
 
             cb_cpcChannels.Items.Clear();
 
-            cb_PressureReaderGeneratorSpan.Items.Clear();
+            //cb_PressureReaderGeneratorSpan.Items.Clear();
+            PressureGeneratorSpansBL.Clear();
 
             btn_openPressureInstrument.Text = "Установить связь";
             //*************************************************************
@@ -323,15 +325,20 @@ namespace benchGUI
         }
         #endregion
 
+        private BindingList<object> PressureGeneratorSpansBL = new BindingList<object>();
         private void cb_cpcChannels_SelectedIndexChanged(object sender, EventArgs e)
         {
             StopPressureCyclicRead();
 
-            cb_PressureReaderGeneratorSpan.Items.Clear();
-
+            PressureGeneratorSpansBL.Clear();
+            var bs = new BindingSource();
+            bs.DataSource = PressureGeneratorSpansBL;
+            bs.RaiseListChangedEvents = true;
+            cb_PressureReaderGeneratorSpan.DataSource = bs;
+            cb_PressureReaderGeneratorSpan.DisplayMember = "Scale";
             foreach (var span in (((IInstrumentChannel)((ComboBox)sender).SelectedItem)).AvailableSpans)
             {
-                cb_PressureReaderGeneratorSpan.Items.Add(span);
+                PressureGeneratorSpansBL.Add(span);
             }
 
             if (cb_PressureReaderGeneratorSpan.Items.Count > 0)
@@ -344,22 +351,43 @@ namespace benchGUI
             {
                 cb_PressureReaderGeneratorSpan.Enabled = true;
             }
-
+            cb_PressureReaderGeneratorSpan_SelectedIndexChanged(cb_PressureReaderGeneratorSpan, new EventArgs());
         }
         private void cb_PressureReaderGeneratorSpan_SelectedIndexChanged(object sender, EventArgs e)
         {
             StopPressureCyclicRead();
             pressureStabilityCalc.Reset();
 
-            pressureReaderSpan = (IInstrumentChannelSpanReader)((ComboBox)sender).SelectedItem;
+            if (pressureReaderSpan is INotifyPropertyChanged prs)
+            {
+                prs.PropertyChanged -= updatepressureCBX;
+            }
+            if (((ComboBox)sender).SelectedItem is IInstrumentChannelSpanReader presReaderSpanSelected)
+            {
+                pressureReaderSpan = presReaderSpanSelected;
 
-            pressureGeneratorSpan = (IInstrumentChannelSpanPressureGenerator)pressureReaderSpan;
 
-            tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToWBFloatString();
+                if (pressureReaderSpan is INotifyPropertyChanged prs1)
+                {
+                    prs1.PropertyChanged += updatepressureCBX;
+                }
 
-            ReadPressureInstrumentOperationModeToRadioButtons();
-            
-            StartPressureCyclicRead();
+                pressureGeneratorSpan = (IInstrumentChannelSpanPressureGenerator)pressureReaderSpan;
+
+                tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToWBFloatString();
+
+                ReadPressureInstrumentOperationModeToRadioButtons();
+
+                StartPressureCyclicRead();
+            }
+        }
+
+        private void updatepressureCBX(object sender, PropertyChangedEventArgs e)
+        {
+                InvokeControlAction(() =>
+                {
+                    PressureGeneratorSpansBL.ResetBindings();
+                });
         }
 
         CancellationTokenSource PressureCyclicReadingCTS { get; set; }
