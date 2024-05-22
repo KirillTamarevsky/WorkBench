@@ -24,8 +24,7 @@ namespace WorkBench.TestEquipment.CPC6000
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer) => parentCPC6000.Query(cmd, out answer);
         internal TextCommunicatorQueryCommandStatus Query(string cmd, out string answer, Func<string, bool> validationRule) => parentCPC6000.Query(cmd, out answer, validationRule);
         
-        private CPC6000PressureModule? ActivePressureModule { get; set; }
-        private int? ActiveTurnDownNumber { get; set; }
+        private CPC6000ChannelTurnDown? activeTurnDown { get; set; }
         private PressureType? ActivePressureType { get; set; }
         internal IUOM ActiveUOM { get; private set; }
 
@@ -102,7 +101,8 @@ namespace WorkBench.TestEquipment.CPC6000
 
         private CPC6000ChannelTurnDown Get_new_CPC6000ChannelSpan(CPC6000PressureModule modType, int turnDownNumber, PressureType pressureType)
         {
-            SetActiveTurndown(modType, turnDownNumber, pressureType);
+            SetActivePressureModuleAndTurnDown(modType, turnDownNumber);
+            SetActivePressureType(pressureType);
             var unit = GetPUnit();
             if (unit == null)
             {
@@ -149,9 +149,12 @@ namespace WorkBench.TestEquipment.CPC6000
                 return;
             }
 
-            if ( ActivePressureModule == null || ActivePressureModule != td.module || ActiveTurnDownNumber == null || ActiveTurnDownNumber != td.turndown)
+            if (activeTurnDown == null || activeTurnDown != td)
             {
-                SetActiveTurndown(td.module, td.turndown, td.PressureType);
+                parentCPC6000.SetActiveChannel(ChannelNumber);
+                SetActivePressureModuleAndTurnDown(td.module, td.turndown);
+                SetActivePressureType(td.PressureType);
+                activeTurnDown = td;
             }
             
         }
@@ -161,14 +164,14 @@ namespace WorkBench.TestEquipment.CPC6000
             {
                 return;
             }
-
-            SetActiveTurndown(td.module, td.turndown, td.PressureType);
-
-        }
-        private void SetActiveTurndown(CPC6000PressureModule pressureModule, int turnDownNumber, PressureType pressureType)
-        {
             parentCPC6000.SetActiveChannel(ChannelNumber);
 
+            SetActivePressureModuleAndTurnDown(td.module, td.turndown);
+            SetActivePressureType(td.PressureType);
+
+        }
+        private void SetActivePressureModuleAndTurnDown(CPC6000PressureModule pressureModule, int turnDownNumber)
+        {
             switch (pressureModule)
             {
                 case CPC6000PressureModule.Primary:
@@ -178,12 +181,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     Communicator.SendLine($"Sensor S,{turnDownNumber}");
                     break;
             }
-            ActivePressureModule = pressureModule;
-            ActiveTurnDownNumber = turnDownNumber;
-
-            SetActivePressureType(pressureType);
         }
-
         internal PressureType GetActivePressureType()
         {
             parentCPC6000.SetActiveChannel(ChannelNumber);
