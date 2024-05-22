@@ -29,7 +29,9 @@ namespace WorkBench.TestEquipment.CPC6000
 
         string _currentUOM = " Pascal";
 
-        double _setpt = 0.1234;
+        double _setpt { get; set; } = 0.1234;
+        double Acurrent_value { get; set; } = 0.1234;
+        double Bcurrent_value { get; set; } = 0.1234;
 
         string _currentChannel = "A";
 
@@ -151,11 +153,15 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "A?":
                     Thread.Sleep(1);
-                    answer = $" {random.NextDouble()/8 - 0.125/2 + _setpt:N4}";
+                    Acurrent_value += (_setpt - Acurrent_value ) / 15 + (random.NextDouble() / 8 - 0.125 / 2);
+                    answer = $" {Acurrent_value:N4}";
+                    //answer = $" {random.NextDouble()/8 - 0.125/2 + _setpt:N4}";
                     break;
                 case "B?":
                     Thread.Sleep(1);
-                    answer = $" {random.NextDouble() -0.5 + 35:N4}";
+                    Bcurrent_value += (_setpt - Bcurrent_value) / 10 + (random.NextDouble() / 8 - 0.125 / 2);
+                    answer = $" {Bcurrent_value:N4}";
+                    //answer = $" {random.NextDouble() -0.5 + 35:N4}";
                     break;
                 case "Setpt?":
                     answer = $" {_setpt:N4}";
