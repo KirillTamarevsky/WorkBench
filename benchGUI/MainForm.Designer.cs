@@ -89,7 +89,6 @@ namespace benchGUI
             nUD_CalibrationCyclesCount = new System.Windows.Forms.NumericUpDown();
             label4 = new System.Windows.Forms.Label();
             plot_result = new ScottPlot.FormsPlot();
-            plot_measures = new ScottPlot.FormsPlot();
             tb_HART_PV = new System.Windows.Forms.TextBox();
             tb_HART_PV_MA = new System.Windows.Forms.TextBox();
             tb_HART_TAG = new System.Windows.Forms.TextBox();
@@ -104,9 +103,13 @@ namespace benchGUI
             lbl_HART_Damping = new System.Windows.Forms.Label();
             cb_HART_Xfer_Function = new System.Windows.Forms.ComboBox();
             lbl_HART_Xfer_Function = new System.Windows.Forms.Label();
+            chkBx_AutoZeroAll = new System.Windows.Forms.CheckBox();
+            nUD_PercentPoints = new System.Windows.Forms.NumericUpDown();
+            label5 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)nUD_PercentPoints).BeginInit();
             SuspendLayout();
             // 
             // cb_CurrentMeasuringInstruments
@@ -453,7 +456,9 @@ namespace benchGUI
             dataGridView1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
+            dataGridView1.RowHeadersVisible = false;
             dataGridView1.RowHeadersWidth = 51;
+            dataGridView1.ShowEditingIcon = false;
             dataGridView1.Size = new System.Drawing.Size(514, 275);
             dataGridView1.TabIndex = 32;
             // 
@@ -472,6 +477,7 @@ namespace benchGUI
             calcPressure.MinimumWidth = 6;
             calcPressure.Name = "calcPressure";
             calcPressure.ReadOnly = true;
+            calcPressure.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // cpcPressure
             // 
@@ -495,6 +501,7 @@ namespace benchGUI
             error.MinimumWidth = 6;
             error.Name = "error";
             error.ReadOnly = true;
+            error.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // tbScaleMin
             // 
@@ -538,7 +545,7 @@ namespace benchGUI
             // 
             // btnStartAutoCal
             // 
-            btnStartAutoCal.Location = new System.Drawing.Point(537, 610);
+            btnStartAutoCal.Location = new System.Drawing.Point(459, 652);
             btnStartAutoCal.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnStartAutoCal.Name = "btnStartAutoCal";
             btnStartAutoCal.Size = new System.Drawing.Size(69, 27);
@@ -767,22 +774,23 @@ namespace benchGUI
             // 
             // nUD_CalibrationCyclesCount
             // 
-            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(537, 581);
+            nUD_CalibrationCyclesCount.Location = new System.Drawing.Point(537, 561);
             nUD_CalibrationCyclesCount.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             nUD_CalibrationCyclesCount.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nUD_CalibrationCyclesCount.Name = "nUD_CalibrationCyclesCount";
-            nUD_CalibrationCyclesCount.Size = new System.Drawing.Size(69, 23);
+            nUD_CalibrationCyclesCount.Size = new System.Drawing.Size(56, 23);
             nUD_CalibrationCyclesCount.TabIndex = 47;
+            nUD_CalibrationCyclesCount.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             nUD_CalibrationCyclesCount.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // label4
             // 
-            label4.Location = new System.Drawing.Point(537, 543);
+            label4.Location = new System.Drawing.Point(537, 538);
             label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(56, 30);
+            label4.Size = new System.Drawing.Size(63, 19);
             label4.TabIndex = 48;
-            label4.Text = "кол-во циклов";
+            label4.Text = "циклы ->";
             label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // plot_result
@@ -792,14 +800,6 @@ namespace benchGUI
             plot_result.Name = "plot_result";
             plot_result.Size = new System.Drawing.Size(602, 349);
             plot_result.TabIndex = 49;
-            // 
-            // plot_measures
-            // 
-            plot_measures.Location = new System.Drawing.Point(246, 643);
-            plot_measures.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            plot_measures.Name = "plot_measures";
-            plot_measures.Size = new System.Drawing.Size(368, 133);
-            plot_measures.TabIndex = 50;
             // 
             // tb_HART_PV
             // 
@@ -931,12 +931,47 @@ namespace benchGUI
             lbl_HART_Xfer_Function.TabIndex = 63;
             lbl_HART_Xfer_Function.Text = "Xfer_Function";
             // 
+            // chkBx_AutoZeroAll
+            // 
+            chkBx_AutoZeroAll.AutoSize = true;
+            chkBx_AutoZeroAll.Location = new System.Drawing.Point(374, 657);
+            chkBx_AutoZeroAll.Name = "chkBx_AutoZeroAll";
+            chkBx_AutoZeroAll.Size = new System.Drawing.Size(78, 19);
+            chkBx_AutoZeroAll.TabIndex = 64;
+            chkBx_AutoZeroAll.Text = "обнулить";
+            chkBx_AutoZeroAll.UseVisualStyleBackColor = true;
+            // 
+            // nUD_PercentPoints
+            // 
+            nUD_PercentPoints.Location = new System.Drawing.Point(537, 515);
+            nUD_PercentPoints.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            nUD_PercentPoints.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
+            nUD_PercentPoints.Name = "nUD_PercentPoints";
+            nUD_PercentPoints.Size = new System.Drawing.Size(56, 23);
+            nUD_PercentPoints.TabIndex = 65;
+            nUD_PercentPoints.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            nUD_PercentPoints.Value = new decimal(new int[] { 4, 0, 0, 0 });
+            nUD_PercentPoints.ValueChanged += nUD_PercentPoints_ValueChanged;
+            // 
+            // label5
+            // 
+            label5.Location = new System.Drawing.Point(537, 496);
+            label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(56, 15);
+            label5.TabIndex = 66;
+            label5.Text = "<- шаги";
+            label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             ClientSize = new System.Drawing.Size(1236, 781);
+            Controls.Add(label5);
+            Controls.Add(nUD_PercentPoints);
+            Controls.Add(chkBx_AutoZeroAll);
             Controls.Add(lbl_HART_Xfer_Function);
             Controls.Add(cb_HART_Xfer_Function);
             Controls.Add(lbl_HART_Damping);
@@ -951,7 +986,6 @@ namespace benchGUI
             Controls.Add(tb_HART_TAG);
             Controls.Add(tb_HART_PV_MA);
             Controls.Add(tb_HART_PV);
-            Controls.Add(plot_measures);
             Controls.Add(plot_result);
             Controls.Add(label4);
             Controls.Add(nUD_CalibrationCyclesCount);
@@ -1009,6 +1043,7 @@ namespace benchGUI
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             gb_HART.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).EndInit();
+            ((System.ComponentModel.ISupportInitialize)nUD_PercentPoints).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1061,15 +1096,9 @@ namespace benchGUI
         private System.Windows.Forms.Button btn_pressureMicroStepDown;
         private System.Windows.Forms.Button btn_pressureMicrostepUP;
         private System.Windows.Forms.TextBox tb_pressureMicroStep;
-        private System.Windows.Forms.DataGridViewTextBoxColumn percent;
-        private System.Windows.Forms.DataGridViewTextBoxColumn calcPressure;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cpcPressure;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ekCurrent;
-        private System.Windows.Forms.DataGridViewTextBoxColumn error;
         private System.Windows.Forms.NumericUpDown nUD_CalibrationCyclesCount;
         private System.Windows.Forms.Label label4;
         private ScottPlot.FormsPlot plot_result;
-        private ScottPlot.FormsPlot plot_measures;
         private System.Windows.Forms.Button btn_HART_open;
         private System.Windows.Forms.Button btn_HART_set_0mA;
         private System.Windows.Forms.Button btn_HART_set_20mA;
@@ -1090,6 +1119,14 @@ namespace benchGUI
         private System.Windows.Forms.Label lbl_HART_Damping;
         private System.Windows.Forms.ComboBox cb_HART_Xfer_Function;
         private System.Windows.Forms.Label lbl_HART_Xfer_Function;
+        private System.Windows.Forms.CheckBox chkBx_AutoZeroAll;
+        private System.Windows.Forms.DataGridViewTextBoxColumn percent;
+        private System.Windows.Forms.DataGridViewTextBoxColumn calcPressure;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cpcPressure;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ekCurrent;
+        private System.Windows.Forms.DataGridViewTextBoxColumn error;
+        private System.Windows.Forms.NumericUpDown nUD_PercentPoints;
+        private System.Windows.Forms.Label label5;
     }
 }
 
