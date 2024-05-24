@@ -24,7 +24,7 @@ namespace benchGUI
 
         IInstrument PressureInstrument;
 
-        private bool startedCPC => PressureInstrument != null && PressureInstrument.IsOpen;
+        private bool startedPressureInstrument => PressureInstrument != null && PressureInstrument.IsOpen;
 
         private IInstrumentChannelSpanReader pressureReaderSpan { get; set; }
 
@@ -41,7 +41,7 @@ namespace benchGUI
         private void btn_openPressureMeasureInstrument_Click(object sender, EventArgs e)
         {
             btn_openPressureInstrument.Enabled = false;
-            switch (startedCPC)
+            switch (startedPressureInstrument)
             {
                 case false:
                     PressureInstrument = (IInstrument)cb_PressureGeneratorInstrument.SelectedItem;
@@ -51,33 +51,21 @@ namespace benchGUI
                     { 
                         if ( PressureInstrument.Open())
                         {
-                            InvokeControlAction( () =>
-                            {
-                                PressureInstrument_start();
-                            });
+                            InvokeControlAction( () =>PressureInstrument_start());
                         }
                         else
                         {
-                            InvokeControlAction( () =>
-                            {
-                                lbl_cpcStatus.Text = "нет связи";
-                            });
+                            InvokeControlAction( () => lbl_cpcStatus.Text = "нет связи");
                         }
                         InvokeControlAction( () => btn_openPressureInstrument.Enabled = true);
                     });
 
                     break;
                 case true:
-                    log4net.LogManager.GetLogger("").Debug("cpc_stop();");
                     PressureInstrument_stop();
-
-                    log4net.LogManager.GetLogger("").Debug("PressureInstrument.Close();");
                     PressureInstrument.Close();
-
-                    log4net.LogManager.GetLogger("").Debug("pressureStabilityCalc.Reset();");
                     pressureStabilityCalc.Reset();
                     lbl_cpc_read.BackColor = Color.Transparent;
-
                     btn_openPressureInstrument.Enabled = true;
                     break;
             }
@@ -244,11 +232,19 @@ namespace benchGUI
             }
 
         }
+        private void tb_newSetPoint_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r' && btn_setSetPoint.Enabled == true)
+            {
+                setSetPoint(newSetPoint);
+            }
+        }
 
         private void btn_setSetPoint_Click(object sender, EventArgs e)
         {
             setSetPoint(newSetPoint);
         }
+
 
         double newSetPoint { get; set; }
 
@@ -256,7 +252,7 @@ namespace benchGUI
         {
             if (pressureGeneratorSpan == null ) return;
 
-            var maxPressureSetValue = pressureGeneratorSpan.Scale.Max * (pressureGeneratorSpan.Scale.UOM.Factor / selectedPressureUOM.Factor );
+            //var maxPressureSetValue = pressureGeneratorSpan.Scale.Max * (pressureGeneratorSpan.Scale.UOM.Factor / selectedPressureUOM.Factor );
 
             if (tbScaleMin.Text.TryParseToDouble(out pressureScaleMin) 
                 && 
@@ -273,7 +269,7 @@ namespace benchGUI
                 if (newSetPoint > maxmaxsetpoint) newSetPoint = maxmaxsetpoint;
             }
 
-            pressureGeneratorSpan.SetPoint = new OneMeasure(newSetPoint, selectedPressureUOM, DateTime.Now);
+            pressureGeneratorSpan.SetPoint = new OneMeasure(newSetPoint, selectedPressureUOM);
 
             InvokeControlAction(() => tb_PressureSetPoint.Text = pressureGeneratorSpan.SetPoint.Value.ToWBFloatString());
 
@@ -282,11 +278,11 @@ namespace benchGUI
         private void setPressureGeneratorOperationMode(WorkBench.Enums.PressureControllerOperationMode operationMode)
         {
             if (pressureGeneratorSpan == null) return;
-            Task.Factory.StartNew(() => pressureGeneratorSpan.PressureOperationMode = operationMode);
+            Task.Run(() => pressureGeneratorSpan.PressureOperationMode = operationMode);
 
         }
 
-        #region CPC MODE Radio Buttons
+        #region Pressure Instrument MODE Radio Buttons
 
         private void rb_Control_CheckedChanged(object sender, EventArgs e)
         {
@@ -331,10 +327,10 @@ namespace benchGUI
             StopPressureCyclicRead();
 
             PressureGeneratorSpansBL.Clear();
-            var bs = new BindingSource();
-            bs.DataSource = PressureGeneratorSpansBL;
-            bs.RaiseListChangedEvents = true;
-            cb_PressureReaderGeneratorSpan.DataSource = bs;
+            var bindingSource = new BindingSource();
+            bindingSource.DataSource = PressureGeneratorSpansBL;
+            bindingSource.RaiseListChangedEvents = true;
+            cb_PressureReaderGeneratorSpan.DataSource = bindingSource;
             cb_PressureReaderGeneratorSpan.DisplayMember = "Scale";
             foreach (var span in (((IInstrumentChannel)((ComboBox)sender).SelectedItem)).AvailableSpans)
             {
@@ -393,35 +389,28 @@ namespace benchGUI
         CancellationTokenSource PressureCyclicReadingCTS { get; set; }
         private void StartPressureCyclicRead()
         {
-            if (pressureReaderSpan!=null && selectedPressureUOM.UOMType == UOMType.Pressure)
+            if (pressureReaderSpan != null && selectedPressureUOM.UOMType == UOMType.Pressure)
             {
                 PressureCyclicReadingCTS = new CancellationTokenSource();
                 var token = PressureCyclicReadingCTS.Token;
-                Task.Run(
-                    () =>
-                    {
-                        while (!token.IsCancellationRequested)
-                        {
-                            var PressureOneMeasure = pressureReaderSpan.Read(selectedPressureUOM);
-                            if (PressureOneMeasure != null && !token.IsCancellationRequested)
-                                OnOnePressureMeasureReaded(null, PressureOneMeasure);
-                        }
-                    });
+                Task.Run(() =>
+                                {
+                                    while (!token.IsCancellationRequested)
+                                    {
+                                        var PressureOneMeasure = pressureReaderSpan.Read(selectedPressureUOM);
+                                        if (PressureOneMeasure != null && !token.IsCancellationRequested)
+                                            OnOnePressureMeasureReaded(null, PressureOneMeasure);
+                                    }
+                                }
+                        );
+
             }
         }
 
-        private void StopPressureCyclicRead()
-        {
-            PressureCyclicReadingCTS?.Cancel();
-            PressureCyclicReadingCTS?.Dispose();
-            PressureCyclicReadingCTS = null;
-        }
-        
         private void OnOnePressureMeasureReaded(object sender, OneMeasure onemeasure)
         {
             pressureStabilityCalc.AddMeasure(onemeasure);
             
-
             if (pressureStabilityCalc.TrendStatus == TrendStatus.Unknown)
             {
                 InvokeControlAction(() => {
@@ -452,18 +441,20 @@ namespace benchGUI
             InvokeControlAction(() => lbl_cpc_read.Text = $"{onemeasure.Value.ToWBFloatString()} {onemeasure.UOM.Name}");
 
             fillMeasuresChart();
-
         }
+
+        private void StopPressureCyclicRead()
+        {
+            PressureCyclicReadingCTS?.Cancel();
+            PressureCyclicReadingCTS?.Dispose();
+            PressureCyclicReadingCTS = null;
+        }
+        
         private void ReadPressureInstrumentOperationModeToRadioButtons()
         {
             var mode = pressureGeneratorSpan.PressureOperationMode;
-            FillPressureGenerationModeRadioButtons(mode);
-        }
-
-        private void FillPressureGenerationModeRadioButtons(PressureControllerOperationMode  pressureControllerOperationMode)
-        {
             InvokeControlAction(() => {
-                switch (pressureControllerOperationMode)
+                switch (mode)
                 {
                     case PressureControllerOperationMode.UNKNOWN:
                         break;
@@ -485,16 +476,7 @@ namespace benchGUI
             });
         }
 
-
         #endregion
-
-        private void tb_newSetPoint_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == '\r' && btn_setSetPoint.Enabled == true)
-            {
-                 setSetPoint(newSetPoint);
-            }
-        }
 
         private void btn_ZeroPressure_Click(object sender, EventArgs e)
         {

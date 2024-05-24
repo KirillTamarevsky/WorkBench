@@ -392,7 +392,7 @@ namespace benchGUI
                 tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
                 && tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
                 && startedEK
-                && startedCPC
+                && startedPressureInstrument
                 && pressureGeneratorSpan != null
                 )
             {
@@ -439,7 +439,7 @@ namespace benchGUI
                tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
             && tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
             && startedEK
-            && startedCPC
+            && startedPressureInstrument
             && pressureGeneratorSpan != null
             )
             {

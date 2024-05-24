@@ -134,8 +134,7 @@ namespace benchGUI
         private void StartCurrentCyclicReading()
         {
             CurrentCyclicReadingCTS = new CancellationTokenSource();
-            var token = CurrentCyclicReadingCTS.Token;
-            Task.Run(() => CurrentCyclicReaderLoop(token));
+            Task.Run(() => CurrentCyclicReaderLoop(CurrentCyclicReadingCTS.Token));
         }
 
         private void StopCurrentCyclicReading()
@@ -218,45 +217,6 @@ namespace benchGUI
                     }
                     break;
             }
-        }
-
-        private async void SearchEKOnSerialPorts()
-        {
-            lbl_cnahValue.Text = "поиск....";
-
-            foreach (var item in await Factory.serialPortNamesWithEK())
-            {
-                cb_CurrentMeasuringInstruments.Items.Add(item);
-            }
-
-            if (cb_CurrentMeasuringInstruments.Items.Count > 0)
-            {
-                cb_CurrentMeasuringInstruments.SelectedItem = cb_CurrentMeasuringInstruments.Items[0];
-
-                lbl_cnahValue.Text = "---.----";
-
-                if (cb_CurrentMeasuringInstruments.Items.Count == 1)
-                {
-                    cb_CurrentMeasuringInstruments.Enabled = false;
-                }
-            }
-            else
-            {
-                lbl_cnahValue.Font = new Font(
-
-                    lbl_cnahValue.Font.FontFamily,
-
-                    (float)(lbl_cnahValue.Font.Size * 0.7),
-
-                    lbl_cnahValue.Font.Style);
-
-                lbl_cnahValue.Text = "не найдено :(";
-
-                cb_CurrentInstrumentChannels.Enabled = false;
-
-                cb_CurrentMeasuringInstruments.Enabled = false;
-            }
-
         }
 
         #endregion

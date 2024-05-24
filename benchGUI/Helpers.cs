@@ -29,7 +29,7 @@ namespace benchGUI
 
         public static string ToWBFloatString(this double value)
         {
-            return string.Format("{0:0.0000}", value);
+            return $"{value:0.0000}";
         }
 
         public static double ParseToDouble(this string value)
