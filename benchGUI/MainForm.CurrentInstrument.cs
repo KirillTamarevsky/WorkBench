@@ -157,6 +157,11 @@ namespace benchGUI
         private void OnOneCurrentMeasureReaded(object sender, OneMeasure oneMeasure)
         {
             currentStabilityCalc.AddMeasure(oneMeasure);
+            currentMeasures.Add(oneMeasure);
+            var currentTime = DateTime.Now;
+            var startTime = currentTime.AddSeconds(-TIMETOSTABLE);
+
+            currentMeasures.RemoveAll(m => m.TimeStamp < startTime);
 
             if (currentStabilityCalc.TrendStatus == TrendStatus.Unknown)
             {

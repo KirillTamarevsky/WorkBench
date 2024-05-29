@@ -1,11 +1,13 @@
 ﻿using ScottPlot;
 using ScottPlot.Plottable;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WorkBench;
 
 namespace benchGUI
 {
@@ -13,6 +15,9 @@ namespace benchGUI
     {
         ScatterPlot currentMeasuresScatterPlot;
         ScatterPlot pressureMeasuresScatterPlot;
+
+        List<OneMeasure> currentMeasures = new List<OneMeasure>();
+        List<OneMeasure> pressureMeasures = new List<OneMeasure>();
 
         private void OnStartDemoLoop(CancellationToken token)
         {

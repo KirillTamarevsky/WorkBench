@@ -511,9 +511,9 @@ namespace benchGUI
                 {
 
                     //chart_measures.Series.Clear();
-                    if (currentStabilityCalc != null && currentStabilityCalc.MeasuresCount > 0)
+                    if (currentMeasures != null && currentMeasures.Count > 0)
                     {
-                        var currentMeasurePointsToPlot = currentStabilityCalc.Measures;
+                        var currentMeasurePointsToPlot = currentMeasures;
                         double[] xs = currentMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
                         double[] ys = currentMeasurePointsToPlot.Select(m => m.Value).ToArray();
                         currentMeasuresScatterPlot.Update(xs, ys);
@@ -524,10 +524,10 @@ namespace benchGUI
                     }
 
                     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    if (pressureStabilityCalc != null && pressureStabilityCalc.MeasuresCount > 0)
+                    if (pressureMeasures != null && pressureMeasures.Count > 0)
                     {
                         //plot_measures.Plot.XAxis.DateTimeFormat(true);
-                        var pressureMeasurePointsToPlot = pressureStabilityCalc.Measures;
+                        var pressureMeasurePointsToPlot = pressureMeasures;
                         double[] xs = pressureMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
                         double[] ys = pressureMeasurePointsToPlot.Select(m => m.Value).ToArray();
                         pressureMeasuresScatterPlot.Update(xs, ys);

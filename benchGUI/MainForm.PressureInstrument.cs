@@ -410,7 +410,12 @@ namespace benchGUI
         private void OnOnePressureMeasureReaded(object sender, OneMeasure onemeasure)
         {
             pressureStabilityCalc.AddMeasure(onemeasure);
-            
+            pressureMeasures.Add(onemeasure);
+            var currentTime = DateTime.Now;
+            var startTime = currentTime.AddSeconds(-TIMETOSTABLE);
+
+            pressureMeasures.RemoveAll(m => m.TimeStamp < startTime);
+
             if (pressureStabilityCalc.TrendStatus == TrendStatus.Unknown)
             {
                 InvokeControlAction(() => {
