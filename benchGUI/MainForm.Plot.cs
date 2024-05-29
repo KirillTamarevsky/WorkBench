@@ -35,7 +35,6 @@ namespace benchGUI
                 {
                     foreach (var plottable in plot_result.Plot.GetPlottables())
                     {
-
                         if (plottable != currentMeasuresScatterPlot & plottable != pressureMeasuresScatterPlot && plottable is ScatterPlot scatt)
                         {
                             var ys = scatt.Ys;
@@ -49,6 +48,7 @@ namespace benchGUI
                     }
                 });
                 PlotRefreshEvent.WaitOne(500);
+                Thread.Sleep(1);
 
             } while (!token.IsCancellationRequested);
             var flattened = false;
@@ -81,7 +81,7 @@ namespace benchGUI
                 { plot_result.Plot.Remove(p); }
             });
         }
-        private ManualResetEvent PlotRefreshEvent = new ManualResetEvent(false);
+        private EventWaitHandle PlotRefreshEvent = new ManualResetEvent(false );
         private void PlotRefresherLoop(CancellationToken token)
         {
             Stopwatch stopwatch = new Stopwatch();
