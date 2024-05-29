@@ -109,10 +109,10 @@ namespace benchGUI
             plot_result.Plot.SetAxisLimitsY(0, 1);
 
             OnStartDemoCTS = new CancellationTokenSource();
-            OnStartDemo = GetOnStartDemoTask();
+            OnStartDemo = Task.Run(() => OnStartDemoLoop(OnStartDemoCTS.Token));
 
             PlotRefresherCTS = new CancellationTokenSource();
-            PlotRefresherTask = GetPlotRefresherTask();
+            PlotRefresherTask = Task.Run(() =>  PlotRefresherLoop(PlotRefresherCTS.Token));
 
         }
         private void FillDatagridRows()

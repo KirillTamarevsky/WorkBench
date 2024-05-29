@@ -14,88 +14,80 @@ namespace benchGUI
         ScatterPlot currentMeasuresScatterPlot;
         ScatterPlot pressureMeasuresScatterPlot;
 
-        private Task GetOnStartDemoTask()
+        private void OnStartDemoLoop(CancellationToken token)
         {
-            return Task.Run(() =>
+            Random rand = new Random(1234);
+            double[] xs = DataGen.Consecutive(25, 4, offset: 1d); // new double[] { 0, 25, 50, 75, 100};
+            InvokeControlAction(() =>
             {
-                Random rand = new Random(1234);
-                double[] xs = DataGen.Consecutive(25, 4, offset: 1d); // new double[] { 0, 25, 50, 75, 100};
-                Thread.Sleep(500);
+                //plot_result.Plot.Clear();
+                for (int i = 0; i < 25; i++)
+                {
+                    double[] ys = DataGen.RandomNormal(rand, xs.Length, 0.5, 0.00);
+                    var scatter = plot_result.Plot.AddScatter(xs, ys);
+                    scatter.Smooth = true;
+                    scatter.MarkerShape = (MarkerShape)Enum.GetValues(typeof(MarkerShape)).GetValue(new Random().Next(0, Enum.GetValues(typeof(MarkerShape)).Length - 1));
+                }
+            });
+            do
+            {
                 InvokeControlAction(() =>
                 {
-                    //plot_result.Plot.Clear();
-                    for (int i = 0; i < 25; i++)
+                    foreach (var plottable in plot_result.Plot.GetPlottables())
                     {
-                        double[] ys = DataGen.RandomNormal(rand, xs.Length, 0.5, 0.00);
-                        var scatter = plot_result.Plot.AddScatter(xs, ys);
-                        scatter.Smooth = true;
-                        scatter.MarkerShape = (MarkerShape)Enum.GetValues(typeof(MarkerShape)).GetValue(new Random().Next(0, Enum.GetValues(typeof(MarkerShape)).Length - 1));
+
+                        if (plottable != currentMeasuresScatterPlot & plottable != pressureMeasuresScatterPlot && plottable is ScatterPlot scatt)
+                        {
+                            var ys = scatt.Ys;
+                            for (int i = 0; i < ys.Length; i++)
+                            {
+                                ys[i] += (rand.NextDouble() - 0.5) / 100;
+                                if (ys[i] > 1) ys[i] = 0.9;
+                                if (ys[i] < 0) ys[i] = 0.1;
+                            }
+                        }
                     }
                 });
-                var msBetweenFrames = 1000 / 30;
-                do
-                {
-                    InvokeControlAction(() =>
-                    {
-                        //var plottable = plot_result.Plot.GetPlottables().First();
-                        //plot_result.Plot.MoveLast(plottable);
-                        foreach (var plottable in plot_result.Plot.GetPlottables())
-                        {
+                PlotRefreshEvent.WaitOne(500);
 
-                            if (plottable != currentMeasuresScatterPlot & plottable != pressureMeasuresScatterPlot && plottable is ScatterPlot scatt)
+            } while (!token.IsCancellationRequested);
+            var flattened = false;
+            do
+            {
+                InvokeControlAction(() =>
+                {
+                    foreach (var plottable in plot_result.Plot.GetPlottables())
+                    {
+                        plot_result.Plot.MoveLast(plottable);
+                        if (plottable != currentMeasuresScatterPlot & plottable != pressureMeasuresScatterPlot && plottable is ScatterPlot scatt)
+                        {
+                            var ys = scatt.Ys;
+                            for (int i = 0; i < ys.Length; i++)
                             {
-                                var ys = scatt.Ys;
-                                for (int i = 0; i < ys.Length; i++)
-                                {
-                                    ys[i] += (rand.NextDouble() - 0.5) / 100;
-                                    if (ys[i] > 1) ys[i] = 0.9;
-                                    if (ys[i] < 0) ys[i] = 0.1;
-                                }
+                                if (ys[i] > 0.5) ys[i] -= (ys[i] - 0.5) / rand.Next(3, 15);
+                                if (ys[i] < 0.5) ys[i] += (0.5 - ys[i]) / rand.Next(3, 15);
                             }
+                            if (ys.All(y => y >= 0.49 & y <= 0.51)) flattened = true;
+                            else flattened = false;
                         }
                         //plot_result.Refresh(skipIfCurrentlyRendering: true);
-                    });
-                    Thread.Sleep(msBetweenFrames);
-                } while (!OnStartDemoCTS.IsCancellationRequested);
-                var flattened = false;
-                do
-                {
-                    InvokeControlAction(() =>
-                    {
-                        foreach (var plottable in plot_result.Plot.GetPlottables())
-                        {
-                            plot_result.Plot.MoveLast(plottable);
-                            if (plottable != currentMeasuresScatterPlot & plottable != pressureMeasuresScatterPlot && plottable is ScatterPlot scatt)
-                            {
-                                var ys = scatt.Ys;
-                                for (int i = 0; i < ys.Length; i++)
-                                {
-                                    if (ys[i] > 0.5) ys[i] -= (ys[i] - 0.5) / rand.Next(3, 15);
-                                    if (ys[i] < 0.5) ys[i] += (0.5 - ys[i]) / rand.Next(3, 15);
-                                }
-                                if (ys.All(y => y >= 0.49 & y <= 0.51)) flattened = true;
-                                else flattened = false;
-                            }
-                            //plot_result.Refresh(skipIfCurrentlyRendering: true);
-                        }
-                    });
-                    Thread.Sleep(1000 / 60);
-                } while (!flattened);
-                InvokeControlAction(() => {
-                    foreach (var p in plot_result.Plot.GetPlottables().Where(p => p != currentMeasuresScatterPlot & p != pressureMeasuresScatterPlot))
-                    { plot_result.Plot.Remove(p); }
+                    }
                 });
+                PlotRefreshEvent.WaitOne(500);
+            } while (!flattened);
+            InvokeControlAction(() =>
+            {
+                foreach (var p in plot_result.Plot.GetPlottables().Where(p => p != currentMeasuresScatterPlot & p != pressureMeasuresScatterPlot))
+                { plot_result.Plot.Remove(p); }
             });
         }
-        private Task GetPlotRefresherTask()
+        private ManualResetEvent PlotRefreshEvent = new ManualResetEvent(false);
+        private void PlotRefresherLoop(CancellationToken token)
         {
-            return Task.Run(() =>
+            Stopwatch stopwatch = new Stopwatch();
+            do
             {
-                Stopwatch stopwatch = new Stopwatch();
-                ManualResetEvent manualResetEvent = new ManualResetEvent(false);
-                do
-                {
-                    InvokeControlAction(() =>
+                InvokeControlAction(() =>
                     {
                         double xAxisMinLimit = DateTime.Now.AddSeconds(-TIMETOSTABLE).ToOADate();
                         double xAxisMaxLimit = DateTime.Now.ToOADate();
@@ -104,13 +96,13 @@ namespace benchGUI
                         stopwatch.Restart();
                         plot_result.Refresh(lowQuality: true);
                         stopwatch.Stop();
-                        manualResetEvent.Set();
+                        PlotRefreshEvent.Set();
                     });
-                    manualResetEvent.WaitOne(500);
-                    Thread.Sleep((int)(stopwatch.ElapsedMilliseconds) * 2);
-                    manualResetEvent.Reset();
-                } while (!PlotRefresherCTS.Token.IsCancellationRequested);
-            });
+                PlotRefreshEvent.WaitOne(500);
+                PlotRefreshEvent.Reset();
+                var elapsedms = (int)(stopwatch.ElapsedMilliseconds);
+                Thread.Sleep(elapsedms  * 2);
+            } while (!token.IsCancellationRequested);
         }
 
     }
