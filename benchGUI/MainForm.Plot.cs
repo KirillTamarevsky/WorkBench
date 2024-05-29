@@ -97,6 +97,10 @@ namespace benchGUI
                 {
                     InvokeControlAction(() =>
                     {
+                        double xAxisMinLimit = DateTime.Now.AddSeconds(-TIMETOSTABLE).ToOADate();
+                        double xAxisMaxLimit = DateTime.Now.ToOADate();
+                        plot_result.Plot.SetAxisLimitsX(xAxisMinLimit, xAxisMaxLimit, xAxisIndex: XTimeAxis.AxisIndex);
+
                         stopwatch.Restart();
                         plot_result.Refresh(lowQuality: true);
                         stopwatch.Stop();

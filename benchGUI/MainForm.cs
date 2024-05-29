@@ -509,9 +509,6 @@ namespace benchGUI
                 }
                 try
                 {
-                    double xAxisMinLimit = DateTime.Now.AddSeconds(-TIMETOSTABLE).ToOADate();
-                    double xAxisMaxLimit = DateTime.Now.ToOADate();
-                    plot_result.Plot.SetAxisLimitsX(xAxisMinLimit, xAxisMaxLimit, xAxisIndex:XTimeAxis.AxisIndex);
 
                     //chart_measures.Series.Clear();
                     if (currentStabilityCalc != null && currentStabilityCalc.MeasuresCount > 0)
