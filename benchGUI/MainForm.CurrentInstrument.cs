@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScottPlot;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -163,47 +164,65 @@ namespace benchGUI
 
             currentMeasures.RemoveAll(m => m.TimeStamp < startTime);
 
-            if (currentStabilityCalc.TrendStatus == TrendStatus.Unknown)
+            InvokeControlAction(() =>
             {
-                InvokeControlAction(
-                    () => {
-                        lbl_EKstability.Text = $"{currentStabilityCalc.MeasuresCount}/{currentStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
-                        lbl_ekmean.Text = "----";
-                        lbl_EKstdev.Text = "----";
-                        lbl_EKLRSlope.Text = "----";
-                    });
-                
-            }
-            else
-            {
-                InvokeControlAction(() => { 
+                try
+                {
+                    if (!plot_result.Plot.GetPlottables().Contains(currentMeasuresScatterPlot))
+                    {
+                        plot_result.Plot.Add(currentMeasuresScatterPlot);
+                    }
+                    if (currentMeasures != null && currentMeasures.Count > 0)
+                    {
+                        var currentMeasurePointsToPlot = currentMeasures;
+                        double[] xs = currentMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
+                        double[] ys = currentMeasurePointsToPlot.Select(m => m.Value).ToArray();
+                        currentMeasuresScatterPlot.Update(xs, ys);
+                        currentMeasuresScatterPlot.MarkerShape = MarkerShape.none;
+
+                        plot_result.Plot.SetAxisLimitsY(4 - 16 * 0.05, 20 + 16 * 0.05, YmAAxis.AxisIndex);
+                    }
+                    YmAAxis.Layout(padding: 0);
+                    XTimeAxis.Layout(padding: 0);
+                }
+                catch (Exception)
+                {
+
+                }
+
+                if (currentStabilityCalc.TrendStatus == TrendStatus.Unknown)
+                {
+                    lbl_EKstability.Text = $"{currentStabilityCalc.MeasuresCount}/{currentStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
+                    lbl_ekmean.Text = "----";
+                    lbl_EKstdev.Text = "----";
+                    lbl_EKLRSlope.Text = "----";
+                }
+                else
+                {
                     lbl_ekmean.Text = currentStabilityCalc.MeanValue.ToWBFloatString();
                     lbl_EKstdev.Text = currentStabilityCalc.StdDeviation.ToWBFloatString();
                     lbl_EKLRSlope.Text = currentStabilityCalc.LRSlope.ToWBFloatString();
                     lbl_EKstability.Text = currentStabilityCalc.GetStatusTextRu();
-                });
+                }
 
-            }
+                Color backColor = Color.Transparent;
+                if (currentStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
+                if (currentStabilityCalc.Ready) backColor = Color.GreenYellow;
 
-            Color backColor = Color.Transparent;
-            if (currentStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
-            if (currentStabilityCalc.Ready) backColor = Color.GreenYellow;
-            
-            lbl_cnahValue.BackColor = backColor;
+                lbl_cnahValue.BackColor = backColor;
 
-            switch (showCurrentInPressureUnits)
-            {
-                case false:
-                    InvokeControlAction(() => lbl_cnahValue.Text = $"{oneMeasure.Value.ToWBFloatString()} {oneMeasure.UOM.Name}" );
-                    break;
-                case true:
-                    var ma = oneMeasure.Value;
-                    var press = (ma - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin;
-                    InvokeControlAction(() => lbl_cnahValue.Text = $"{press:N2} {selectedPressureUOM.Name}");
-                    break;
-            }
-
-            fillMeasuresChart();
+                switch (showCurrentInPressureUnits)
+                {
+                    case false:
+                        lbl_cnahValue.Text = $"{oneMeasure.Value.ToWBFloatString()} {oneMeasure.UOM.Name}";
+                        break;
+                    case true:
+                        var ma = oneMeasure.Value;
+                        var press = (ma - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin;
+                        lbl_cnahValue.Text = $"{press:N2} {selectedPressureUOM.Name}";
+                        break;
+                }
+            });
 
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScottPlot;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -415,37 +416,67 @@ namespace benchGUI
             var startTime = currentTime.AddSeconds(-TIMETOSTABLE);
 
             pressureMeasures.RemoveAll(m => m.TimeStamp < startTime);
-
-            if (pressureStabilityCalc.TrendStatus == TrendStatus.Unknown)
+            InvokeControlAction(() =>
             {
-                InvokeControlAction(() => {
+                try
+                {
+                    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    if (!plot_result.Plot.GetPlottables().Contains(pressureMeasuresScatterPlot))
+                    {
+                        plot_result.Plot.Add(pressureMeasuresScatterPlot);
+                    }
+                    if (pressureMeasures != null && pressureMeasures.Count > 0)
+                    {
+                        //plot_measures.Plot.XAxis.DateTimeFormat(true);
+                        var pressureMeasurePointsToPlot = pressureMeasures;
+                        double[] xs = pressureMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
+                        double[] ys = pressureMeasurePointsToPlot.Select(m => m.Value).ToArray();
+                        pressureMeasuresScatterPlot.Update(xs, ys);
+                        pressureMeasuresScatterPlot.MarkerShape = MarkerShape.none;
+                        if (
+                            tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
+                            &
+                            tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
+                            )
+                        {
+                            var fullscale = pressureScaleMax - pressureScaleMin;
+                            plot_result.Plot.SetAxisLimits(yMin: pressureScaleMin - fullscale * 0.05, yMax: pressureScaleMax + fullscale * 0.05, yAxisIndex: YPressureAxis.AxisIndex);
+                        }
+                    }
+                    YPressureAxis.Layout(padding: 0);
+                    XTimeAxis.Layout(padding: 0);
+
+                }
+                catch (Exception)
+                {
+
+                }
+
+                if (pressureStabilityCalc.TrendStatus == TrendStatus.Unknown)
+                {
                     lbl_CPCstability.Text = $"{pressureStabilityCalc.MeasuresCount}/{pressureStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
                     lbl_cpcmean.Text = "----";
                     lbl_CPCstdev.Text = "----";
                     lbl_CPCLRSlope.Text = "----";
-                });
-            }
-            else
-            {
-                InvokeControlAction(() => {
+                }
+                else
+                {
                     lbl_cpcmean.Text = pressureStabilityCalc.MeanValue.ToWBFloatString();
                     lbl_CPCstdev.Text = pressureStabilityCalc.StdDeviation.ToWBFloatString();
                     lbl_PressureThreeSigma.Text = $"{pressureStabilityCalc.ThreeSigmaBandPercent:0.00}";
                     lbl_CPCLRSlope.Text = pressureStabilityCalc.LRSlope.ToWBFloatString();
                     lbl_CPCstability.Text = pressureStabilityCalc.GetStatusTextRu();
-                });
+                }
 
-            }
-            
-            Color backColor = Color.Transparent;
-            if (pressureStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
-            if (pressureStabilityCalc.Ready) backColor = Color.GreenYellow;
+                Color backColor = Color.Transparent;
+                if (pressureStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
+                if (pressureStabilityCalc.Ready) backColor = Color.GreenYellow;
 
-            lbl_cpc_read.BackColor = backColor;
+                lbl_cpc_read.BackColor = backColor;
 
-            InvokeControlAction(() => lbl_cpc_read.Text = $"{onemeasure.Value.ToWBFloatString()} {onemeasure.UOM.Name}");
+                lbl_cpc_read.Text = $"{onemeasure.Value.ToWBFloatString()} {onemeasure.UOM.Name}";
+            });
 
-            fillMeasuresChart();
         }
 
         private void StopPressureCyclicRead()
