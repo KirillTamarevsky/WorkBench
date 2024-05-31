@@ -1,8 +1,10 @@
 ﻿using ScottPlot;
 using ScottPlot.Plottable;
+using ScottPlot.Renderable;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,11 +15,56 @@ namespace benchGUI
 {
     public partial class MainForm : Form
     {
-        ScatterPlot currentMeasuresScatterPlot;
+        Task PlotRefresherTask { get; set; }
+        CancellationTokenSource PlotRefresherCTS { get; set; } = new CancellationTokenSource();
+        Task OnStartDemo { get; set; }
+        CancellationTokenSource OnStartDemoCTS { get; set; } = new CancellationTokenSource();
+
+        Axis XTimeAxis { get; set; }
+        Axis YmAAxis { get; set; }
+        Axis YPressureAxis { get; set; }
+
+        ScatterPlot currentMeasuresScatterPlot { get; set; }
         ScatterPlot pressureMeasuresScatterPlot;
+        private ScatterPlotList<double> resultScatter { get; set; }
 
         List<OneMeasure> currentMeasures = new List<OneMeasure>();
         List<OneMeasure> pressureMeasures = new List<OneMeasure>();
+
+        private void InitPlot() 
+        {
+            plot_result.Plot.Clear();
+            XTimeAxis = plot_result.Plot.AddAxis(Edge.Bottom);
+            YmAAxis = plot_result.Plot.AddAxis(Edge.Right);
+            YPressureAxis = plot_result.Plot.AddAxis(Edge.Right);
+
+            XTimeAxis.DateTimeFormat(true);
+            XTimeAxis.IsVisible = false;
+
+            // inti Standard Measuring Instruments Readings Plot
+            currentMeasuresScatterPlot = new ScatterPlot(new double[] { 0 }, new double[] { 0 });
+            currentMeasuresScatterPlot.Color = Color.DarkGray;
+            currentMeasuresScatterPlot.LineStyle = LineStyle.Dot;
+            plot_result.Plot.Add(currentMeasuresScatterPlot);
+            currentMeasuresScatterPlot.XAxisIndex = XTimeAxis.AxisIndex;
+            currentMeasuresScatterPlot.YAxisIndex = YmAAxis.AxisIndex;
+            pressureMeasuresScatterPlot = new ScatterPlot(new double[] { 0 }, new double[] { 0 });
+            pressureMeasuresScatterPlot.Color = Color.DarkGray;
+            pressureMeasuresScatterPlot.LineStyle = LineStyle.DashDotDot;
+            plot_result.Plot.Add(pressureMeasuresScatterPlot);
+            pressureMeasuresScatterPlot.XAxisIndex = XTimeAxis.AxisIndex;
+            pressureMeasuresScatterPlot.YAxisIndex = YPressureAxis.AxisIndex;
+
+            plot_result.Plot.XAxis.TickLabelFormat((d) => $"{d}%");
+            plot_result.Plot.SetAxisLimitsY(0, 1);
+
+            OnStartDemoCTS = new CancellationTokenSource();
+            OnStartDemo = Task.Run(() => OnStartDemoLoop(OnStartDemoCTS.Token));
+
+            PlotRefresherCTS = new CancellationTokenSource();
+            PlotRefresherTask = Task.Run(() => PlotRefresherLoop(PlotRefresherCTS.Token));
+
+        }
 
         private void OnStartDemoLoop(CancellationToken token)
         {

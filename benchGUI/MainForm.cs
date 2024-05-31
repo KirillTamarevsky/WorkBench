@@ -24,53 +24,23 @@ namespace benchGUI
 {
     public partial class MainForm : Form
     {
-        CancellationTokenSource PlotRefresherCTS;
-        Task PlotRefresherTask { get; set; }
-        Task OnStartDemo { get; set; }
-        CancellationTokenSource OnStartDemoCTS { get; set; } = new CancellationTokenSource();
         int TIMETOSTABLE = 15;
         int COUNTTOSTABLE = 80;
-        Axis XTimeAxis { get; set; }
-        Axis YmAAxis { get; set; }
-        Axis YPressureAxis { get; set; }
+
         public MainForm()
         {
             InitializeComponent();
-
 
             FormClosing += onFormClosing;
 
             pressureStabilityCalc = new StabilityCalculator(COUNTTOSTABLE, TimeSpan.FromSeconds(TIMETOSTABLE));
             currentStabilityCalc = new StabilityCalculator(COUNTTOSTABLE, TimeSpan.FromSeconds(TIMETOSTABLE));
-
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // init Measurung Instrument Error Deviation Plot
-            plot_result.Plot.Clear();
+            InitPlot();
 
-            XTimeAxis = plot_result.Plot.AddAxis(Edge.Bottom);
-            YmAAxis = plot_result.Plot.AddAxis(Edge.Right);
-            YPressureAxis = plot_result.Plot.AddAxis(Edge.Right);
-
-            XTimeAxis.DateTimeFormat(true);
-            XTimeAxis.IsVisible = false;
-
-            // inti Standard Measuring Instruments Readings Plot
-            currentMeasuresScatterPlot = new ScatterPlot(new double[] { 0 }, new double[] { 0 });
-            currentMeasuresScatterPlot.Color = Color.DarkGray;
-            currentMeasuresScatterPlot.LineStyle = LineStyle.Dot;
-            plot_result.Plot.Add(currentMeasuresScatterPlot);
-            currentMeasuresScatterPlot.XAxisIndex = XTimeAxis.AxisIndex;
-            currentMeasuresScatterPlot.YAxisIndex = YmAAxis.AxisIndex;
-            pressureMeasuresScatterPlot = new ScatterPlot(new double[] { 0 }, new double[] { 0 });
-            pressureMeasuresScatterPlot.Color = Color.DarkGray;
-            pressureMeasuresScatterPlot.LineStyle = LineStyle.DashDotDot;
-            plot_result.Plot.Add(pressureMeasuresScatterPlot);
-            pressureMeasuresScatterPlot.XAxisIndex = XTimeAxis.AxisIndex;
-            pressureMeasuresScatterPlot.YAxisIndex = YPressureAxis.AxisIndex;
 
             cb_CurrentInstrumentChannels.Enabled = false;
 
@@ -105,14 +75,6 @@ namespace benchGUI
             double scatterAxisXMinPosition = percents.Min();
             double scatterAxisXMaxPosition = percents.Max();
             plot_result.Plot.SetAxisLimitsX(scatterAxisXMinPosition, scatterAxisXMaxPosition);
-            plot_result.Plot.XAxis.TickLabelFormat((d) => $"{d}%");
-            plot_result.Plot.SetAxisLimitsY(0, 1);
-
-            OnStartDemoCTS = new CancellationTokenSource();
-            OnStartDemo = Task.Run(() => OnStartDemoLoop(OnStartDemoCTS.Token));
-
-            PlotRefresherCTS = new CancellationTokenSource();
-            PlotRefresherTask = Task.Run(() =>  PlotRefresherLoop(PlotRefresherCTS.Token));
 
         }
         private void FillDatagridRows()
@@ -335,7 +297,6 @@ namespace benchGUI
         private double[] chart_result_Xs { get; set; }
         private double[] chart_result_Ys { get; set; }
         private double currentChartDiscrepancy { get; set; }
-        private ScatterPlotList<double> resultScatter { get; set; }
         void StartAutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
             if (
@@ -376,19 +337,19 @@ namespace benchGUI
                     }
                     do
                     {
-                        // add new scatter to plot
+                        //// add new scatter to plot
                         InvokeControlAction(() =>
                         {
-                            chart_result_Xs = new double[dataGridView1.Rows.Count];
-                            for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
-                            {
-                                chart_result_Xs[i - 1] = i;
-                            }
-                            chart_result_Ys = new double[dataGridView1.Rows.Count];
-                            for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
-                            {
-                                chart_result_Ys[i - 1] = 0;
-                            }
+                            //    chart_result_Xs = new double[dataGridView1.Rows.Count];
+                            //    for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
+                            //    {
+                            //        chart_result_Xs[i - 1] = i;
+                            //    }
+                            //    chart_result_Ys = new double[dataGridView1.Rows.Count];
+                            //    for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
+                            //    {
+                            //        chart_result_Ys[i - 1] = 0;
+                            //    }
                             var randomMarkerShape = (MarkerShape)Enum.GetValues(typeof(MarkerShape)).GetValue(new Random().Next(0, Enum.GetValues(typeof(MarkerShape)).Length - 1));
                             resultScatter = plot_result.Plot.AddScatterList(markerShape: randomMarkerShape);//(chart_result_Xs, chart_result_Ys);
 
