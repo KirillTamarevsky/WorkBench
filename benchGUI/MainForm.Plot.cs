@@ -26,7 +26,7 @@ namespace benchGUI
             InvokeControlAction(() =>
             {
                 //plot_result.Plot.Clear();
-                for (int i = 0; i < 25; i++)
+                for (int i = 0; i < 2; i++)
                 {
                     double[] ys = DataGen.RandomNormal(rand, xs.Length, 0.5, 0.00);
                     var scatter = plot_result.Plot.AddScatter(xs, ys);
