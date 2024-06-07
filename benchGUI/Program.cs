@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,6 +17,7 @@ namespace benchGUI
         [STAThread]
         static void Main()
         {
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
             log4net.Config.XmlConfigurator.Configure();
             Application.EnableVisualStyles();
             Application.SetHighDpiMode(HighDpiMode.SystemAware);

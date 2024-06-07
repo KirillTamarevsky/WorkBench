@@ -11,7 +11,7 @@ using WorkBench;
 
 namespace benchGUI
 {
-    public partial class MainForm : Form
+    public partial class MainForm //: Form
     {
         ScatterPlot currentMeasuresScatterPlot;
         ScatterPlot pressureMeasuresScatterPlot;
@@ -45,7 +45,7 @@ namespace benchGUI
                             var ys = scatt.Ys;
                             for (int i = 0; i < ys.Length; i++)
                             {
-                                ys[i] += (rand.NextDouble() - 0.5) / 100;
+                                ys[i] += (rand.NextDouble() - 0.5) / 600;
                                 if (ys[i] > 1) ys[i] = 0.9;
                                 if (ys[i] < 0) ys[i] = 0.1;
                             }
@@ -53,7 +53,7 @@ namespace benchGUI
                     }
                 });
                 PlotRefreshEvent.WaitOne(500);
-                Thread.Sleep(1);
+                Task.Delay(1).Wait();
 
             } while (!token.IsCancellationRequested);
             var flattened = false;
@@ -106,7 +106,8 @@ namespace benchGUI
                 PlotRefreshEvent.WaitOne(500);
                 PlotRefreshEvent.Reset();
                 var elapsedms = (int)(stopwatch.ElapsedMilliseconds);
-                Thread.Sleep(elapsedms  * 2);
+                Task.Delay(elapsedms * 2).Wait();
+                //Thread.Sleep(elapsedms  * 2);
             } while (!token.IsCancellationRequested);
         }
 
