@@ -45,7 +45,7 @@ namespace WorkBench
         }
         public override string ToString()
         {
-            return $"{string.Format("{0:0.0000}", Value)} {UOM.Name}";
+            return $"{$"{Value:0.0000}"} {UOM.Name}";
         }
     }
 }

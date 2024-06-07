@@ -174,9 +174,8 @@ namespace benchGUI
                     }
                     if (currentMeasures != null && currentMeasures.Count > 0)
                     {
-                        var currentMeasurePointsToPlot = currentMeasures;
-                        double[] xs = currentMeasurePointsToPlot.Select(m => m.TimeStamp.ToOADate()).ToArray();
-                        double[] ys = currentMeasurePointsToPlot.Select(m => m.Value).ToArray();
+                        double[] xs = currentMeasures.Select(m => m.TimeStamp.ToOADate()).ToArray();
+                        double[] ys = currentMeasures.Select(m => m.Value).ToArray();
                         currentMeasuresScatterPlot.Update(xs, ys);
                         currentMeasuresScatterPlot.MarkerShape = MarkerShape.none;
 
@@ -214,7 +213,7 @@ namespace benchGUI
                 switch (showCurrentInPressureUnits)
                 {
                     case false:
-                        lbl_cnahValue.Text = $"{oneMeasure.Value.ToWBFloatString()} {oneMeasure.UOM.Name}";
+                        lbl_cnahValue.Text = $"{oneMeasure}";
                         break;
                     case true:
                         var ma = oneMeasure.Value;
