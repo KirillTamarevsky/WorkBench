@@ -155,42 +155,48 @@ namespace benchGUI
                                     AutoDATrimmedAddresses.Add(HartAddr);
 
                                     var formCaption = this.Text;
-                                    InvokeControlAction(() =>
+                                    Task.Run(() =>
                                     {
-                                        this.Text = $"{formCaption} HART D/A trim ...";
-                                        btn_HART_set_0mA.Enabled = false;
-                                        btn_HART_set_4mA.Enabled = false;
-                                        btn_HART_set_20mA.Enabled = false;
-                                        btn_HART_trim4mA.Enabled = false;
-                                        btn_HART_trim20mA.Enabled = false;
-                                        btn_HART_open.Enabled = false;
-                                        btn_openCurrentMeasureInstrument.Enabled = false;
-                                        btnStartAutoCal.Enabled = false;
+                                        InvokeControlAction(() =>
+                                        {
+                                            this.Text = $"{formCaption} HART D/A trim ...";
+                                            btn_HART_set_0mA.Enabled = false;
+                                            btn_HART_set_4mA.Enabled = false;
+                                            btn_HART_set_20mA.Enabled = false;
+                                            btn_HART_trim4mA.Enabled = false;
+                                            btn_HART_trim20mA.Enabled = false;
+                                            btn_HART_open.Enabled = false;
+                                            btn_openCurrentMeasureInstrument.Enabled = false;
+                                            btnStartAutoCal.Enabled = false;
 
-                                    });
-                                
-                                    lock (hart_communicator){var commres = SendHARTCommand(new HART_040_Simulate_Current_Command(4f));}
-                                    currentStabilityCalc.Reset();
-                                    while (!currentStabilityCalc.Ready) { }
-                                    lock (hart_communicator){
-                                                              var currReading = (float)currentStabilityCalc.MeanValue;
-                                                              SendHARTCommand(new HART_045_Trim_Loop_Current_Zero(currReading));
-                                                              SendHARTCommand(new HART_040_Simulate_Current_Command(20f));}
-                                    currentStabilityCalc.Reset();
-                                    while (!currentStabilityCalc.Ready) { }
-                                    lock (hart_communicator){
-                                                             var currReading = (float)currentStabilityCalc.MeanValue;
-                                                             SendHARTCommand(new HART_046_Trim_Trim_Loop_Current_Gain(currReading));
-                                                             SendHARTCommand(new HART_040_Simulate_Current_Command(0f));}
-                                    InvokeControlAction(() => 
-                                    {
-                                        this.Text = formCaption;
-                                        btn_HART_set_4mA.Enabled = true;
-                                        btn_HART_set_20mA.Enabled = true;
-                                        btn_HART_set_0mA.Enabled = true;
-                                        btn_HART_open.Enabled = true;
-                                        btn_openCurrentMeasureInstrument.Enabled = true;
-                                        btnStartAutoCal.Enabled = true;
+                                        });
+                                        lock (hart_communicator) { var commres = SendHARTCommand(new HART_040_Simulate_Current_Command(4f)); }
+                                        currentStabilityCalc.Reset();
+                                        while (!currentStabilityCalc.Ready) { Thread.Sleep(50); }
+                                        lock (hart_communicator)
+                                        {
+                                            var currReading = (float)currentStabilityCalc.MeanValue;
+                                            SendHARTCommand(new HART_045_Trim_Loop_Current_Zero(currReading));
+                                            SendHARTCommand(new HART_040_Simulate_Current_Command(20f));
+                                        }
+                                        currentStabilityCalc.Reset();
+                                        while (!currentStabilityCalc.Ready) { Thread.Sleep(50); }
+                                        lock (hart_communicator)
+                                        {
+                                            var currReading = (float)currentStabilityCalc.MeanValue;
+                                            SendHARTCommand(new HART_046_Trim_Trim_Loop_Current_Gain(currReading));
+                                            SendHARTCommand(new HART_040_Simulate_Current_Command(0f));
+                                        }
+                                        InvokeControlAction(() =>
+                                        {
+                                            this.Text = formCaption;
+                                            btn_HART_set_4mA.Enabled = true;
+                                            btn_HART_set_20mA.Enabled = true;
+                                            btn_HART_set_0mA.Enabled = true;
+                                            btn_HART_open.Enabled = true;
+                                            btn_openCurrentMeasureInstrument.Enabled = true;
+                                            btnStartAutoCal.Enabled = true;
+                                        });
                                     });
 
                                 }
