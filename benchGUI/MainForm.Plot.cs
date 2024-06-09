@@ -17,7 +17,7 @@ namespace benchGUI
     {
         Task PlotRefresherTask { get; set; }
         CancellationTokenSource PlotRefresherCTS { get; set; } = new CancellationTokenSource();
-        Task OnStartDemo { get; set; }
+        Task OnStartDemoTask { get; set; }
         CancellationTokenSource OnStartDemoCTS { get; set; } = new CancellationTokenSource();
 
         Axis XTimeAxis { get; set; }
@@ -59,7 +59,7 @@ namespace benchGUI
             plot_result.Plot.SetAxisLimitsY(0, 1);
 
             OnStartDemoCTS = new CancellationTokenSource();
-            OnStartDemo = Task.Run(() => OnStartDemoLoop(OnStartDemoCTS.Token));
+            OnStartDemoTask = Task.Run(() => OnStartDemoLoop(OnStartDemoCTS.Token));
 
             PlotRefresherCTS = new CancellationTokenSource();
             PlotRefresherTask = Task.Run(() => PlotRefresherLoop(PlotRefresherCTS.Token));
