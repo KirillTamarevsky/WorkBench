@@ -123,8 +123,6 @@ namespace benchGUI
                 {
                     item.Cells["calcPressure"].Value = ((pressureScaleMax - pressureScaleMin) * ((double)(item.Cells["percent"].Value)) / (double)100 + pressureScaleMin).ToString("0.0000");
                 }
-
-
             }
         }
 
@@ -251,7 +249,7 @@ namespace benchGUI
         }
         CancellationTokenSource AutoCalCancellationTokenSource;
         Task AutoCalibrationTask;
-        private async void btnStartAutoCal_Click(object sender, EventArgs e)
+        private void btnStartAutoCal_Click(object sender, EventArgs e)
         {
             if (
                 tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
@@ -262,24 +260,29 @@ namespace benchGUI
                 )
             {
                 btnStartAutoCal.Enabled = false;
-                await Task.Run(async () =>
+                Task.Run( () =>
                 {
-                    if (OnStartDemo != null)
+                    if (OnStartDemoTask != null)
                     {
                         OnStartDemoCTS.Cancel();
-                        OnStartDemo.Wait();
+                        OnStartDemoTask.Wait();
                         OnStartDemoCTS.Dispose();
-                        OnStartDemo.Dispose();
-                        OnStartDemo = null;
+                        OnStartDemoTask.Dispose();
+                        OnStartDemoTask = null;
                     }
                     if (AutoCalibrationTask == null)
                     {
                         AutoCalCancellationTokenSource = new CancellationTokenSource();
                         InvokeControlAction(() => btnStartAutoCal.Text = "Отмена");
                         InvokeControlAction(() => btnStartAutoCal.Enabled = true);
-                        StartAutoCalibrationSequenceTask(AutoCalCancellationTokenSource.Token);
+                        //-----Setup Plot Chart----------------------------------------------
+                        currentChartDiscrepancy = 0.1;
+                        plot_result.Plot.Clear();
+                        plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
+                        //-------------------------------------------------------------------
                         InvokeControlAction(() => nUD_PercentPoints.Enabled = false);
-                        await AutoCalibrationTask;
+                        AutoCalibrationTask = AutoCalibrationSequenceTask(AutoCalCancellationTokenSource.Token);
+                        AutoCalibrationTask.Wait();
                         InvokeControlAction(() => nUD_PercentPoints.Enabled = true);
                         AutoCalibrationTask = null;
                         AutoCalCancellationTokenSource.Dispose();
@@ -294,164 +297,121 @@ namespace benchGUI
                 });
             }
         }
-        private double[] chart_result_Xs { get; set; }
-        private double[] chart_result_Ys { get; set; }
         private double currentChartDiscrepancy { get; set; }
-        void StartAutoCalibrationSequenceTask(CancellationToken cancellationToken)
+        async Task AutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
-            if (
-               tbScaleMin.Text.TryParseToDouble(out pressureScaleMin)
-            && tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
-            && startedEK
-            && startedPressureInstrument
-            && pressureGeneratorSpan != null
-            )
+            if (chkBx_AutoZeroAll.Checked)
             {
-                currentChartDiscrepancy = 0.1;
-                plot_result.Plot.Clear();
-                plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
-                AutoCalibrationTask = Task.Run(() =>
+                var formCaption = string.Empty;
+                InvokeControlAction(() => formCaption = this.Text);
+
+                pressureGeneratorSpan.PressureOperationMode = PressureControllerOperationMode.VENT;
+                pressureStabilityCalc.Reset();
+                currentStabilityCalc.Reset();
+                while (!pressureStabilityCalc.Ready
+                        && !currentStabilityCalc.Ready
+                        && !cancellationToken.IsCancellationRequested) { await Task.Delay(100); }
+
+                var hartAutoZeroTask = hart_communicator != null ? HART_ZEROTRIM() : Task.FromResult(false);
+                var pressureAutoZeroTask = PressureAutoZero();
+                Task.WaitAll(hartAutoZeroTask, pressureAutoZeroTask);
+                InvokeControlAction(() => this.Text = formCaption);
+            }
+            do
+            {
+                //// add new scatter to plot
+                InvokeControlAction(() =>
                 {
-                    if (chkBx_AutoZeroAll.Checked)
+                    var randomMarkerShape = (MarkerShape)Enum.GetValues(typeof(MarkerShape)).GetValue(new Random().Next(0, Enum.GetValues(typeof(MarkerShape)).Length - 1));
+                    resultScatter = plot_result.Plot.AddScatterList(markerShape: randomMarkerShape);
+                });
+
+                foreach (DataGridViewRow item in dataGridView1.Rows)
+                {
+                    item.Cells[cpcPressure.Name].Value = "";
+                    item.Cells[ekCurrent.Name].Value = "";
+                    item.Cells[error.Name].Value = "";
+                }
+
+                pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
+
+                //setTextBoxText(pressureGeneratorSpan.GetSetPoint().ToString(), tb_cpcSetPoint);
+                //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+
+                pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.CONTROL;
+
+                ReadPressureInstrumentOperationModeToRadioButtons();
+
+                while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { await Task.Delay(50); }
+
+                foreach (DataGridViewRow currentDataGridRow in dataGridView1.Rows)
+                {
+                    InvokeControlAction(() =>
                     {
-                        var formCaption = string.Empty;
-                        InvokeControlAction(() =>
-                        {
-                            formCaption = this.Text;
-                        });
-
-                        pressureGeneratorSpan.PressureOperationMode = PressureControllerOperationMode.VENT;
-                        pressureStabilityCalc.Reset();
-                        currentStabilityCalc.Reset();
-                        while (!pressureStabilityCalc.Ready 
-                                && !currentStabilityCalc.Ready
-                                && !cancellationToken.IsCancellationRequested) { Thread.Sleep(100); }
-
-                        var hartAutoZeroTask = hart_communicator != null ? HART_ZEROTRIM() : Task.FromResult(false);
-                        var pressureAutoZeroTask = PressureAutoZero();
-                        Task.WaitAll(hartAutoZeroTask, pressureAutoZeroTask);
-                        InvokeControlAction(() =>
-                        {
-                            this.Text = formCaption;
-                        });
-                    }
-                    do
-                    {
-                        //// add new scatter to plot
-                        InvokeControlAction(() =>
-                        {
-                            //    chart_result_Xs = new double[dataGridView1.Rows.Count];
-                            //    for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
-                            //    {
-                            //        chart_result_Xs[i - 1] = i;
-                            //    }
-                            //    chart_result_Ys = new double[dataGridView1.Rows.Count];
-                            //    for (int i = 1; i < dataGridView1.Rows.Count + 1; i++)
-                            //    {
-                            //        chart_result_Ys[i - 1] = 0;
-                            //    }
-                            var randomMarkerShape = (MarkerShape)Enum.GetValues(typeof(MarkerShape)).GetValue(new Random().Next(0, Enum.GetValues(typeof(MarkerShape)).Length - 1));
-                            resultScatter = plot_result.Plot.AddScatterList(markerShape: randomMarkerShape);//(chart_result_Xs, chart_result_Ys);
-
-
-
-                        });
-
+                        var percents = new List<double>();
                         foreach (DataGridViewRow item in dataGridView1.Rows)
                         {
-                            item.Cells[cpcPressure.Name].Value = "";
-                            item.Cells[ekCurrent.Name].Value = "";
-                            item.Cells[error.Name].Value = "";
+                            percents.Add(double.Parse(item.Cells[nameof(percent)].Value.ToString()));
                         }
+                        double scatterAxisXMinPosition = percents.Min();
+                        double scatterAxisXMaxPosition = percents.Max();
+                        plot_result.Plot.SetAxisLimitsX(scatterAxisXMinPosition, scatterAxisXMaxPosition);
+                        plot_result.Plot.XAxis.TickLabelFormat((d) => $"{d}%");
 
-                        pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
+                        //plot_result.Refresh(skipIfCurrentlyRendering: true);
+                    });
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        currentDataGridRow.Selected = true;
+                        double setpoint = double.Parse(currentDataGridRow.Cells[calcPressure.Name].Value.ToString());
 
-                        //setTextBoxText(pressureGeneratorSpan.GetSetPoint().ToString(), tb_cpcSetPoint);
-                        //pressureGeneratorSpan.GetSetPoint(om => PutOneMeasureToTextBox(om, tb_PressureSetPoint));
+                        pressureGeneratorSpan.SetPoint = new OneMeasure(setpoint, selectedPressureUOM, DateTime.Now);
+                        InvokeControlAction(() => tb_PressureSetPoint.Text = $"{pressureGeneratorSpan.SetPoint.Value.ToWBFloatString()}");
 
-                        pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.CONTROL;
+                        currentStabilityCalc.Reset();
+                        pressureStabilityCalc.Reset();
 
-                        ReadPressureInstrumentOperationModeToRadioButtons();
-
-                        while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { Thread.Sleep(500); } // { Application.DoEvents(); }
-
-                        foreach (DataGridViewRow currentDataGridRow in dataGridView1.Rows)
+                        while (!(currentStabilityCalc.Ready & pressureStabilityCalc.Ready) & !cancellationToken.IsCancellationRequested) { Thread.Sleep(100); } //{ Application.DoEvents(); }
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            InvokeControlAction(() => 
-                            {
-                                var percents = new List<double>();
-                                foreach (DataGridViewRow item in dataGridView1.Rows)
-                                {
-                                    percents.Add(double.Parse(item.Cells[nameof(percent)].Value.ToString()));
-                                }
-                                double scatterAxisXMinPosition = percents.Min();
-                                double scatterAxisXMaxPosition = percents.Max();
-                                plot_result.Plot.SetAxisLimitsX(scatterAxisXMinPosition, scatterAxisXMaxPosition);
-                                plot_result.Plot.XAxis.TickLabelFormat((d) => $"{d}%");
 
+                            currentDataGridRow.Cells[cpcPressure.Name].Value = pressureStabilityCalc.StableMeanValue.ToWBFloatString();
+                            currentDataGridRow.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToWBFloatString();
+                            var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
+                            currentDataGridRow.Cells[error.Name].Value = discrepancy.ToWBFloatString();
+                            InvokeControlAction(() =>
+                            {
+                                //chart_result_Xs[item.Index] = item.Index + 1;
+                                //chart_result_Ys[item.Index] = discrepancy;
+                                resultScatter.Add(double.Parse(currentDataGridRow.Cells[nameof(percent)].Value.ToString()), discrepancy);
+                                var absDiscrepancy = Math.Round(Math.Abs(discrepancy), 2);
+                                if (absDiscrepancy > Math.Abs(currentChartDiscrepancy))
+                                {
+                                    currentChartDiscrepancy = absDiscrepancy * 1.1;
+                                    plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
+                                }
                                 //plot_result.Refresh(skipIfCurrentlyRendering: true);
                             });
-                            if (!cancellationToken.IsCancellationRequested)
-                            {
-                                currentDataGridRow.Selected = true;
-                                double setpoint = double.Parse(currentDataGridRow.Cells[calcPressure.Name].Value.ToString());
-
-                                pressureGeneratorSpan.SetPoint = new OneMeasure(setpoint, selectedPressureUOM, DateTime.Now);
-                                InvokeControlAction(() => tb_PressureSetPoint.Text = $"{pressureGeneratorSpan.SetPoint.Value.ToWBFloatString()}");
-
-                                currentStabilityCalc.Reset();
-                                pressureStabilityCalc.Reset();
-
-                                while (!(currentStabilityCalc.Ready & pressureStabilityCalc.Ready) & !cancellationToken.IsCancellationRequested) { Thread.Sleep(100); } //{ Application.DoEvents(); }
-                                if (!cancellationToken.IsCancellationRequested)
-                                {
-
-                                    currentDataGridRow.Cells[cpcPressure.Name].Value = pressureStabilityCalc.StableMeanValue.ToWBFloatString();
-                                    currentDataGridRow.Cells[ekCurrent.Name].Value = currentStabilityCalc.StableMeanValue.ToWBFloatString();
-                                    var discrepancy = (((currentStabilityCalc.StableMeanValue - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin - pressureStabilityCalc.StableMeanValue) / (pressureScaleMax - pressureScaleMin) * 100);
-                                    currentDataGridRow.Cells[error.Name].Value = discrepancy.ToWBFloatString();
-                                    InvokeControlAction(() =>
-                                    {
-                                        //chart_result_Xs[item.Index] = item.Index + 1;
-                                        //chart_result_Ys[item.Index] = discrepancy;
-                                        resultScatter.Add(double.Parse(currentDataGridRow.Cells[nameof(percent)].Value.ToString()), discrepancy);
-                                        var absDiscrepancy = Math.Round(Math.Abs(discrepancy), 2);
-                                        if (absDiscrepancy > Math.Abs(currentChartDiscrepancy))
-                                        {
-                                            currentChartDiscrepancy = absDiscrepancy * 1.1;
-                                            plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
-                                        }
-                                        //plot_result.Refresh(skipIfCurrentlyRendering: true);
-                                    });
-                                }
-                                currentDataGridRow.Selected = false;
-                            }
                         }
-                        if (nUD_CalibrationCyclesCount.Value > nUD_CalibrationCyclesCount.Minimum)
-                        {
-                            InvokeControlAction(() => nUD_CalibrationCyclesCount.Value--);
-
-                        }
-                    } while (!cancellationToken.IsCancellationRequested && nUD_CalibrationCyclesCount.Value - 1 >= nUD_CalibrationCyclesCount.Minimum);
-
-                    if (pressureGeneratorSpan != null)
-                    {
-                        pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
-
-                        while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { Thread.Sleep(100); }
-
-                        pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.VENT;
-
-                        ReadPressureInstrumentOperationModeToRadioButtons();
+                        currentDataGridRow.Selected = false;
                     }
+                }
+                if (nUD_CalibrationCyclesCount.Value > nUD_CalibrationCyclesCount.Minimum)
+                {
+                    InvokeControlAction(() => nUD_CalibrationCyclesCount.Value--);
 
+                }
+            } while (!cancellationToken.IsCancellationRequested && nUD_CalibrationCyclesCount.Value - 1 >= nUD_CalibrationCyclesCount.Minimum);
 
-
-                });
-            }
-            else
+            if (pressureGeneratorSpan != null)
             {
-                AutoCalibrationTask = Task.FromResult(false);
+                pressureGeneratorSpan.SetPoint = new OneMeasure(0, selectedPressureUOM, DateTime.Now);
+
+                while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { Thread.Sleep(100); }
+
+                pressureGeneratorSpan.PressureOperationMode = WorkBench.Enums.PressureControllerOperationMode.VENT;
+
+                ReadPressureInstrumentOperationModeToRadioButtons();
             }
         }
 
