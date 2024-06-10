@@ -58,8 +58,8 @@ namespace WorkBench.TestEquipment.CPC6000
 
             DataReceived?.Invoke(this, eventArgs);
         }
-
-        public FakeCPC6000SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits)
+        FakeInstrument fakeInstrument { get; }
+        public FakeCPC6000SerialPort(string serialPortName, int baudrate, Parity parity, int dataBits, StopBits stopBits, FakeInstrument _fakeinstrument = null)
         {
             _serialPortName = serialPortName;
             BaudRate = baudrate;
@@ -68,6 +68,7 @@ namespace WorkBench.TestEquipment.CPC6000
             _stopBits = stopBits;
 
             _serialPortLineEndToken = "\n";
+            fakeInstrument = _fakeinstrument;
         }
         public void Open()
         {
@@ -168,6 +169,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "Setpt":
                     _setpt = double.Parse( cmdparts[1].Trim() , NumberStyles.Float, CultureInfo.InvariantCulture);
+                    if (fakeInstrument != null) { fakeInstrument.InputPressure = _setpt; }
                     break;
                 case "Ptype":
                     switch (cmdparts[1].ToUpper().Trim())

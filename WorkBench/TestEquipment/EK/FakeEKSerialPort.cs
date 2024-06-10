@@ -28,11 +28,13 @@ namespace WorkBench.TestEquipment.EK
         string _serialPortLineEndToken;
 
         Queue<byte> answerBytesQueue = new Queue<byte>();
+        FakeInstrument? fakeinstrument { get; }
         public FakeEKSerialPort(string serialPortName,
                                 int baudrate,
                                 Parity parity,
                                 int dataBits,
-                                StopBits stopBits)
+                                StopBits stopBits,
+                                FakeInstrument _fakeInstrument = null)
         {
             _serialPortName = serialPortName;
             BaudRate = baudrate;
@@ -43,6 +45,8 @@ namespace WorkBench.TestEquipment.EK
             _serialPortLineEndToken = "\r\n";
 
             random = new Random();
+
+            fakeinstrument = _fakeInstrument;
         }
         public event SerialDataReceivedEventHandler DataReceived;
         void RaiseDataReceived()
@@ -95,7 +99,14 @@ namespace WorkBench.TestEquipment.EK
                 case "CURR?":
                     //prevValue += (new System.Random()).NextDouble() * 0.0016;
                     //answer = prevValue.ToString("N4");
-                    answer = (new Random().NextDouble() * 0.1 + activeChannel - .05 + 10).ToString("N4");
+                    if (fakeinstrument == null)
+                    {
+                        answer = (new Random().NextDouble() * 0.1 + activeChannel - .05 + 10).ToString("N4");
+                    }
+                    else
+                    {
+                        answer = (new Random().NextDouble() * 0.1 + fakeinstrument.OutputCurrent).ToString("N4");
+                    }
                     break;
                 case "CHAN 1":
                     answer = "1";

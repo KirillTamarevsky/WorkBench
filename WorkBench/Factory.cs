@@ -17,10 +17,15 @@ namespace WorkBench
     public class Factory
     {
         log4net.ILog logger = log4net.LogManager.GetLogger(typeof(Factory));
-
+        static FakeInstrument fakeInstrument;
+        static FakeInstrument FakeInstrument { get
+            { 
+                if (fakeInstrument == null) { fakeInstrument = new FakeInstrument(); }
+                return fakeInstrument;
+            } }
         static public EK GetFakeEK (string portName)
         {
-            var fakeEKserialPort = new FakeEKSerialPort(portName, 115200, Parity.Odd, 8, StopBits.One);
+            var fakeEKserialPort = new FakeEKSerialPort(portName, 115200, Parity.Odd, 8, StopBits.One, FakeInstrument);
             var communicator = new SerialPortTextCommunicator(fakeEKserialPort, "\r\n");
 
             var ek = new EK(communicator);
@@ -99,7 +104,7 @@ namespace WorkBench
         }
         static public IInstrument GetCPC6000_on_Fake_SerialPort()
         {
-            var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One);
+            var fakeSerialPortWrapper = new FakeCPC6000SerialPort("COM111", 57600, Parity.None, 8, StopBits.One, FakeInstrument);
             var communicator = new SerialPortTextCommunicator (fakeSerialPortWrapper, "\n");
 
             var cpc = new CPC6000(communicator);
