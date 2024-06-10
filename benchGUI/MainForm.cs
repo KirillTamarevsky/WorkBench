@@ -86,12 +86,13 @@ namespace benchGUI
             double percentStep = 100f / percentPoints;
 
             var points = new List<double>(); // { 0, 25, 50, 75, 100, 75, 50, 25, 0 };
-
+            
+            // 0, 25, 50, 75, 100
             for (int i = 0; i <= percentPoints; i++)
             {
                 points.Add(i * percentStep);
             }
-
+            // 75, 50, 25, 0
             for (int i = percentPoints - 1; i >= 0; i--)
             {
                 points.Add(i * percentStep);
@@ -100,8 +101,7 @@ namespace benchGUI
             foreach (var item in points)
             {
                 var datagridviewrow = new DataGridViewRow();
-                datagridviewrow.CreateCells(dataGridView1);
-                datagridviewrow.Cells[0].Value = item;
+                datagridviewrow.CreateCells(dataGridView1, item);
                 dataGridView1.Rows.Add(datagridviewrow);
             }
             fillComputedPressure();
@@ -109,19 +109,18 @@ namespace benchGUI
 
         private void fillComputedPressure()
         {
-            if (double.TryParse(tbScaleMin.Text.Replace(',', '.'),
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out pressureScaleMin) &
-                double.TryParse(tbScaleMax.Text.Replace(',', '.'),
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out pressureScaleMax)
-                    )
+            if (tbScaleMin.Text.TryParseToDouble(out pressureScaleMin) 
+                &&
+                tbScaleMax.Text.TryParseToDouble(out pressureScaleMax)
+                )
             {
                 foreach (DataGridViewRow item in dataGridView1.Rows)
                 {
-                    item.Cells["calcPressure"].Value = ((pressureScaleMax - pressureScaleMin) * ((double)(item.Cells["percent"].Value)) / (double)100 + pressureScaleMin).ToString("0.0000");
+                    var perc = (double)(item.Cells[nameof(percent)].Value);
+                    item.Cells[nameof(calcPressure)].Value = 
+                        (
+                            (pressureScaleMax - pressureScaleMin) * (perc) / 100 + pressureScaleMin
+                        ).ToString("0.0000");
                 }
             }
         }
