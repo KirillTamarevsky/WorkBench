@@ -150,7 +150,7 @@ namespace benchGUI
                                     HART_READ_TAG();
                                     HART_READ_LONGTAG();
                                 }
-                                if (startedEK && !AutoDATrimmedAddresses.Any(a => a.ToByteArray().SequenceEqual( HartAddr.ToByteArray()) ))
+                                if (chkBx_autoDATRIM.Checked && startedEK && !AutoDATrimmedAddresses.Any(a => a.ToByteArray().SequenceEqual( HartAddr.ToByteArray()) ))
                                 {
                                     AutoDATrimmedAddresses.Add(HartAddr);
 
@@ -457,6 +457,8 @@ namespace benchGUI
             //HART_SEND_ZERO_COMMAND();
             if (HartAddr is LongAddress)
             {
+                //commres = hart_communicator.Send(5, HartAddr, new HART_059_Write_Response_Preambles_Number(20));
+
                 commres = hart_communicator.Send(5, HartAddr, cmd);
 
                 if (commres == null) HART_DISCONNECT();

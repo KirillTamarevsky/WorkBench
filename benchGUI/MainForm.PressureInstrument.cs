@@ -452,22 +452,6 @@ namespace benchGUI
 
                 }
 
-                if (pressureStabilityCalc.TrendStatus == TrendStatus.Unknown)
-                {
-                    lbl_CPCstability.Text = $"{pressureStabilityCalc.MeasuresCount}/{pressureStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
-                    lbl_cpcmean.Text = "----";
-                    lbl_CPCstdev.Text = "----";
-                    lbl_CPCLRSlope.Text = "----";
-                }
-                else
-                {
-                    lbl_cpcmean.Text = pressureStabilityCalc.MeanValue.ToWBFloatString();
-                    lbl_CPCstdev.Text = pressureStabilityCalc.StdDeviation.ToWBFloatString();
-                    lbl_PressureThreeSigma.Text = $"{pressureStabilityCalc.ThreeSigmaBandPercent:0.00}";
-                    lbl_CPCLRSlope.Text = pressureStabilityCalc.LRSlope.ToWBFloatString();
-                    lbl_CPCstability.Text = pressureStabilityCalc.GetStatusTextRu();
-                }
-
                 Color backColor = Color.Transparent;
                 if (pressureStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
                 if (pressureStabilityCalc.Ready) backColor = Color.GreenYellow;

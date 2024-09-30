@@ -189,21 +189,6 @@ namespace benchGUI
 
                 }
 
-                if (currentStabilityCalc.TrendStatus == TrendStatus.Unknown)
-                {
-                    lbl_EKstability.Text = $"{currentStabilityCalc.MeasuresCount}/{currentStabilityCalc.MeasuringTimeSpan.TotalSeconds:N0}s";
-                    lbl_ekmean.Text = "----";
-                    lbl_EKstdev.Text = "----";
-                    lbl_EKLRSlope.Text = "----";
-                }
-                else
-                {
-                    lbl_ekmean.Text = currentStabilityCalc.MeanValue.ToWBFloatString();
-                    lbl_EKstdev.Text = currentStabilityCalc.StdDeviation.ToWBFloatString();
-                    lbl_EKLRSlope.Text = currentStabilityCalc.LRSlope.ToWBFloatString();
-                    lbl_EKstability.Text = currentStabilityCalc.GetStatusTextRu();
-                }
-
                 Color backColor = Color.Transparent;
                 if (currentStabilityCalc.TrendStatus == TrendStatus.Stable) backColor = Color.Yellow;
                 if (currentStabilityCalc.Ready) backColor = Color.GreenYellow;

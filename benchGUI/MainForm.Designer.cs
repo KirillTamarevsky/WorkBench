@@ -48,15 +48,6 @@ namespace benchGUI
             rb_Control = new System.Windows.Forms.RadioButton();
             rb_Vent = new System.Windows.Forms.RadioButton();
             lbl_cpcStatus = new System.Windows.Forms.Label();
-            lbl_cpcmean = new System.Windows.Forms.Label();
-            lbl_ekmean = new System.Windows.Forms.Label();
-            btn_copyMeansToClipboard = new System.Windows.Forms.Button();
-            lbl_EKstdev = new System.Windows.Forms.Label();
-            lbl_CPCstdev = new System.Windows.Forms.Label();
-            lbl_EKLRSlope = new System.Windows.Forms.Label();
-            lbl_CPCLRSlope = new System.Windows.Forms.Label();
-            lbl_EKstability = new System.Windows.Forms.Label();
-            lbl_CPCstability = new System.Windows.Forms.Label();
             dataGridView1 = new System.Windows.Forms.DataGridView();
             percent = new System.Windows.Forms.DataGridViewTextBoxColumn();
             calcPressure = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -80,9 +71,13 @@ namespace benchGUI
             btn_HART_trim20mA = new System.Windows.Forms.Button();
             btn_HART_trim4mA = new System.Windows.Forms.Button();
             btn_HART_set_0mA = new System.Windows.Forms.Button();
+            lbl_HART_Xfer_Function = new System.Windows.Forms.Label();
+            cb_HART_Xfer_Function = new System.Windows.Forms.ComboBox();
             btn_HART_set_20mA = new System.Windows.Forms.Button();
             btn_HART_set_4mA = new System.Windows.Forms.Button();
+            lbl_HART_Damping = new System.Windows.Forms.Label();
             btn_HART_open = new System.Windows.Forms.Button();
+            tb_HART_Damping = new System.Windows.Forms.TextBox();
             btn_pressureMicroStepDown = new System.Windows.Forms.Button();
             btn_pressureMicrostepUP = new System.Windows.Forms.Button();
             tb_pressureMicroStep = new System.Windows.Forms.TextBox();
@@ -95,17 +90,13 @@ namespace benchGUI
             tb_HART_SV = new System.Windows.Forms.TextBox();
             tb_HART_TV = new System.Windows.Forms.TextBox();
             tb_HART_QV = new System.Windows.Forms.TextBox();
-            lbl_PressureThreeSigma = new System.Windows.Forms.Label();
             tb_longTag = new System.Windows.Forms.TextBox();
             btn_HART_BURST_OFF = new System.Windows.Forms.Button();
             btn_HART_BURST_ON = new System.Windows.Forms.Button();
-            tb_HART_Damping = new System.Windows.Forms.TextBox();
-            lbl_HART_Damping = new System.Windows.Forms.Label();
-            cb_HART_Xfer_Function = new System.Windows.Forms.ComboBox();
-            lbl_HART_Xfer_Function = new System.Windows.Forms.Label();
             chkBx_AutoZeroAll = new System.Windows.Forms.CheckBox();
             nUD_PercentPoints = new System.Windows.Forms.NumericUpDown();
             label5 = new System.Windows.Forms.Label();
+            chkBx_autoDATRIM = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             gb_HART.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).BeginInit();
@@ -137,7 +128,7 @@ namespace benchGUI
             // 
             lbl_cnahValue.BackColor = System.Drawing.SystemColors.Control;
             lbl_cnahValue.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_cnahValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 65.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_cnahValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 65.25F, System.Drawing.FontStyle.Bold);
             lbl_cnahValue.ForeColor = System.Drawing.SystemColors.ControlText;
             lbl_cnahValue.Location = new System.Drawing.Point(15, 129);
             lbl_cnahValue.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -195,7 +186,7 @@ namespace benchGUI
             // lbl_cpc_read
             // 
             lbl_cpc_read.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_cpc_read.Font = new System.Drawing.Font("Microsoft Sans Serif", 65.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_cpc_read.Font = new System.Drawing.Font("Microsoft Sans Serif", 65.25F, System.Drawing.FontStyle.Bold);
             lbl_cpc_read.Location = new System.Drawing.Point(624, 129);
             lbl_cpc_read.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_cpc_read.Name = "lbl_cpc_read";
@@ -206,7 +197,7 @@ namespace benchGUI
             // tb_cpcStep
             // 
             tb_cpcStep.Enabled = false;
-            tb_cpcStep.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tb_cpcStep.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             tb_cpcStep.Location = new System.Drawing.Point(761, 334);
             tb_cpcStep.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_cpcStep.Name = "tb_cpcStep";
@@ -219,7 +210,7 @@ namespace benchGUI
             // 
             // tb_PressureSetPoint
             // 
-            tb_PressureSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tb_PressureSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             tb_PressureSetPoint.Location = new System.Drawing.Point(901, 334);
             tb_PressureSetPoint.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_PressureSetPoint.Name = "tb_PressureSetPoint";
@@ -234,7 +225,7 @@ namespace benchGUI
             // btn_StepUp
             // 
             btn_StepUp.Enabled = false;
-            btn_StepUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_StepUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             btn_StepUp.Location = new System.Drawing.Point(761, 284);
             btn_StepUp.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_StepUp.Name = "btn_StepUp";
@@ -247,7 +238,7 @@ namespace benchGUI
             // btn_StepDown
             // 
             btn_StepDown.Enabled = false;
-            btn_StepDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_StepDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             btn_StepDown.Location = new System.Drawing.Point(761, 384);
             btn_StepDown.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_StepDown.Name = "btn_StepDown";
@@ -260,7 +251,7 @@ namespace benchGUI
             // btn_setSetPoint
             // 
             btn_setSetPoint.Enabled = false;
-            btn_setSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 17F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_setSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 17F);
             btn_setSetPoint.Location = new System.Drawing.Point(1047, 333);
             btn_setSetPoint.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_setSetPoint.Name = "btn_setSetPoint";
@@ -273,7 +264,7 @@ namespace benchGUI
             // tb_newSetPoint
             // 
             tb_newSetPoint.Enabled = false;
-            tb_newSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tb_newSetPoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             tb_newSetPoint.Location = new System.Drawing.Point(1047, 284);
             tb_newSetPoint.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_newSetPoint.Name = "tb_newSetPoint";
@@ -339,7 +330,7 @@ namespace benchGUI
             // 
             // lbl_cpcStatus
             // 
-            lbl_cpcStatus.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lbl_cpcStatus.Font = new System.Drawing.Font("Consolas", 12F);
             lbl_cpcStatus.Location = new System.Drawing.Point(624, 102);
             lbl_cpcStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbl_cpcStatus.Name = "lbl_cpcStatus";
@@ -347,112 +338,13 @@ namespace benchGUI
             lbl_cpcStatus.TabIndex = 19;
             lbl_cpcStatus.Text = "нет связи";
             // 
-            // lbl_cpcmean
-            // 
-            lbl_cpcmean.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_cpcmean.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_cpcmean.Location = new System.Drawing.Point(102, 650);
-            lbl_cpcmean.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_cpcmean.Name = "lbl_cpcmean";
-            lbl_cpcmean.Size = new System.Drawing.Size(80, 26);
-            lbl_cpcmean.TabIndex = 20;
-            lbl_cpcmean.Text = "--------";
-            // 
-            // lbl_ekmean
-            // 
-            lbl_ekmean.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_ekmean.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_ekmean.Location = new System.Drawing.Point(15, 650);
-            lbl_ekmean.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_ekmean.Name = "lbl_ekmean";
-            lbl_ekmean.Size = new System.Drawing.Size(80, 26);
-            lbl_ekmean.TabIndex = 21;
-            lbl_ekmean.Text = "--------";
-            // 
-            // btn_copyMeansToClipboard
-            // 
-            btn_copyMeansToClipboard.Location = new System.Drawing.Point(187, 650);
-            btn_copyMeansToClipboard.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            btn_copyMeansToClipboard.Name = "btn_copyMeansToClipboard";
-            btn_copyMeansToClipboard.Size = new System.Drawing.Size(52, 27);
-            btn_copyMeansToClipboard.TabIndex = 22;
-            btn_copyMeansToClipboard.Text = "copy";
-            btn_copyMeansToClipboard.UseVisualStyleBackColor = true;
-            btn_copyMeansToClipboard.Click += btn_copyMeansToClipboard_Click;
-            // 
-            // lbl_EKstdev
-            // 
-            lbl_EKstdev.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_EKstdev.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_EKstdev.Location = new System.Drawing.Point(15, 683);
-            lbl_EKstdev.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_EKstdev.Name = "lbl_EKstdev";
-            lbl_EKstdev.Size = new System.Drawing.Size(80, 26);
-            lbl_EKstdev.TabIndex = 23;
-            lbl_EKstdev.Text = "--------";
-            // 
-            // lbl_CPCstdev
-            // 
-            lbl_CPCstdev.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_CPCstdev.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_CPCstdev.Location = new System.Drawing.Point(102, 683);
-            lbl_CPCstdev.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_CPCstdev.Name = "lbl_CPCstdev";
-            lbl_CPCstdev.Size = new System.Drawing.Size(80, 26);
-            lbl_CPCstdev.TabIndex = 24;
-            lbl_CPCstdev.Text = "--------";
-            // 
-            // lbl_EKLRSlope
-            // 
-            lbl_EKLRSlope.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_EKLRSlope.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_EKLRSlope.Location = new System.Drawing.Point(15, 717);
-            lbl_EKLRSlope.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_EKLRSlope.Name = "lbl_EKLRSlope";
-            lbl_EKLRSlope.Size = new System.Drawing.Size(80, 26);
-            lbl_EKLRSlope.TabIndex = 25;
-            lbl_EKLRSlope.Text = "--------";
-            // 
-            // lbl_CPCLRSlope
-            // 
-            lbl_CPCLRSlope.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_CPCLRSlope.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_CPCLRSlope.Location = new System.Drawing.Point(102, 717);
-            lbl_CPCLRSlope.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_CPCLRSlope.Name = "lbl_CPCLRSlope";
-            lbl_CPCLRSlope.Size = new System.Drawing.Size(80, 26);
-            lbl_CPCLRSlope.TabIndex = 26;
-            lbl_CPCLRSlope.Text = "--------";
-            // 
-            // lbl_EKstability
-            // 
-            lbl_EKstability.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_EKstability.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_EKstability.Location = new System.Drawing.Point(15, 750);
-            lbl_EKstability.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_EKstability.Name = "lbl_EKstability";
-            lbl_EKstability.Size = new System.Drawing.Size(80, 26);
-            lbl_EKstability.TabIndex = 27;
-            lbl_EKstability.Text = "--------";
-            // 
-            // lbl_CPCstability
-            // 
-            lbl_CPCstability.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_CPCstability.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_CPCstability.Location = new System.Drawing.Point(102, 750);
-            lbl_CPCstability.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_CPCstability.Name = "lbl_CPCstability";
-            lbl_CPCstability.Size = new System.Drawing.Size(80, 26);
-            lbl_CPCstability.TabIndex = 28;
-            lbl_CPCstability.Text = "--------";
-            // 
             // dataGridView1
             // 
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { percent, calcPressure, cpcPressure, ekCurrent, error });
-            dataGridView1.Location = new System.Drawing.Point(15, 366);
+            dataGridView1.Location = new System.Drawing.Point(15, 459);
             dataGridView1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
@@ -545,7 +437,7 @@ namespace benchGUI
             // 
             // btnStartAutoCal
             // 
-            btnStartAutoCal.Location = new System.Drawing.Point(459, 652);
+            btnStartAutoCal.Location = new System.Drawing.Point(459, 739);
             btnStartAutoCal.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnStartAutoCal.Name = "btnStartAutoCal";
             btnStartAutoCal.Size = new System.Drawing.Size(69, 27);
@@ -604,7 +496,7 @@ namespace benchGUI
             // btn_ZeroPressure
             // 
             btn_ZeroPressure.Enabled = false;
-            btn_ZeroPressure.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_ZeroPressure.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
             btn_ZeroPressure.Location = new System.Drawing.Point(1165, 256);
             btn_ZeroPressure.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_ZeroPressure.Name = "btn_ZeroPressure";
@@ -626,7 +518,7 @@ namespace benchGUI
             // btn_ReadHART_Scale
             // 
             btn_ReadHART_Scale.Enabled = false;
-            btn_ReadHART_Scale.Location = new System.Drawing.Point(190, 16);
+            btn_ReadHART_Scale.Location = new System.Drawing.Point(433, 17);
             btn_ReadHART_Scale.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_ReadHART_Scale.Name = "btn_ReadHART_Scale";
             btn_ReadHART_Scale.Size = new System.Drawing.Size(57, 23);
@@ -638,7 +530,7 @@ namespace benchGUI
             // btn_HART_ZEROTRIM
             // 
             btn_HART_ZEROTRIM.Enabled = false;
-            btn_HART_ZEROTRIM.Location = new System.Drawing.Point(255, 16);
+            btn_HART_ZEROTRIM.Location = new System.Drawing.Point(385, 17);
             btn_HART_ZEROTRIM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_HART_ZEROTRIM.Name = "btn_HART_ZEROTRIM";
             btn_HART_ZEROTRIM.Size = new System.Drawing.Size(40, 23);
@@ -649,12 +541,17 @@ namespace benchGUI
             // 
             // gb_HART
             // 
+            gb_HART.Controls.Add(chkBx_autoDATRIM);
             gb_HART.Controls.Add(btn_HART_trim20mA);
             gb_HART.Controls.Add(btn_HART_trim4mA);
             gb_HART.Controls.Add(btn_HART_set_0mA);
+            gb_HART.Controls.Add(lbl_HART_Xfer_Function);
+            gb_HART.Controls.Add(cb_HART_Xfer_Function);
             gb_HART.Controls.Add(btn_HART_set_20mA);
             gb_HART.Controls.Add(btn_HART_set_4mA);
+            gb_HART.Controls.Add(lbl_HART_Damping);
             gb_HART.Controls.Add(btn_HART_open);
+            gb_HART.Controls.Add(tb_HART_Damping);
             gb_HART.Controls.Add(btn_HART_ZEROTRIM);
             gb_HART.Controls.Add(btn_ReadHART_Scale);
             gb_HART.Controls.Add(cb_HART_SerialPort);
@@ -662,7 +559,7 @@ namespace benchGUI
             gb_HART.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             gb_HART.Name = "gb_HART";
             gb_HART.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            gb_HART.Size = new System.Drawing.Size(586, 50);
+            gb_HART.Size = new System.Drawing.Size(586, 142);
             gb_HART.TabIndex = 42;
             gb_HART.TabStop = false;
             gb_HART.Text = "HART";
@@ -670,7 +567,7 @@ namespace benchGUI
             // btn_HART_trim20mA
             // 
             btn_HART_trim20mA.Enabled = false;
-            btn_HART_trim20mA.Location = new System.Drawing.Point(528, 16);
+            btn_HART_trim20mA.Location = new System.Drawing.Point(61, 115);
             btn_HART_trim20mA.Name = "btn_HART_trim20mA";
             btn_HART_trim20mA.Size = new System.Drawing.Size(51, 23);
             btn_HART_trim20mA.TabIndex = 47;
@@ -681,7 +578,7 @@ namespace benchGUI
             // btn_HART_trim4mA
             // 
             btn_HART_trim4mA.Enabled = false;
-            btn_HART_trim4mA.Location = new System.Drawing.Point(474, 16);
+            btn_HART_trim4mA.Location = new System.Drawing.Point(7, 115);
             btn_HART_trim4mA.Name = "btn_HART_trim4mA";
             btn_HART_trim4mA.Size = new System.Drawing.Size(48, 23);
             btn_HART_trim4mA.TabIndex = 46;
@@ -692,7 +589,7 @@ namespace benchGUI
             // btn_HART_set_0mA
             // 
             btn_HART_set_0mA.Enabled = false;
-            btn_HART_set_0mA.Location = new System.Drawing.Point(421, 16);
+            btn_HART_set_0mA.Location = new System.Drawing.Point(113, 86);
             btn_HART_set_0mA.Name = "btn_HART_set_0mA";
             btn_HART_set_0mA.Size = new System.Drawing.Size(43, 23);
             btn_HART_set_0mA.TabIndex = 45;
@@ -700,10 +597,33 @@ namespace benchGUI
             btn_HART_set_0mA.UseVisualStyleBackColor = true;
             btn_HART_set_0mA.Click += btn_HART_set_0mA_Click;
             // 
+            // lbl_HART_Xfer_Function
+            // 
+            lbl_HART_Xfer_Function.AutoSize = true;
+            lbl_HART_Xfer_Function.Location = new System.Drawing.Point(498, 66);
+            lbl_HART_Xfer_Function.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbl_HART_Xfer_Function.Name = "lbl_HART_Xfer_Function";
+            lbl_HART_Xfer_Function.Size = new System.Drawing.Size(80, 15);
+            lbl_HART_Xfer_Function.TabIndex = 63;
+            lbl_HART_Xfer_Function.Text = "Xfer_Function";
+            // 
+            // cb_HART_Xfer_Function
+            // 
+            cb_HART_Xfer_Function.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cb_HART_Xfer_Function.DropDownWidth = 200;
+            cb_HART_Xfer_Function.FormattingEnabled = true;
+            cb_HART_Xfer_Function.Location = new System.Drawing.Point(498, 87);
+            cb_HART_Xfer_Function.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            cb_HART_Xfer_Function.MaxDropDownItems = 20;
+            cb_HART_Xfer_Function.Name = "cb_HART_Xfer_Function";
+            cb_HART_Xfer_Function.Size = new System.Drawing.Size(89, 23);
+            cb_HART_Xfer_Function.TabIndex = 62;
+            cb_HART_Xfer_Function.SelectionChangeCommitted += cb_HART_Xfer_Function_SelectionChangeCommitted;
+            // 
             // btn_HART_set_20mA
             // 
             btn_HART_set_20mA.Enabled = false;
-            btn_HART_set_20mA.Location = new System.Drawing.Point(365, 16);
+            btn_HART_set_20mA.Location = new System.Drawing.Point(56, 86);
             btn_HART_set_20mA.Name = "btn_HART_set_20mA";
             btn_HART_set_20mA.Size = new System.Drawing.Size(50, 23);
             btn_HART_set_20mA.TabIndex = 44;
@@ -714,13 +634,23 @@ namespace benchGUI
             // btn_HART_set_4mA
             // 
             btn_HART_set_4mA.Enabled = false;
-            btn_HART_set_4mA.Location = new System.Drawing.Point(316, 16);
+            btn_HART_set_4mA.Location = new System.Drawing.Point(7, 86);
             btn_HART_set_4mA.Name = "btn_HART_set_4mA";
             btn_HART_set_4mA.Size = new System.Drawing.Size(43, 23);
             btn_HART_set_4mA.TabIndex = 43;
             btn_HART_set_4mA.Text = "4 mA";
             btn_HART_set_4mA.UseVisualStyleBackColor = true;
             btn_HART_set_4mA.Click += btn_HART_set_4mA_Click;
+            // 
+            // lbl_HART_Damping
+            // 
+            lbl_HART_Damping.AutoSize = true;
+            lbl_HART_Damping.Location = new System.Drawing.Point(498, 20);
+            lbl_HART_Damping.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbl_HART_Damping.Name = "lbl_HART_Damping";
+            lbl_HART_Damping.Size = new System.Drawing.Size(55, 15);
+            lbl_HART_Damping.TabIndex = 61;
+            lbl_HART_Damping.Text = "damping";
             // 
             // btn_HART_open
             // 
@@ -732,10 +662,18 @@ namespace benchGUI
             btn_HART_open.UseVisualStyleBackColor = true;
             btn_HART_open.Click += btn_HART_open_Click;
             // 
+            // tb_HART_Damping
+            // 
+            tb_HART_Damping.Location = new System.Drawing.Point(498, 43);
+            tb_HART_Damping.Name = "tb_HART_Damping";
+            tb_HART_Damping.Size = new System.Drawing.Size(64, 23);
+            tb_HART_Damping.TabIndex = 60;
+            tb_HART_Damping.KeyPress += tb_HART_Damping_KeyPress;
+            // 
             // btn_pressureMicroStepDown
             // 
             btn_pressureMicroStepDown.Enabled = false;
-            btn_pressureMicroStepDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_pressureMicroStepDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             btn_pressureMicroStepDown.Location = new System.Drawing.Point(625, 384);
             btn_pressureMicroStepDown.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_pressureMicroStepDown.Name = "btn_pressureMicroStepDown";
@@ -748,7 +686,7 @@ namespace benchGUI
             // btn_pressureMicrostepUP
             // 
             btn_pressureMicrostepUP.Enabled = false;
-            btn_pressureMicrostepUP.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_pressureMicrostepUP.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             btn_pressureMicrostepUP.Location = new System.Drawing.Point(624, 285);
             btn_pressureMicrostepUP.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_pressureMicrostepUP.Name = "btn_pressureMicrostepUP";
@@ -761,7 +699,7 @@ namespace benchGUI
             // tb_pressureMicroStep
             // 
             tb_pressureMicroStep.Enabled = false;
-            tb_pressureMicroStep.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tb_pressureMicroStep.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F);
             tb_pressureMicroStep.Location = new System.Drawing.Point(625, 334);
             tb_pressureMicroStep.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tb_pressureMicroStep.Name = "tb_pressureMicroStep";
@@ -849,17 +787,6 @@ namespace benchGUI
             tb_HART_QV.Size = new System.Drawing.Size(64, 23);
             tb_HART_QV.TabIndex = 56;
             // 
-            // lbl_PressureThreeSigma
-            // 
-            lbl_PressureThreeSigma.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lbl_PressureThreeSigma.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            lbl_PressureThreeSigma.Location = new System.Drawing.Point(190, 683);
-            lbl_PressureThreeSigma.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_PressureThreeSigma.Name = "lbl_PressureThreeSigma";
-            lbl_PressureThreeSigma.Size = new System.Drawing.Size(80, 26);
-            lbl_PressureThreeSigma.TabIndex = 57;
-            lbl_PressureThreeSigma.Text = "--------";
-            // 
             // tb_longTag
             // 
             tb_longTag.Location = new System.Drawing.Point(343, 255);
@@ -890,51 +817,10 @@ namespace benchGUI
             btn_HART_BURST_ON.UseVisualStyleBackColor = true;
             btn_HART_BURST_ON.Click += btn_HART_BURST_ON_Click;
             // 
-            // tb_HART_Damping
-            // 
-            tb_HART_Damping.Location = new System.Drawing.Point(542, 384);
-            tb_HART_Damping.Name = "tb_HART_Damping";
-            tb_HART_Damping.Size = new System.Drawing.Size(64, 23);
-            tb_HART_Damping.TabIndex = 60;
-            tb_HART_Damping.KeyPress += tb_HART_Damping_KeyPress;
-            // 
-            // lbl_HART_Damping
-            // 
-            lbl_HART_Damping.AutoSize = true;
-            lbl_HART_Damping.Location = new System.Drawing.Point(542, 366);
-            lbl_HART_Damping.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_HART_Damping.Name = "lbl_HART_Damping";
-            lbl_HART_Damping.Size = new System.Drawing.Size(55, 15);
-            lbl_HART_Damping.TabIndex = 61;
-            lbl_HART_Damping.Text = "damping";
-            // 
-            // cb_HART_Xfer_Function
-            // 
-            cb_HART_Xfer_Function.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cb_HART_Xfer_Function.DropDownWidth = 200;
-            cb_HART_Xfer_Function.FormattingEnabled = true;
-            cb_HART_Xfer_Function.Location = new System.Drawing.Point(542, 434);
-            cb_HART_Xfer_Function.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            cb_HART_Xfer_Function.MaxDropDownItems = 20;
-            cb_HART_Xfer_Function.Name = "cb_HART_Xfer_Function";
-            cb_HART_Xfer_Function.Size = new System.Drawing.Size(89, 23);
-            cb_HART_Xfer_Function.TabIndex = 62;
-            cb_HART_Xfer_Function.SelectionChangeCommitted += cb_HART_Xfer_Function_SelectionChangeCommitted;
-            // 
-            // lbl_HART_Xfer_Function
-            // 
-            lbl_HART_Xfer_Function.AutoSize = true;
-            lbl_HART_Xfer_Function.Location = new System.Drawing.Point(542, 413);
-            lbl_HART_Xfer_Function.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            lbl_HART_Xfer_Function.Name = "lbl_HART_Xfer_Function";
-            lbl_HART_Xfer_Function.Size = new System.Drawing.Size(80, 15);
-            lbl_HART_Xfer_Function.TabIndex = 63;
-            lbl_HART_Xfer_Function.Text = "Xfer_Function";
-            // 
             // chkBx_AutoZeroAll
             // 
             chkBx_AutoZeroAll.AutoSize = true;
-            chkBx_AutoZeroAll.Location = new System.Drawing.Point(374, 657);
+            chkBx_AutoZeroAll.Location = new System.Drawing.Point(374, 744);
             chkBx_AutoZeroAll.Name = "chkBx_AutoZeroAll";
             chkBx_AutoZeroAll.Size = new System.Drawing.Size(78, 19);
             chkBx_AutoZeroAll.TabIndex = 64;
@@ -963,6 +849,18 @@ namespace benchGUI
             label5.Text = "<- шаги";
             label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // chkBx_autoDATRIM
+            // 
+            chkBx_autoDATRIM.AutoSize = true;
+            chkBx_autoDATRIM.Checked = true;
+            chkBx_autoDATRIM.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkBx_autoDATRIM.Location = new System.Drawing.Point(187, 16);
+            chkBx_autoDATRIM.Name = "chkBx_autoDATRIM";
+            chkBx_autoDATRIM.Size = new System.Drawing.Size(100, 19);
+            chkBx_autoDATRIM.TabIndex = 67;
+            chkBx_autoDATRIM.Text = "авто D/A Trim";
+            chkBx_autoDATRIM.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -972,14 +870,9 @@ namespace benchGUI
             Controls.Add(label5);
             Controls.Add(nUD_PercentPoints);
             Controls.Add(chkBx_AutoZeroAll);
-            Controls.Add(lbl_HART_Xfer_Function);
-            Controls.Add(cb_HART_Xfer_Function);
-            Controls.Add(lbl_HART_Damping);
-            Controls.Add(tb_HART_Damping);
             Controls.Add(btn_HART_BURST_ON);
             Controls.Add(btn_HART_BURST_OFF);
             Controls.Add(tb_longTag);
-            Controls.Add(lbl_PressureThreeSigma);
             Controls.Add(tb_HART_QV);
             Controls.Add(tb_HART_TV);
             Controls.Add(tb_HART_SV);
@@ -1004,15 +897,6 @@ namespace benchGUI
             Controls.Add(tbScaleMax);
             Controls.Add(tbScaleMin);
             Controls.Add(dataGridView1);
-            Controls.Add(btn_copyMeansToClipboard);
-            Controls.Add(lbl_EKstability);
-            Controls.Add(lbl_EKLRSlope);
-            Controls.Add(lbl_EKstdev);
-            Controls.Add(lbl_ekmean);
-            Controls.Add(lbl_CPCstability);
-            Controls.Add(lbl_CPCLRSlope);
-            Controls.Add(lbl_CPCstdev);
-            Controls.Add(lbl_cpcmean);
             Controls.Add(lbl_cpcStatus);
             Controls.Add(rb_Vent);
             Controls.Add(rb_Control);
@@ -1042,6 +926,7 @@ namespace benchGUI
             Shown += Form1_Shown;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             gb_HART.ResumeLayout(false);
+            gb_HART.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nUD_CalibrationCyclesCount).EndInit();
             ((System.ComponentModel.ISupportInitialize)nUD_PercentPoints).EndInit();
             ResumeLayout(false);
@@ -1069,15 +954,6 @@ namespace benchGUI
         private System.Windows.Forms.RadioButton rb_Control;
         private System.Windows.Forms.RadioButton rb_Vent;
         private System.Windows.Forms.Label lbl_cpcStatus;
-        private System.Windows.Forms.Label lbl_cpcmean;
-        private System.Windows.Forms.Label lbl_ekmean;
-        private System.Windows.Forms.Button btn_copyMeansToClipboard;
-        private System.Windows.Forms.Label lbl_EKstdev;
-        private System.Windows.Forms.Label lbl_CPCstdev;
-        private System.Windows.Forms.Label lbl_EKLRSlope;
-        private System.Windows.Forms.Label lbl_CPCLRSlope;
-        private System.Windows.Forms.Label lbl_EKstability;
-        private System.Windows.Forms.Label lbl_CPCstability;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.TextBox tbScaleMin;
         private System.Windows.Forms.TextBox tbScaleMax;
@@ -1111,7 +987,6 @@ namespace benchGUI
         private System.Windows.Forms.TextBox tb_HART_SV;
         private System.Windows.Forms.TextBox tb_HART_TV;
         private System.Windows.Forms.TextBox tb_HART_QV;
-        private System.Windows.Forms.Label lbl_PressureThreeSigma;
         private System.Windows.Forms.TextBox tb_longTag;
         private System.Windows.Forms.Button btn_HART_BURST_OFF;
         private System.Windows.Forms.Button btn_HART_BURST_ON;
@@ -1127,6 +1002,7 @@ namespace benchGUI
         private System.Windows.Forms.DataGridViewTextBoxColumn error;
         private System.Windows.Forms.NumericUpDown nUD_PercentPoints;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.CheckBox chkBx_autoDATRIM;
     }
 }
 

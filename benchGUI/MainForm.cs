@@ -225,11 +225,6 @@ namespace benchGUI
 
         }
 
-        private void btn_copyMeansToClipboard_Click(object sender, EventArgs e)
-        {
-            Clipboard.SetText($"{lbl_cpcmean.Text}\t{lbl_ekmean.Text}");
-        }
-
         private void tbScaleMin_TextChanged(object sender, EventArgs e)
         {
             fillComputedPressure();
@@ -248,6 +243,7 @@ namespace benchGUI
         }
         CancellationTokenSource AutoCalCancellationTokenSource;
         Task AutoCalibrationTask;
+        
         private void btnStartAutoCal_Click(object sender, EventArgs e)
         {
             if (
@@ -259,46 +255,45 @@ namespace benchGUI
                 )
             {
                 btnStartAutoCal.Enabled = false;
-                Task.Run( () =>
+                //if (OnStartDemoTask != null)
+                //{
+                //        OnStartDemoCTS.Cancel();
+                //        OnStartDemoTask.Wait();
+                //        OnStartDemoCTS.Dispose();
+                //        OnStartDemoTask.Dispose();
+                //        OnStartDemoTask = null;
+                //}
+                if (AutoCalibrationTask == null)
                 {
-                    if (OnStartDemoTask != null)
-                    {
-                        OnStartDemoCTS.Cancel();
-                        OnStartDemoTask.Wait();
-                        OnStartDemoCTS.Dispose();
-                        OnStartDemoTask.Dispose();
-                        OnStartDemoTask = null;
-                    }
-                    if (AutoCalibrationTask == null)
-                    {
-                        AutoCalCancellationTokenSource = new CancellationTokenSource();
-                        InvokeControlAction(() => btnStartAutoCal.Text = "Отмена");
-                        InvokeControlAction(() => btnStartAutoCal.Enabled = true);
-                        //-----Setup Plot Chart----------------------------------------------
-                        currentChartDiscrepancy = 0.1;
-                        plot_result.Plot.Clear();
-                        plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
-                        //-------------------------------------------------------------------
-                        InvokeControlAction(() => nUD_PercentPoints.Enabled = false);
-                        AutoCalibrationTask = AutoCalibrationSequenceTask(AutoCalCancellationTokenSource.Token);
-                        AutoCalibrationTask.Wait();
-                        InvokeControlAction(() => nUD_PercentPoints.Enabled = true);
-                        AutoCalibrationTask = null;
-                        AutoCalCancellationTokenSource.Dispose();
-                        InvokeControlAction(() => btnStartAutoCal.Text = "Старт");
-                        InvokeControlAction(() => btnStartAutoCal.Enabled = true);
-                    }
-                    else
-                    {
-                        InvokeControlAction(() => btnStartAutoCal.Enabled = false);
-                        AutoCalCancellationTokenSource.Cancel();
-                    }
-                });
+                    AutoCalCancellationTokenSource = new CancellationTokenSource();
+                    InvokeControlAction(() => btnStartAutoCal.Text = "Отмена");
+                    InvokeControlAction(() => btnStartAutoCal.Enabled = false);
+                    //-----Setup Plot Chart----------------------------------------------
+                    currentChartDiscrepancy = 0.1;
+                    plot_result.Plot.Clear();
+                    plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
+                    //-------------------------------------------------------------------
+                    InvokeControlAction(() => nUD_PercentPoints.Enabled = false);
+                    AutoCalibrationTask =  Task.Run( () => AutoCalibrationSequenceTask(AutoCalCancellationTokenSource.Token));
+                }
+                else
+                {
+                    InvokeControlAction(() => btnStartAutoCal.Enabled = false);
+                    AutoCalCancellationTokenSource.Cancel();
+                    AutoCalibrationTask.Wait();
+                    InvokeControlAction(() => nUD_PercentPoints.Enabled = true);
+                    AutoCalibrationTask = null;
+                    AutoCalCancellationTokenSource.Dispose();
+                    InvokeControlAction(() => btnStartAutoCal.Text = "Старт");
+                    InvokeControlAction(() => btnStartAutoCal.Enabled = true);
+                }
             }
         }
         private double currentChartDiscrepancy { get; set; }
-        async Task AutoCalibrationSequenceTask(CancellationToken cancellationToken)
+        void AutoCalibrationSequenceTask(CancellationToken cancellationToken)
         {
+            InvokeControlAction(() => btnStartAutoCal.Enabled = true);
+
             if (chkBx_AutoZeroAll.Checked)
             {
                 var formCaption = string.Empty;
@@ -309,7 +304,7 @@ namespace benchGUI
                 currentStabilityCalc.Reset();
                 while (!pressureStabilityCalc.Ready
                         && !currentStabilityCalc.Ready
-                        && !cancellationToken.IsCancellationRequested) { await Task.Delay(100); }
+                        && !cancellationToken.IsCancellationRequested) { Task.Delay(100).Wait(); }
 
                 var hartAutoZeroTask = hart_communicator != null ? HART_ZEROTRIM() : Task.FromResult(false);
                 var pressureAutoZeroTask = PressureAutoZero();
@@ -341,7 +336,7 @@ namespace benchGUI
 
                 ReadPressureInstrumentOperationModeToRadioButtons();
 
-                while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { await Task.Delay(50); }
+                while (pressureStabilityCalc.TrendStatus != TrendStatus.Stable & !cancellationToken.IsCancellationRequested) { Task.Delay(50).Wait(); }
 
                 foreach (DataGridViewRow currentDataGridRow in dataGridView1.Rows)
                 {
