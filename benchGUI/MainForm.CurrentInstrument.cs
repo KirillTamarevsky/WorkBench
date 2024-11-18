@@ -203,7 +203,7 @@ namespace benchGUI
                     case true:
                         var ma = oneMeasure.Value;
                         var press = (ma - 4) / 16 * (pressureScaleMax - pressureScaleMin) + pressureScaleMin;
-                        lbl_cnahValue.Text = $"{press:N2} {selectedPressureUOM.Name}";
+                        lbl_cnahValue.Text = $"{press:N4} {selectedPressureUOM.Name}";
                         break;
                 }
             });

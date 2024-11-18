@@ -10,6 +10,7 @@ using WorkBench.Interfaces;
 using WorkBench.TestEquipment.EK;
 using WorkBench.TestEquipment.CPC6000;
 using WorkBench.TestEquipment.ElmetroPascal;
+using System.Net;
 //using WorkBench.TestEquipment.EVolta;
 
 namespace WorkBench
@@ -126,7 +127,18 @@ namespace WorkBench
 
             return cpc;
         }
+        static public IInstrument GetCPC6000_on_TCPIP(string ipaddress, int port)
+        {
+            CPC6000 cpc = null;
+            IPAddress ipaddr = IPAddress.Parse(ipaddress);
+            var tcpipcomm = new TCPIPTextCommunicator(ipaddr, port, "\n");
 
+
+            cpc = new CPC6000(tcpipcomm);
+
+
+            return cpc;
+        }
         static public IInstrument GetCPC6000_on_SerialPort_with_default_Port_Settings(string portName)
         {
             return GetCPC6000_on_SerialPort(portName, 57600, Parity.None, 8, StopBits.One);

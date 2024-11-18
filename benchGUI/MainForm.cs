@@ -151,10 +151,10 @@ namespace benchGUI
         {
             cb_CurrentMeasuringInstruments.Items.Clear();
             //===========================ЭЛМЕТРО - КЕЛЬВИН==============================================================================
-            foreach (var item in Factory.GetSerialPortsNames())
-            {
-                cb_CurrentMeasuringInstruments.Items.Add(Factory.GetEK_on_SerialPort_with_default_Port_Settings(item));
-            }
+            //foreach (var item in Factory.GetSerialPortsNames())
+            //{
+            cb_CurrentMeasuringInstruments.Items.Add(Factory.GetEK_on_SerialPort_with_default_Port_Settings("COM3"));// item));
+            //}
 #if DEBUG
             cb_CurrentMeasuringInstruments.Items.Add(Factory.GetFakeEK("COM222"));
 #endif
@@ -188,11 +188,12 @@ namespace benchGUI
             //===========================CPC - 6000======================================================================================
 
             cb_PressureGeneratorInstrument.Items.Clear();
-
-            foreach (var item in Factory.GetSerialPortsNames())
-            {
-                cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings(item));
-            }
+            cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_TCPIP("10.0.0.10", 49405));
+            cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_TCPIP("10.0.0.20", 49405));
+            //foreach (var item in Factory.GetSerialPortsNames())
+            //{
+            cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings("COM14")); // item));
+            //}
 #if DEBUG
             cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_Fake_SerialPort());
 #endif
@@ -201,7 +202,7 @@ namespace benchGUI
 
             foreach (var item in Factory.GetSerialPortsNames())
             {
-                cb_PressureGeneratorInstrument.Items.Add(Factory.GetEPascal_on_SerialPort_with_default_Port_Settings(item));
+            cb_PressureGeneratorInstrument.Items.Add(Factory.GetEPascal_on_SerialPort_with_default_Port_Settings( item));
             }
 #if DEBUG
             cb_PressureGeneratorInstrument.Items.Add(Factory.GetFakeEPascal("COM333"));
@@ -274,7 +275,15 @@ namespace benchGUI
                     plot_result.Plot.SetAxisLimitsY(-currentChartDiscrepancy, currentChartDiscrepancy);
                     //-------------------------------------------------------------------
                     InvokeControlAction(() => nUD_PercentPoints.Enabled = false);
-                    AutoCalibrationTask =  Task.Run( () => AutoCalibrationSequenceTask(AutoCalCancellationTokenSource.Token));
+                    AutoCalibrationTask =  Task.Run( () => AutoCalibrationSequenceTask(AutoCalCancellationTokenSource.Token)).ContinueWith(t => {
+                        InvokeControlAction(() => btnStartAutoCal.Enabled = false);
+                        InvokeControlAction(() => nUD_PercentPoints.Enabled = true);
+                        AutoCalibrationTask = null;
+                        AutoCalCancellationTokenSource.Dispose();
+                        InvokeControlAction(() => btnStartAutoCal.Text = "Старт");
+                        InvokeControlAction(() => btnStartAutoCal.Enabled = true);
+
+                    });
                 }
                 else
                 {

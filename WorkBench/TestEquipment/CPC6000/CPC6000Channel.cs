@@ -81,7 +81,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     }
                 }
             }
-            AvailableSpans = availableSpans.ToArray();
+            AvailableSpans = availableSpans.OrderByDescending(sp => sp.PressureType).ToArray();
 
             thisChannelRangeMin = availableSpans.OrderBy(sp => sp.RangeMin.Value).First().RangeMin;
             thisChannelRangeMax = availableSpans.OrderByDescending(sp => sp.RangeMax.Value).First().RangeMax;
