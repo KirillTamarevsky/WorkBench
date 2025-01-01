@@ -84,7 +84,7 @@ namespace WorkBench.TestEquipment.EK
         {
             str = str.TrimEnd(new char[] { '\r', '\n' });
             string answer = string.Empty;
-            Thread.Sleep(1);
+            Thread.Sleep(100);
             switch (str.Trim())
             {
                 case "REMOTE":

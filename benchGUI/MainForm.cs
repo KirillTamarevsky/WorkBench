@@ -151,10 +151,12 @@ namespace benchGUI
         {
             cb_CurrentMeasuringInstruments.Items.Clear();
             //===========================ЭЛМЕТРО - КЕЛЬВИН==============================================================================
+#if !DEBUG
             //foreach (var item in Factory.GetSerialPortsNames())
             //{
             cb_CurrentMeasuringInstruments.Items.Add(Factory.GetEK_on_SerialPort_with_default_Port_Settings("COM3"));// item));
             //}
+#endif
 #if DEBUG
             cb_CurrentMeasuringInstruments.Items.Add(Factory.GetFakeEK("COM222"));
 #endif
@@ -190,10 +192,14 @@ namespace benchGUI
             cb_PressureGeneratorInstrument.Items.Clear();
             cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_TCPIP("10.0.0.10", 49405));
             cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_TCPIP("10.0.0.20", 49405));
+
+#if !DEBUG
             //foreach (var item in Factory.GetSerialPortsNames())
             //{
             cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings("COM14")); // item));
             //}
+
+#endif
 #if DEBUG
             cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_Fake_SerialPort());
 #endif

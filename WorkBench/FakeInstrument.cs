@@ -15,17 +15,26 @@ namespace WorkBench
             MaxSpan = 40;
             InputPressure = 0;
             outputpressure = 0;
+            lastCurrentPoll = DateTime.Now;
         }
         public double MinSpan { get; set; }
         public double MaxSpan { get; set; }
+        private DateTime lastCurrentPoll {  get; set; }
+        private double tauMilliSeconds { get => 850; }
         public Double OutputCurrent 
         { get 
             {
-                outputpressure += (InputPressure - outputpressure) / 45;
+                var _lastCurrentPoll = DateTime.Now;
+                var pollTimeDelta = (_lastCurrentPoll - lastCurrentPoll).TotalMilliseconds;
+                lastCurrentPoll = _lastCurrentPoll;
+                var outputPressureDelta = InputPressure -  (InputPressure - outputpressure) * Math.Exp(-(pollTimeDelta / tauMilliSeconds) );
+                outputpressure = outputPressureDelta; // (InputPressure - outputpressure) / 45;
                 return  outputpressure/(MaxSpan - MinSpan) * 16 + 4;
             } 
         }
-        public double InputPressure { get; set; }
+        double _inputPressure;
+        public double InputPressure { get => _inputPressure; set { _inputPressure = value; } }
         private double outputpressure;
+
     }
 }

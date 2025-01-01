@@ -31,6 +31,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
         double _setpt { get; set; } = 0.1234;
         double Acurrent_value { get; set; } = 0.1234;
+        DateTime lastApollTime;
         double Bcurrent_value { get; set; } = 0.1234;
 
         string _currentChannel = "A";
@@ -69,6 +70,7 @@ namespace WorkBench.TestEquipment.CPC6000
 
             _serialPortLineEndToken = "\n";
             fakeInstrument = _fakeinstrument;
+            lastApollTime = DateTime.Now;
         }
         public void Open()
         {
@@ -153,15 +155,20 @@ namespace WorkBench.TestEquipment.CPC6000
 
                     break;
                 case "A?":
+                    var _nowPollTime = DateTime.Now;
                     Thread.Sleep(1);
-                    Acurrent_value += (_setpt - Acurrent_value ) / 15 + (random.NextDouble() / 8 - 0.125 / 2);
+                    var pollTimeDelta = (_nowPollTime - lastApollTime).TotalMilliseconds;
+                    lastApollTime = _nowPollTime;
+                    Acurrent_value = _setpt - (_setpt - Acurrent_value ) * Math.Exp(- pollTimeDelta/ 450) + (random.NextDouble() / 8 - 0.125 / 2);
                     answer = $" {Acurrent_value:N4}";
+                    if (fakeInstrument != null) { fakeInstrument.InputPressure = Acurrent_value; }
                     //answer = $" {random.NextDouble()/8 - 0.125/2 + _setpt:N4}";
                     break;
                 case "B?":
                     Thread.Sleep(1);
                     Bcurrent_value += (_setpt - Bcurrent_value) / 10 + (random.NextDouble() / 8 - 0.125 / 2);
                     answer = $" {Bcurrent_value:N4}";
+                    if (fakeInstrument != null) { fakeInstrument.InputPressure = Bcurrent_value; }
                     //answer = $" {random.NextDouble() -0.5 + 35:N4}";
                     break;
                 case "Setpt?":
@@ -169,7 +176,7 @@ namespace WorkBench.TestEquipment.CPC6000
                     break;
                 case "Setpt":
                     _setpt = double.Parse( cmdparts[1].Trim() , NumberStyles.Float, CultureInfo.InvariantCulture);
-                    if (fakeInstrument != null) { fakeInstrument.InputPressure = _setpt; }
+                    //if (fakeInstrument != null) { fakeInstrument.InputPressure = _setpt; }
                     break;
                 case "Ptype":
                     switch (cmdparts[1].ToUpper().Trim())
