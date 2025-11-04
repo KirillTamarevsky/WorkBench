@@ -453,7 +453,7 @@ namespace benchGUI
 
         private CommandResponseBase SendHARTCommand(HARTCommand cmd)
         {
-            CommandResponseBase commres = null;
+            CommandResponseBase? commres = null;
             //HART_SEND_ZERO_COMMAND();
             if (HartAddr is LongAddress)
             {
