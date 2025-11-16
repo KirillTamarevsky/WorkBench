@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WBGUIWPF", "WBGUIWPF\WBGUIW
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "m4dHART", "..\m4dHART\m4dHART\m4dHART.csproj", "{DC2227E2-8128-4325-B0A7-71EE4977B170}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nefarius.Peripherals.SerialPort", "..\Nefarius.Peripherals.SerialPort\Nefarius.Peripherals.SerialPort\Nefarius.Peripherals.SerialPort.csproj", "{BD770922-D1D6-AF40-948E-9C4DEC04B74B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{DC2227E2-8128-4325-B0A7-71EE4977B170}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC2227E2-8128-4325-B0A7-71EE4977B170}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC2227E2-8128-4325-B0A7-71EE4977B170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD770922-D1D6-AF40-948E-9C4DEC04B74B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD770922-D1D6-AF40-948E-9C4DEC04B74B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD770922-D1D6-AF40-948E-9C4DEC04B74B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD770922-D1D6-AF40-948E-9C4DEC04B74B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

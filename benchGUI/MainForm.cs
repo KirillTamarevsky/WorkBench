@@ -154,7 +154,8 @@ namespace benchGUI
 #if !DEBUG
             //foreach (var item in Factory.GetSerialPortsNames())
             //{
-            cb_CurrentMeasuringInstruments.Items.Add(Factory.GetEK_on_SerialPort_with_default_Port_Settings("COM3"));// item));
+            var ek = Factory.GetEK_on_SerialPort_with_default_Port_Settings("COM3");
+            if (ek != null) cb_CurrentMeasuringInstruments.Items.Add(ek); // item));
             //}
 #endif
 #if DEBUG
@@ -196,7 +197,8 @@ namespace benchGUI
 #if !DEBUG
             //foreach (var item in Factory.GetSerialPortsNames())
             //{
-            cb_PressureGeneratorInstrument.Items.Add(Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings("COM14")); // item));
+            var cpc = Factory.GetCPC6000_on_SerialPort_with_default_Port_Settings("COM14");
+            if (cpc != null) cb_PressureGeneratorInstrument.Items.Add(cpc); // item));
             //}
 
 #endif
